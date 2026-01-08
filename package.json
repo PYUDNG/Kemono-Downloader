@@ -1,0 +1,36 @@
+{
+    "name": "kemono-downloader",
+    "private": true,
+    "version": "0.0.0",
+    "author": {
+        "name": "PY-DNG"
+    },
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vue-tsc -b && vite build",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@primeuix/themes": "^2.0.2",
+        "@tailwindcss/vite": "^4.1.18",
+        "@types/postcss-url": "^10.0.4",
+        "mitt": "^3.0.1",
+        "primeicons": "^7.0.0",
+        "primevue": "^4.5.4",
+        "tailwind-merge": "^3.4.0",
+        "tailwindcss": "^4.1.18",
+        "tailwindcss-primeui": "^0.6.1",
+        "volt-vue": "^0.0.0-alpha.4",
+        "vue": "^3.5.19"
+    },
+    "devDependencies": {
+        "@types/node": "^25.0.3",
+        "@vitejs/plugin-vue": "^6.0.1",
+        "cssnano": "^7.1.2",
+        "typescript": "^5.9.2",
+        "vite": "^7.1.3",
+        "vite-plugin-monkey": "^7.1.1",
+        "vue-tsc": "^3.0.6"
+    }
+}
