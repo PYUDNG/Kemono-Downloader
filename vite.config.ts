@@ -17,11 +17,15 @@ export default defineConfig({
         monkey({
             entry: 'src/main.ts',
             userscript: {
-                icon: 'https://vitejs.dev/logo.svg',
+                icon: 'https://kemono.cr/assets/favicon-CPB6l7kH.ico',
                 version: pkg.version,
                 author: pkg.author.name,
-                namespace: 'npm/vite-plugin-monkey',
-                match: ['https://www.google.com/'],
+                namespace: 'https://greasyfork.org/users/667968-pyudng',
+                match: [
+                    'http*://*.kemono.party/*',
+                    'http*://*.kemono.su/*',
+                    'http*://*.kemono.cr/*',
+                ],
             },
             build: {
                 externalGlobals: {

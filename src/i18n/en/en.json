@@ -1,0 +1,29 @@
+{
+    "system": {
+        "gui": {},
+        "settings": {
+            "label": "System Settings",
+            "nickname": {
+                "label": "Your Nickname",
+                "caption": "Will be displayed in your profile"
+            },
+            "autoLogin": "Auto Login"
+        }
+    },
+    "downloader": {
+        "settings": {
+            "label": "Downloader",
+            "domain": {
+                "label": "Download Site",
+                "caption": "Resources will be downloaded from this site. Do not modify if you don't understand this setting"
+            }
+        }
+    },
+    "settings": {
+        "gui": {
+            "title": "Settings",
+            "tabpanel-placeholder": "Select a module to enter its settings"
+        }
+    }
+}
+

@@ -1,50 +1,85 @@
-import { createApp } from "vue";
+import { createApp, ref, Ref } from "vue";
 import PrimeVue from 'primevue/config';
+import { $CrE, CreateElementOptions } from "./dom-utils";
+import i18n from '@/i18n/main.js';
+
+interface ShadowAppCreationOptions {
+    /**
+     * 挂载Shadow DOM的HTML元素 或 元素的id  
+     * 提供HTMLElement时，将直接挂载在该元素上  
+     * 提供string时，将在body下创建一个新的div元素挂载shadow dom，并设置其id  
+     * 省略时，将在body下创建一个新的div元素挂载shadow dom，不设置id
+     */
+    host?: HTMLElement | string | null,
+
+    /**
+     * shadowroot初始化选项
+     */
+    init?: ShadowRootInit,
+
+    /**
+     * 传递给根组件的props
+     */
+    props?: Record<string, any>,
+
+    /**
+     * 内部元素创建附加选项
+     */
+    options?: Partial<Record<'host' | 'app', CreateElementOptions>>,
+}
+const defaultOptions: ShadowAppCreationOptions = {
+    host: null,
+    init: { mode: 'open' },
+    props: {},
+    options: {},
+};
 
 /**
- * 记录并控制当前最高Dialog的层级，用于协调z-index层级关系，保证后来者居上
+ * 挂载Shadowroot，并在其中创建Vue App
+ * @param hostId 
+ * @returns 创建的Vue app
  */
-let dialogLayer: number = 0;
+export function createShadowApp(
+    app: any,
+    options: ShadowAppCreationOptions = defaultOptions,
+) {
+    const { host, init, props } = Object.assign({}, defaultOptions, options);
+    const hostElm: HTMLElement =
+        host instanceof HTMLElement ? host : document.body.appendChild($CrE('div', options.options?.host ?? {}));
+    typeof host === 'string' && hostElm.setAttribute('id', host);
+    
+    const shadow = hostElm.attachShadow(init!);
+    import('@/styling').then(styling => styling.styling.applyTo(shadow));
+
+    const appElm = $CrE('div', options.options?.app ?? {});
+    shadow.append(appElm);
+
+    const appInstance = createApp(app, props).use(i18n).use(PrimeVue, { unstyled: true }).mount(appElm);
+    return appInstance;
+}
 
 /**
- * 创建新的悬浮窗Vue App
- * @param App Vue app
- * @param containerId 装载Shadow DOM的宿主元素ID，留空则不设置
+ * 根据viewport纵横比判断布局为横版还是竖版，并包装为一个Vue响应式变量
+ * @param ratio 横:纵 临界比例，当大于这个比例时认为是横版布局，否则竖版布局；数值越小越偏向横版，数值越大越偏向纵版；默认为1
+ * @returns （根据viewport纵横比）当前是横版还是竖版布局，跟随viewport大小实时更新
  */
-export function createDialog(App: Parameters<typeof createApp>[0], hostId?: string) {
-    // ShadowRoot内Container元素的内联样式
-    const containerStyles: Record<string, string> = {
-        position: 'fixed',
-        display: 'flex',
-        'align-items': 'center',
-        'justify-content': 'center',
-        margin: '0',
-        border: '0',
-        padding: '0',
-        left: '0',
-        top: '0',
-        width: '100vw',
-        height: '100vh',
-        'z-index': (1000000 + (dialogLayer++)).toString(),
+export function getLayoutRef(ratio: number = 1): Ref<'vertical' | 'horizontal'> {
+    const layout = ref<'vertical' | 'horizontal'>('vertical');
+    let animationFrameId: number | null = null;
+
+    const updateLayout = () => {
+        layout.value = window.innerWidth / window.innerHeight > ratio ? 'horizontal' : 'vertical';
     };
-    const containerCssText = Object.entries(containerStyles).map(([key, val]) => `${key}: ${val};`).join(' ');;
 
-    // 创建一个新的Shadow DOM，并在其中创建fixed布局的container，进而建立Vue App
-    createApp(App).use(PrimeVue, {
-        unstyled: true,
-    }).mount(
-        (() => {
-            const host = document.createElement('div');
-            const shadow = host.attachShadow({ mode: 'open' });
-            const container = document.createElement('div');
-            const app = document.createElement('div');
-            container.style.cssText = containerCssText;
-            typeof hostId === 'string' && (app.id = hostId);
-            import('@/styling.js').then(({ styling }) => styling.applyTo(shadow));
-            container.append(app);
-            shadow.append(container);
-            document.body.append(host);
-            return app;
-        })(),
-    );
+    const handleResize = () => {
+        if (animationFrameId !== null) {
+            cancelAnimationFrame(animationFrameId);
+        }
+        animationFrameId = requestAnimationFrame(updateLayout);
+    };
+
+    updateLayout();
+    window.addEventListener('resize', handleResize);
+
+    return layout;
 }

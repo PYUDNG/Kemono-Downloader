@@ -16,7 +16,8 @@ export interface UrlChangeDetail {
     | 'replaceState' // history.replaceState
     | 'pushHash'     // location.hash = 'xxx'（新增历史）
     | 'replaceHash'  // location.replace('#xxx')（替换历史）
-    | 'popstate';    // 前进/后退/history.back()等
+    | 'popstate'     // 前进/后退/history.back()等
+    | 'initial';     // 初始immediate参数回调
     /** 变更前的完整URL */
     oldUrl: string;
     /** 变更后的完整URL */
@@ -112,8 +113,9 @@ export class URLChangeMonitor {
      * @param callback 事件回调（参数为URL变更详情）
      * @returns 取消监听的函数（调用后不再触发回调）
      */
-    public onUrlChange(callback: (detail: UrlChangeDetail) => void): () => void {
+    public onUrlChange(callback: (detail: UrlChangeDetail) => void, immediate: boolean = false): () => void {
         this.emitter.on('urlChange', callback);
+        immediate && this.triggerUrlChange('initial', '', location.href, null);
         // 返回取消监听的函数
         return () => this.emitter.off('urlChange', callback);
     }

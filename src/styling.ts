@@ -16,7 +16,7 @@ const load = () => {
          * @param name 该<style>元素的类别名称，用作{@link styling}中css存储key的一部分（无实际功能性影响）
          */
         function loadStyleElement(style: HTMLStyleElement, name: string) {
-            const i = Object.hasOwn(index, name) ? index[name]++ : (index[name] = 0);
+            const i = Object.hasOwn(index, name) ? ++index[name] : (index[name] = 0);
             styling.setStyle(`__${name}[${i}]__`, style.innerHTML);
             style.remove();
         }

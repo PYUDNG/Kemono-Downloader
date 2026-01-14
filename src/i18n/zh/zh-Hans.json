@@ -1,0 +1,28 @@
+{
+    "system": {
+        "gui": {},
+        "settings": {
+            "label": "系统设置",
+            "nickname": {
+                "label": "您的昵称",
+                "caption": "将会显示在个人资料中"
+            },
+            "autoLogin": "自动登录"
+        }
+    },
+    "downloader": {
+        "settings": {
+            "label": "下载器",
+            "domain": {
+                "label": "下载站点",
+                "caption": "将从此站点下载资源，如果不懂此设置作用请不要修改"
+            }
+        }
+    },
+    "settings": {
+        "gui": {
+            "title": "设置",
+            "tabpanel-placeholder": "选择一个模块以进入其设置"
+        }
+    }
+}

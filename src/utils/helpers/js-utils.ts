@@ -104,7 +104,30 @@ class Logger {
      */
     public static readonly PrefixColor = '#6366f1';
 
-    constructor() {}
+    /**
+     * 纯文本日志输出的路径前缀的颜色
+     * 在浅色和深色模式下都清晰可见，比脚本名称更显眼
+     */
+    public static readonly PrefixPathColor = '#f97316';
+
+    /**
+     * 记录当前logger所属的作用域路径，在输出时可用作前缀以帮助调试辨识日志来源
+     */
+    public prefixPath: string[] = [];
+
+    constructor({
+        level = Logger.Level.Info,
+        path = [],
+    }: {
+        /** 日志输出等级 */
+        level?: LogLevel | LogLevelNum,
+        /** logger所属作用域路径 */
+        path?: string[]
+    } = {}) {
+        this.level = typeof level === 'string' ?
+            Logger.Level[level] : level;
+        this.prefixPath.push(...path);
+    }
 
     /**
      * 写文本日志
@@ -136,9 +159,11 @@ class Logger {
 
         // 纯文本输出：按照预定义颜色格式化
         if (isStringLog(content)) {
+            const prefix = this.prefixPath.join('.');
             content = [
-                `%c[${ GM_info.script.name }] [${ level }]\n%c${ content[0] }`,
+                `%c[${ GM_info.script.name }] %c[${ prefix }] %c[${ level }]\n${ content[0] }`,
                 `color: ${ Logger.PrefixColor };`,
+                `color: ${ Logger.PrefixPathColor };`,
                 `color: ${ Logger.LevelColor[level] };`,
             ];
         }
@@ -159,7 +184,112 @@ class Logger {
     simple(level: LogLevel, content: string): ReturnType<typeof this.log> {
         return this.log(level, 'string', 'log', content);
     }
+
+    /**
+     * 从当前logger衍生一个新的、拥有更深一层作用域路径的logger实例
+     * @param name 新增作用域层名称
+     */
+    withPath(name: string) {
+        return new Logger({
+            level: this.level,
+            path: this.prefixPath.concat(name),
+        });
+    }
 }
 
 export const logger = new Logger();
 logger.level = import.meta.env.PROD ? Logger.Level.Info : Logger.Level.Debug;
+
+export const buildCssText = (styles: Record<string, string>) => Object.entries(styles).map(([key, val]) => `${key}: ${val};`).join(' ');
+
+/**
+ * 深度比较两个值是否相等（值相等，不要求引用相等）
+ * 本函数由deepseek编写的代码再编辑而成
+ * @param value1 - 第一个值
+ * @param value2 - 第二个值
+ * @param sorting - 是否考虑顺序（数组元素顺序、对象属性顺序等）
+ * @returns 如果两个值深度相等则返回true，否则返回false
+ */
+export function deepEqual(value1: any, value2: any, sorting: boolean = true): boolean {
+    // 处理基本类型的快速比较
+    if (value1 === value2) return true;
+
+    // 处理null和undefined
+    if (value1 == null || value2 == null) {
+        return value1 === value2;
+    }
+
+    // 处理NaN
+    if (Number.isNaN(value1) && Number.isNaN(value2)) return true;
+
+    // 检查类型是否一致
+    if (typeof value1 !== typeof value2) return false;
+
+    // 处理基本类型（经过前面的比较，这里肯定不相等）
+    if (typeof value1 !== "object") return false;
+
+    // 处理数组
+    if (Array.isArray(value1)) {
+        if (!Array.isArray(value2)) return false;
+        if (value1.length !== value2.length) return false;
+
+        // 如果考虑顺序，直接按顺序比较
+        if (sorting) {
+            for (let i = 0; i < value1.length; i++) {
+                if (!deepEqual(value1[i], value2[i], sorting)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // 如果不考虑顺序，需要检查每个元素是否在另一个数组中存在
+        const arr2Copy = [...value2];
+        for (const item1 of value1) {
+            let found = false;
+            for (let j = 0; j < arr2Copy.length; j++) {
+                if (deepEqual(item1, arr2Copy[j], sorting)) {
+                    arr2Copy.splice(j, 1);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) return false;
+        }
+        return true;
+    }
+
+    // 处理对象
+    if (typeof value1 === "object" && typeof value2 === "object") {
+        const keys1 = Object.keys(value1);
+        const keys2 = Object.keys(value2);
+
+        // 检查key数量
+        if (keys1.length !== keys2.length) return false;
+
+        // 如果考虑顺序，先检查key顺序是否一致
+        if (sorting) {
+            for (let i = 0; i < keys1.length; i++) {
+                if (keys1[i] !== keys2[i]) return false;
+            }
+        } else {
+            // 如果不考虑顺序，检查key集合是否相同
+            const keys1Set = new Set(keys1);
+            for (const key of keys2) {
+                if (!keys1Set.has(key)) return false;
+            }
+        }
+
+        // 递归比较每个属性值
+        for (const key of keys1) {
+            if (!deepEqual(value1[key], value2[key], sorting)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // 其他情况（如Date、RegExp等）可以在这里添加特殊处理
+    // 目前简单转为字符串比较
+    return String(value1) === String(value2);
+}

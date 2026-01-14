@@ -9,10 +9,12 @@ export interface GM_Storage {
     GM_addValueChangeListener: typeof GM_addValueChangeListener,
 }
 
+/**
+ * 用户存储管理器
+ */
 export class UserscriptStorage<D extends Record<string, any>> {
     private storage: GM_Storage;
     private defaultValues: D;
-    private static readonly EmptyValue: unique symbol = Symbol('Empty Value');
 
     /**
      * 用户脚本存储管理器
@@ -21,10 +23,10 @@ export class UserscriptStorage<D extends Record<string, any>> {
      */
     constructor(
         storage: GM_Storage,
-        defaultValues: D,
+        defaultValues?: D,
     ) {
         this.storage = storage;
-        this.defaultValues = defaultValues;
+        this.defaultValues = defaultValues ?? {} as D;
     }
 
     /**
@@ -38,13 +40,13 @@ export class UserscriptStorage<D extends Record<string, any>> {
         T = D[K],
     >(
         name: K,
-        defaultVal: T | typeof UserscriptStorage.EmptyValue = UserscriptStorage.EmptyValue
+        defaultVal?: T
     ):
         typeof defaultVal extends D[K] ?
             // 当本次调用默认值类型与默认值对象中此键类型一致时，返回类型为此类型
             D[K] :
             // 不一致时
-            (typeof defaultVal extends typeof UserscriptStorage.EmptyValue ?
+            (typeof defaultVal extends undefined ?
                 // 本次调用未提供默认值时
                 (K extends keyof D ?
                     // 默认值对象中存在此键，返回值类型为默认值对象中此键的值
@@ -55,10 +57,8 @@ export class UserscriptStorage<D extends Record<string, any>> {
                 T
             )
     {
-        const EmptyValue: typeof UserscriptStorage.EmptyValue = UserscriptStorage.EmptyValue;
-
         // 默认值
-        defaultVal = defaultVal !== UserscriptStorage.EmptyValue ?
+        defaultVal = defaultVal !== undefined ?
             // 若本次调用提供了默认值，则使用本次提供的默认值
             defaultVal :
             // 若本次调用未提供默认值
@@ -66,36 +66,29 @@ export class UserscriptStorage<D extends Record<string, any>> {
                 // 总默认值对象中有本次访问的键的默认值，就使用它
                 this.defaultValues[name] :
                 // 总默认值对象中也没有本次访问的键的默认值，则默认为空值
-                EmptyValue;
+                undefined;
         
         // 从脚本存储中读取值
         const value = this.storage.GM_getValue(name, defaultVal);
 
         // 当读取到空值时，说明脚本存储中尚无此键，返回undefined
         // 其余情况则要么读取到了值，要么为上述默认值，可直接返回
-        return (value === EmptyValue ? undefined : value) as unknown as ReturnType<typeof this.get<K, T>>;
+        return value as unknown as ReturnType<typeof this.get<K, T>>;
     }
 
     /**
-     * 写入存储值，当未提供存储值时，将默认值写入存储；若默认值对象中也无此键，则什么都不做  
-     * **注意：写入默认值前请先检查存储中此键是否已有值，否则可能会导致已有值被覆盖**
+     * 写入存储值
      * @param name 存储键
      * @param value 存储值
+     * @param writeDefault 当存储值为undefined时是否写入默认值
      */
     set<
         K extends string,
     >(
         name: K,
-        value: (K extends keyof D ? D[K] : any) | typeof UserscriptStorage.EmptyValue = UserscriptStorage.EmptyValue
+        value: K extends keyof D ? D[K] : any,
     ): void {
-        if (value === UserscriptStorage.EmptyValue) {
-            // 未提供值，写入默认值
-            Object.hasOwn(this.defaultValues, name) &&
-                this.storage.GM_setValue(name, this.defaultValues[name]);
-        } else {
-            // 写入提供的存储值
-            this.storage.GM_setValue(name, value);
-        }
+        this.storage.GM_setValue(name, value);
     }
 
     /**
@@ -104,8 +97,7 @@ export class UserscriptStorage<D extends Record<string, any>> {
      * @returns 该键是否已写入存储
      */
     has(name: string) {
-        const EmptyValue = UserscriptStorage.EmptyValue;
-        return this.storage.GM_getValue(name, EmptyValue) !== EmptyValue;
+        return this.storage.GM_getValue(name, undefined) !== undefined;
     }
 
     /**
@@ -132,8 +124,93 @@ export class UserscriptStorage<D extends Record<string, any>> {
         this.storage.GM_deleteValue(name);
     }
 
+    /**
+     * 监听存储值的变化
+     * @param name 存储键
+     * @param callback 
+     * @returns 用户脚本管理器{@link GM_addValueChangeListener}返回的监听器ID
+     */
     watch(name: string, callback: Parameters<GmAddValueChangeListenerType>[1]): GmValueListenerId {
         return this.storage.GM_addValueChangeListener(name, callback);
+    }
+
+    /**
+     * 将传入的key作为命名空间，其值所对应的Object作为存储空间，生成一个子存储空间的{@link UserscriptStorage}实例
+     * @param key 存储空间所用键
+     * @returns 子存储空间的{@link UserscriptStorage}实例
+     */
+    withKeys<K extends string>(key: K): UserscriptStorage<
+        K extends keyof D ?
+            D[K] :
+            {}
+    > {
+        const self = this;
+        const isObject = (val: any): val is Record<string, any> => typeof val === 'object' && val !== null;
+        const getStorageObject = () => {
+            const obj = self.get(key);
+            if (!isObject(obj))
+                throw new TypeError(`substorage with key ${key} is not an object`);
+            return obj;
+        };
+
+        const storage = new UserscriptStorage(
+            {
+                GM_getValue<T = any>(subKey: string, defaultValue?: T ): T {
+                    const obj = getStorageObject();
+                    if (Object.hasOwn(obj, subKey)) return obj[subKey] as T;
+                    return defaultValue as T;
+                },
+                GM_setValue(subKey: string, value: unknown): void {
+                    const obj = getStorageObject();
+                    obj[subKey] = value;
+                    self.set(key, obj);
+                },
+                GM_deleteValue(subKey: string): void {
+                    const obj = getStorageObject();
+                    delete obj[subKey];
+                    self.set(key, obj);
+                },
+                GM_listValues(): string[] {
+                    const obj = getStorageObject();
+                    return Object.keys(obj);
+                },
+                GM_addValueChangeListener<T = any>(
+                    subKey: string,
+                    callback: (
+                        name: string,
+                        oldValue?: T,
+                        newValue?: T,
+                        remote?: boolean,
+                    ) => void
+                ): GmValueListenerId {
+                    return self.storage.GM_addValueChangeListener(key, async (_name: string, oldVal?: T, newVal?: T, remote?: boolean) => {
+                        // 如果更新前后存储空间值均不是object，则均视为默认值，两默认值一定相等无更改，无需callback
+                        if (!isObject(oldVal) && !isObject(newVal)) return;
+                        // 无论更新前还是更新后不是object，均视为默认值
+                        if (!isObject(oldVal)) oldVal = self.get(key);
+                        if (!isObject(newVal)) newVal = self.get(key);
+                        // 如果使用默认值后依然有值不是object（比如未提供默认值的情况），则报错
+                        if (!isObject(oldVal) || !isObject(newVal))
+                            throw new TypeError(`substorage with key ${key} is not an object`);
+                        // 更新前后存储值结合默认值，取得更新前后的实际读取值
+                        const oldSubVal = Object.hasOwn(oldVal, subKey) ?
+                            oldVal[subKey] :
+                            Object.hasOwn(storage.defaultValues, subKey) ? storage.defaultValues[subKey] : undefined;
+                        const newSubVal = Object.hasOwn(newVal, subKey) ?
+                            newVal[subKey] :
+                            Object.hasOwn(storage.defaultValues, subKey) ? storage.defaultValues[subKey] : undefined;
+                        // 当更新前后值未改变时无需callback
+                        const deepEqual = (await import('./js-utils.js')).deepEqual;
+                        if (deepEqual(oldVal[subKey], newVal[subKey])) return;
+                        // 确定存储空间值存在且监听值发生了改变，回调
+                        callback(subKey, oldSubVal, newSubVal, remote);
+                    });
+                }
+            },
+            Object.hasOwn(this.defaultValues, key) ? this.defaultValues[key] : {}
+        ) as UserscriptStorage<K extends keyof D ? D[K] : {}>;
+
+        return storage;
     }
 }
 

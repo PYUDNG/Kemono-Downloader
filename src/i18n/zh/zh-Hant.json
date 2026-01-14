@@ -1,0 +1,29 @@
+{
+    "system": {
+        "gui": {},
+        "settings": {
+            "label": "系統設定",
+            "nickname": {
+                "label": "您的暱稱",
+                "caption": "將會顯示在個人資料中"
+            },
+            "autoLogin": "自動登入"
+        }
+    },
+    "downloader": {
+        "settings": {
+            "label": "下載器",
+            "domain": {
+                "label": "下載站點",
+                "caption": "將從此站點下載資源，如果不懂此設定作用請不要修改"
+            }
+        }
+    },
+    "settings": {
+        "gui": {
+            "title": "設定",
+            "tabpanel-placeholder": "選擇一個模組以進入其設定"
+        }
+    }
+}
+

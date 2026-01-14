@@ -1,3 +1,5 @@
+import { SingleOrArray } from "../main.js";
+
 /** DOM检测选项 */
 interface DetectDomOptions<E extends HTMLElement = HTMLElement> {
     root?: Node;
@@ -31,7 +33,7 @@ export function detectDom(selector: string | string[]): Promise<HTMLElement>;
 export function detectDom<E extends HTMLElement>(options: DetectDomOptions<E>): MutationObserver;
 export function detectDom(
     root: Node,
-    selectors?: string | string[],
+    selectors?: SingleOrArray<string>,
     attributes?: boolean,
     callback?: (element: HTMLElement) => void
 ): MutationObserver;
@@ -146,4 +148,44 @@ function selectAll(root: Node, selectors: string[]): HTMLElement[] {
     return selectors.flatMap(selector => {
         return Array.from(root.querySelectorAll<HTMLElement>(selector));
     });
+}
+
+export interface CreateElementOptions {
+    /** 通过 element[key] = value 赋值给元素的属性 */
+    props?: Partial<HTMLElement>;
+
+    /** 通过 element.setAttribute(key, value) 为元素设置的属性 */
+    attrs?: Record<string, string>;
+
+    /** 元素的类名，支持传入 类名属性字符串 或 类名数组 */
+    classes?: SingleOrArray<string>;
+
+    /** 元素的内联样式，支持传入 样式属性字符串 或 样式数据对象 */
+    styles?: string | Partial<CSSStyleDeclaration>;
+
+    /** 元素的事件监听器数组 */
+    listeners?: Parameters<typeof HTMLElement.prototype.addEventListener>[]
+}
+
+export function $CrE<K extends keyof HTMLElementTagNameMap>(tag: K, options?: CreateElementOptions): HTMLElementTagNameMap[K]
+export function $CrE<K extends keyof HTMLElementDeprecatedTagNameMap>(tag: K, options?: CreateElementOptions): HTMLElementDeprecatedTagNameMap[K]
+export function $CrE(tag: string, options: CreateElementOptions = {}): HTMLElement {
+    const elm = document.createElement(tag);
+
+    // props
+    for (const [key, val] of Object.entries(options.props ?? {})) Reflect.set(elm, key, val);
+
+    // attrs
+    for (const [key, val] of Object.entries(options.attrs ?? {})) elm.setAttribute(key, val);
+
+    // classes
+    Object.hasOwn(options, 'classes') && (elm.className = Array.isArray(options.classes) ? options.classes.join(' ') : options.classes ?? '');
+
+    // styles
+    typeof options.styles === 'string' ? (elm.style.cssText = options.styles) : Object.assign(elm.style, options.styles);
+
+    // listeners
+    options.listeners?.forEach(args => elm.addEventListener(...args));
+
+    return elm;
 }
