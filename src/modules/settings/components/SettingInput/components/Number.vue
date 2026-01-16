@@ -5,5 +5,5 @@ const number = defineModel<number>();
 </script>
 
 <template>
-    <InputNumber v-model="number"></InputNumber>
+    <InputNumber v-model="number" />
 </template>

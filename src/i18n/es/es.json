@@ -1,0 +1,16 @@
+{
+    "settings": {
+        "gui": {
+            "tabpanel-placeholder": "Seleccione un módulo para entrar en su configuración"
+        }
+    },
+    "downloader": {
+        "settings": {
+            "label": "Descargador",
+            "provider": {
+                "label": "Método de descarga",
+                "caption": "Por defecto utiliza la descarga integrada del navegador; otros métodos de descarga tienen sus ventajas únicas, pero requieren probar la compatibilidad con su navegador"
+            }
+        }
+    }
+}

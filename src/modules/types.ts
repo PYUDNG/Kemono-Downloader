@@ -5,7 +5,7 @@ import { Checker, SingleOrArray } from "@/utils/main";
  */
 export interface Module<C = undefined> {
     /**
-     * 全局唯一ID，此ID应与定义该Module的ES模块的具名导出名一致
+     * 全局唯一ID
      */
     id: string,
 
@@ -31,7 +31,7 @@ export interface Module<C = undefined> {
     /**
      * 页面匹配规则
      */
-    checkers: SingleOrArray<Checker>,
+    checkers?: SingleOrArray<Checker>,
 
     /**
      * [生命周期钩子] 进入页面
@@ -48,11 +48,6 @@ export interface Module<C = undefined> {
      * 执行顺序在enter和leave之后
      */
     toggle?: Function,
-
-    /**
-     * [生命周期钩子] 保持全程不在此页面上的同时，从一个不是此页面的页面，切换到另一个不是此页面的其它页面
-     */
-    background?: Function,
 
     /**
      * 生命周期钩子之间的共享变量空间

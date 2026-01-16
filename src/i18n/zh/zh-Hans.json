@@ -1,28 +1,27 @@
 {
-    "system": {
-        "gui": {},
-        "settings": {
-            "label": "系统设置",
-            "nickname": {
-                "label": "您的昵称",
-                "caption": "将会显示在个人资料中"
-            },
-            "autoLogin": "自动登录"
-        }
-    },
-    "downloader": {
-        "settings": {
-            "label": "下载器",
-            "domain": {
-                "label": "下载站点",
-                "caption": "将从此站点下载资源，如果不懂此设置作用请不要修改"
-            }
-        }
-    },
     "settings": {
         "gui": {
             "title": "设置",
-            "tabpanel-placeholder": "选择一个模块以进入其设置"
+            "tabpanel-placeholder": "选择一个模块以进入其设置",
+            "no-items-placeholder": "这个模块好像还没有设置呢",
+            "reload-to-apply": "修改此设置后，已打开的页面需要刷新后才能生效"
+        }
+    },
+    "downloader": {
+        "gui": {
+            "title": "下载器"
+        },
+        "settings": {
+            "label": "下载器",
+            "provider": {
+                "label": "下载方式",
+                "caption": "默认使用浏览器内置下载；其它下载方式有其独特优势，但需要自行测试和您的浏览器的兼容性",
+                "options": {
+                    "browser": "浏览器内置下载",
+                    "fsa": "File System API",
+                    "aria2": "Aria2 RPC"
+                }
+            }
         }
     }
 }

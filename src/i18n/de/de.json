@@ -1,0 +1,16 @@
+{
+    "settings": {
+        "gui": {
+            "tabpanel-placeholder": "Wählen Sie ein Modul aus, um dessen Einstellungen aufzurufen"
+        }
+    },
+    "downloader": {
+        "settings": {
+            "label": "Downloader",
+            "provider": {
+                "label": "Download-Methode",
+                "caption": "Standardmäßig wird der integrierte Browser-Download verwendet; andere Download-Methoden haben ihre einzigartigen Vorteile, erfordern jedoch Tests auf Kompatibilität mit Ihrem Browser"
+            }
+        }
+    }
+}

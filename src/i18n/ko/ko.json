@@ -1,0 +1,16 @@
+{
+    "settings": {
+        "gui": {
+            "tabpanel-placeholder": "모듈을 선택하여 설정으로 들어가기"
+        }
+    },
+    "downloader": {
+        "settings": {
+            "label": "다운로더",
+            "provider": {
+                "label": "다운로드 방법",
+                "caption": "기본적으로 브라우저 내장 다운로드를 사용합니다. 다른 다운로드 방법에는 고유한 장점이 있지만 브라우저와의 호환성을 테스트해야 합니다"
+            }
+        }
+    }
+}

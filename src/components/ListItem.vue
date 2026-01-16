@@ -1,4 +1,9 @@
 <script setup lang="ts">
+export type ExtraCaption = string | {
+    text: string;
+    props?: Record<string, any>
+}
+
 // props
 const {
     label,
@@ -12,7 +17,11 @@ const {
     centerClass = "flex-1",
 
     /** 右侧区域默认宽度 */
-    rightClass = "w-32"
+    rightClass = "w-32",
+
+    extras = [],
+    disabled = false,
+    hidden = false,
 } = defineProps<{
     label: string;
     caption?: string;
@@ -28,11 +37,23 @@ const {
 
     /** 右侧区域自定义类名 */
     rightClass?: string;
+
+    /** 额外caption文字 */
+    extras?: ExtraCaption[],
+
+    /** 禁用状态 */
+    disabled?: boolean;
+
+    /** 隐藏状态 */
+    hidden?: boolean;
 }>();
 </script>
 
 <template>
-    <label class="flex flex-row h-full items-center hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors">
+    <label
+        class="flex flex-row items-center hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors relative"
+        :class="{ hidden, 'pointer-events-none': disabled }"
+    >
         <!-- 左侧区域（仅在需要时显示） -->
         <div v-if="icon || $slots.left" :class="['flex items-center px-3 py-2', leftClass]">
             <!-- 左侧图标或自定义内容插槽 -->
@@ -47,17 +68,28 @@ const {
         <!-- 文字区域（总是显示） -->
         <div :class="['flex flex-col px-3 py-2 justify-center min-w-0 grow shrink', centerClass]">
             <!-- min-w-0 防止文本溢出 -->
-            <div :title="label" class="text-base truncate">{{ label }}</div>
-            <div v-if="caption" :title="caption" class="text-sm text-surface-500 dark:text-surface-400 line-clamp-2">
+            <div :title="label" class="text-base truncate" :class="{ 'brightness-80': disabled, 'grayscale': disabled }">{{ label }}</div>
+            <div v-if="caption" :title="caption" class="text-sm text-surface-500 dark:text-surface-400 line-clamp-2" :class="{ 'brightness-80': disabled, 'grayscale': disabled }">
                 {{ caption }}
             </div>
+            <div v-for="ex of extras"
+                class="text-sm"
+                v-bind="typeof ex === 'object' ? ex.props ?? {} : {}"
+            >{{ typeof ex === 'string' ? ex : ex.text }}</div>
         </div>
 
         <!-- 右侧内容插槽（仅在需要时显示） -->
-        <div v-if="$slots.right" :class="['px-3 py-2', rightClass]">
-            <div class="flex justify-end items-center w-full">
+        <div v-if="$slots.right" :class="['px-3 py-2 min-w-fit', rightClass]">
+            <div class="flex justify-end items-center w-full" :class="{ 'brightness-80': disabled, 'grayscale': disabled }">
                 <slot name="right" />
             </div>
         </div>
+
+        <!-- 禁用状态展示遮罩 -->
+        <div
+            v-show="disabled"
+            class="absolute left-0 right-0 top-0 bottom-0 cursor-not-allowed pointer-events-auto"
+            @click.capture="e => { e.stopImmediatePropagation(); e.preventDefault(); }"
+        ></div>
     </label>
 </template>

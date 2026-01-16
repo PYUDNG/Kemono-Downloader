@@ -1,5 +1,6 @@
 import { logger as globalLogger, testChecker, URLChangeMonitor } from '@/utils/main';
 import * as modules from '@/modules/main.js';
+export { modules };
 
 const logger = globalLogger.withPath('loader');
 
@@ -8,7 +9,7 @@ const logger = globalLogger.withPath('loader');
  */
 export const activeState: Record<string, boolean> = Object.values(modules).reduce(
     (state, module) => {
-        state[module.id] = false;
+        state[module.default.id] = false;
         return state;
     },
     {} as typeof activeState
@@ -25,28 +26,23 @@ monitor.onUrlChange(onUrlChange, true);
 async function onUrlChange() {
     for (const module of Object.values(modules)) {
         /** 新url下，此页面是否激活 */
-        const moduleActive = testChecker(module.checkers, module.mode ?? 'and');
+        const moduleActive = !Object.hasOwn(module.default, 'checkers') || testChecker(module.default.checkers!, module.default.mode ?? 'and');
 
         // 进入页面
-        if (!activeState[module.id] && moduleActive) {
-            logger.simple('Detail', `loader: enter ${ module.id }`);
-            module.enter?.();
-            module.toggle?.();
+        if (!activeState[module.default.id] && moduleActive) {
+            logger.simple('Detail', `loader: enter ${ module.default.id }`);
+            module.default.enter?.();
+            module.default.toggle?.();
         }
 
         // 离开页面
-        if (activeState[module.id] && !moduleActive) {
-            logger.simple('Detail', `loader: leave ${ module.id }`);
-            module.leave?.();
-            module.toggle?.();
-        }
-
-        // 页面保持非激活状态，其它页面之间互相切换
-        if (!activeState[module.id] && !moduleActive) {
-            module.background?.();
+        if (activeState[module.default.id] && !moduleActive) {
+            logger.simple('Detail', `loader: leave ${ module.default.id }`);
+            module.default.leave?.();
+            module.default.toggle?.();
         }
 
         // 记录激活状态
-        activeState[module.id] = moduleActive;
+        activeState[module.default.id] = moduleActive;
     }
 }

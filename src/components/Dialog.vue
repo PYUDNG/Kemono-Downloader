@@ -106,7 +106,6 @@ function dismiss() {
         <div class="main" :style="containerCssText">
             <Card
                 :pt:root:class="'border-solid border border-gray-600'"
-                :pt:root:style="'pointer-events: auto;'"
                 v-bind="$attrs"
             >
                 <template #title>
@@ -149,5 +148,9 @@ function dismiss() {
         width: 100vw;
         height: 100vh;
         pointer-events: none;
+    }
+
+    .main > * {
+        pointer-events: auto;
     }
 </style>

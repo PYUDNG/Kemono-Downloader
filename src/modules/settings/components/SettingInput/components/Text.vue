@@ -5,5 +5,5 @@ const text = defineModel<string>();
 </script>
 
 <template>
-    <InputText v-model="text" type="text"></InputText>
+    <InputText v-model="text" type="text" />
 </template>

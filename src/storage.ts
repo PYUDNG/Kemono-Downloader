@@ -8,19 +8,18 @@ import { ref, watch } from "vue";
 export const globalStorage = new UserscriptStorage(
     { GM_getValue, GM_setValue, GM_deleteValue, GM_listValues, GM_addValueChangeListener },
     {
-        system: {
-            nickname: 'John Smith',
-            autoLogin: true,
-        },
         downloader: {
-            domain: 'kemono.cr',
+            /**
+             * 使用哪种下载器
+             */
+            provider: 'browser' as 'browser' | 'fsa' | 'aria2'
         },
     }
 );
 
 /**
  * 生成某一存储项的响应式变量，存储值与变量值之间实时同步
- * @param key 
+ * @param key 存储键
  * @param storage 用户存储管理器实例
  * @returns 
  */

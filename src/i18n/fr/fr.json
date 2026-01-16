@@ -1,0 +1,16 @@
+{
+    "settings": {
+        "gui": {
+            "tabpanel-placeholder": "Sélectionnez un module pour accéder à ses paramètres"
+        }
+    },
+    "downloader": {
+        "settings": {
+            "label": "Téléchargeur",
+            "provider": {
+                "label": "Méthode de téléchargement",
+                "caption": "Utilise par défaut le téléchargement intégré du navigateur ; les autres méthodes de téléchargement ont leurs avantages uniques, mais nécessitent de tester la compatibilité avec votre navigateur"
+            }
+        }
+    }
+}

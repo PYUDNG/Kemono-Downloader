@@ -2,12 +2,30 @@ import { createShadowApp } from "@/utils/main";
 import { defineModule } from "../types";
 import App from './app.vue';
 import { SettingItem, SettingModule } from "./types";
-import { ref } from "vue";
-import { globalStorage, makeStorageRef } from "@/storage.js";
-import i18n from '@/i18n/main.js';
+import { computed, reactive, ref } from "vue";
 
-const t = i18n.global.t;
-const modules = ref<SettingModule[]>([]);
+/**
+ * 全部设置模块
+ */
+export const modules = ref<SettingModule[]>([]);
+
+/**
+ * 全部设置模块的值
+ */
+export const settings = computed(() => modules.value.reduce(
+    (settings, module) => {
+        const moduleSettings = module.items.reduce(
+            (moduleSettings, item) => {
+                moduleSettings[item.id] = item.value
+                return moduleSettings;
+            },
+            {} as Record<string, any>
+        );
+        settings[module.id] = moduleSettings;
+        return settings;
+    },
+    {} as Record<string, any>
+));
 
 export default defineModule({
     id: 'settings',
@@ -28,45 +46,13 @@ export default defineModule({
     },
 });
 
-const storageSystem = globalStorage.withKeys('system');
-const storageDownloader = globalStorage.withKeys('downloader');
-
-registerModule({
-    id: '__system__',
-    name: t('system.settings.label'),
-    items: [{
-        label: t('system.settings.nickname.label'),
-        caption: t('system.settings.nickname.caption'),
-        type: 'text',
-        icon: 'user-edit',
-        value: makeStorageRef('nickname', storageSystem),
-    }, {
-        label: t('system.settings.autoLogin'),
-        type: 'switch',
-        icon: 'check-circle',
-        value: makeStorageRef('autoLogin', storageSystem),
-    }],
-});
-
-registerModule({
-    id: 'downloader',
-    name: t('downloader.settings.label'),
-    items: [{
-        label: t('downloader.settings.domain.label'),
-        caption: t('downloader.settings.domain.caption'),
-        type: 'text',
-        icon: 'link',
-        value: makeStorageRef('domain', storageDownloader),
-    }],
-});
-
 /**
  * 注册设置模块
  * @param module 设置模块
  */
 export function registerModule(module: SettingModule) {
     if (modules.value.some(m => m.id === module.id)) throw TypeError(`duplicate id ${module.id}`);
-    modules.value.push(module);
+    modules.value.push(reactive(module));
 }
 
 /**
@@ -76,5 +62,6 @@ export function registerModule(module: SettingModule) {
 export function registerItem(id: string, item: SettingItem) {
     const module = modules.value.find(m => m.id === id);
     if (!module) throw new TypeError(`cannot find module with id ${id}`);
-    module.items.push(item);
+    module.items.push(reactive(item));
 }
+

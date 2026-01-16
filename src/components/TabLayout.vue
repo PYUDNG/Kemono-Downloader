@@ -36,8 +36,8 @@ const tabClasses = computed(() => {
 </script>
 
 <template>
-    <div class="flex rounded-md border border-surface-700" :class="layoutClasses">
-        <div class="grow-0 shrink-0 border-surface-700" :class="tabClasses">
+    <div class="flex rounded-md border border-surface-300 dark:border-surface-700" :class="layoutClasses">
+        <div class="grow-0 shrink-0 border-surface-300 dark:border-surface-700" :class="tabClasses">
             <slot name="tab"></slot>
         </div>
         <div class="shrink grow">
