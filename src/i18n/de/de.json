@@ -1,15 +1,76 @@
 {
     "settings": {
         "gui": {
-            "tabpanel-placeholder": "Wählen Sie ein Modul aus, um dessen Einstellungen aufzurufen"
+            "title": "Einstellungen",
+            "tabpanel-placeholder": "Wählen Sie ein Modul aus, um dessen Einstellungen aufzurufen",
+            "no-items-placeholder": "Dieses Modul scheint noch keine Einstellungen zu haben",
+            "reload-to-apply": "Nach Änderung dieser Einstellung müssen geöffnete Seiten aktualisiert werden, um wirksam zu werden"
         }
     },
     "downloader": {
+        "gui": {
+            "title": "Downloader",
+            "tabs": {
+                "queue": "In Warteschlange",
+                "ongoing": "Wird heruntergeladen",
+                "complete": "Abgeschlossen",
+                "aborted": "Abgebrochen",
+                "error": "Fehler"
+            },
+            "task-component": {
+                "common": {
+                    "caption": "Download-Fortschritt: {percentage}%, {finished} / {total}",
+                    "unknown": "Unbekannt",
+                    "queue": "In Warteschlange",
+                    "ongoing": "Wird heruntergeladen",
+                    "complete": "Abgeschlossen",
+                    "aborted": "Abgebrochen",
+                    "error": "Fehler",
+                    "title-nodata": "Warten auf Aufgabeninformationen",
+                    "caption-nodata": "Service: {service}, Ersteller-ID: {creatorId}, Beitrags-ID: {postId}",
+                    "confirm-restart": {
+                        "label": "Download neu starten",
+                        "message": "Sind Sie sicher, dass Sie den Download-Task <span class='text-primary'>{name}</span> neu starten möchten?<br>Der bestehende Download-Fortschritt geht verloren und der Download beginnt von vorne",
+                        "header": "Bestätigung des Download-Neustarts",
+                        "accept": "Neu starten",
+                "reject": "Abbrechen",
+                "delete-files": "Heruntergeladene Dateien ebenfalls löschen"
+                    },
+                    "confirm-abort": {
+                        "label": "Download stoppen",
+                        "message": "Sind Sie sicher, dass Sie den Download-Task <span class='text-primary'>{name}</span> stoppen möchten?<br>Fortsetzung von Unterbrechungspunkten wird noch nicht unterstützt, wenn Sie den Download neu starten müssen, beginnt er von vorne",
+                        "header": "Bestätigung des Download-Stopps",
+                        "accept": "Stoppen",
+                        "reject": "Abbrechen",
+                        "delete-files": "Heruntergeladene Dateien ebenfalls löschen"
+        },
+                    "confirm-remove": {
+                        "label": "Download-Task entfernen",
+                        "message": "Sind Sie sicher, dass Sie den Download-Task <span class='text-primary'>{name}</span> entfernen möchten?<br>Der Download-Task wird vollständig entfernt, wenn Sie erneut herunterladen müssen, klicken Sie bitte auf den Download-Button auf der entsprechenden Seite",
+                        "header": "Bestätigung der Entfernung des Download-Tasks",
+                        "accept": "Entfernen",
+                        "reject": "Abbrechen",
+                        "delete-files": "Heruntergeladene Dateien ebenfalls löschen"
+                    }
+                },
+                "post": {
+                    "caption": "Insgesamt {total} Dateien, {finished} heruntergeladen"
+                },
+                "file": {
+                    "caption": "Download-Fortschritt: {percentage}%, {finished} / {total}"
+                }
+            }
+        },
         "settings": {
             "label": "Downloader",
             "provider": {
                 "label": "Download-Methode",
-                "caption": "Standardmäßig wird der integrierte Browser-Download verwendet; andere Download-Methoden haben ihre einzigartigen Vorteile, erfordern jedoch Tests auf Kompatibilität mit Ihrem Browser"
+                "caption": "Standardmäßig wird der integrierte Browser-Download verwendet; andere Download-Methoden haben ihre einzigartigen Vorteile, erfordern jedoch Tests auf Kompatibilität mit Ihrem Browser",
+                "options": {
+                    "browser": "Browser integrierter Download",
+                    "fsa": "File System API",
+                    "aria2": "Aria2 RPC"
+                }
             }
         }
     }

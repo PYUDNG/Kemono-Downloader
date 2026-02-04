@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import Dialog from '@/components/Dialog.vue';
-import ListBox from '@/volt/ListBox.vue';
-import { computed, markRaw, Ref, ref, UnwrapNestedRefs } from 'vue';
+import { computed, Ref, ref, UnwrapNestedRefs } from 'vue';
 import { SettingModule, SettingItem } from './types';
-import TabPanels from '@/components/TabPanels/TabPanels.vue';
-import TabPanel from '@/components/TabPanels/TabPanel.vue';
+import TabPanel from '@/components/TabLayout/TabPanel.vue';
 import SettingInput from './components/SettingInput/SettingInput.vue';
 import ListItem, { ExtraCaption } from '@/components/ListItem.vue';
-import SelectButton from '@/volt/SelectButton.vue';
-import TabLayout from '@/components/TabLayout.vue';
+import TabLayout from '@/components/TabLayout/TabLayout.vue';
 import { deepEqual, getLayoutRef } from '@/utils/main';
 import { useI18n } from 'vue-i18n';
 
@@ -29,7 +26,7 @@ const options = computed(() => modules.value.map(module => ({
 const moduleId = ref<string>();
 
 /** 设置窗口可见性 */
-const visible = ref(true);
+const visible = ref(false);
 
 /** 横/竖版布局 */
 const layout = getLayoutRef(1.2);
@@ -79,63 +76,53 @@ defineExpose({ visible });
 
 <template>
     <Dialog v-model="visible" :title="t('settings.gui.title')" :backdrop-dismiss="backdropDismiss">
-        <TabLayout class="w-[80vw] h-[80vh]" :layout="layout">
-            <template #tab>
-                <component v-if="options.length"
-                    :is="layout === 'vertical' ? SelectButton : ListBox"
-                    v-model="moduleId"
-                    :options="options"
-                    option-label="name"
-                    option-value="id"
-                    class="w-full h-full"
-                    pt:option:class="justify-center min-w-36"
-                    :pt:root:class="[
-                        layout === 'vertical' ? 'rounded-b-none' : 'rounded-r-none',
-                        'border-none'
-                    ]"
-                />
-            </template>
-            <template #content>
-                <div class="p-2 w-full h-full">
-                    <TabPanels :name="moduleId">
-                        <TabPanel v-for="module of modules.value" :name="module.id" class="w-full h-full">
-                            <div class="flex flex-col w-full h-full">
-                                <!-- 模块设置项 -->
-                                <ListItem
-                                    v-for="(item, i) of module.items"
-                                    v-show="!item.hidden"
-                                    :disabled="!!item.disabled"
-                                    :hidden="item.hidden"
-                                    :key="i"
-                                    :label="item.label"
-                                    :caption="item.caption"
-                                    :icon="item.icon"
-                                    :extras="status[module.id][item.id].extras.value"
-                                    right-class="w-48"
-                                >
-                                    <!-- 仅当有右侧内容时才显示 -->
-                                    <template v-if="item.type" #right>
-                                        <SettingInput
-                                            v-model="item.value"
-                                            :type="item.type"
-                                            :props="item.props"
-                                        />
-                                    </template>
-                                </ListItem>
-
-                                <!-- 当某模块没有设置时展示占位内容 -->
-                                <div v-if="module.items.length === 0" class="flex justify-center items-center w-full h-full">
-                                    {{ t('settings.gui.no-items-placeholder') }}
-                                </div>
-                            </div>
-                        </TabPanel>
-
-                        <template #placeholder>
-                            <div class="flex justify-center items-center w-full h-full">
-                                {{ t('settings.gui.tabpanel-placeholder') }}
-                            </div>
+        <TabLayout 
+            class="w-[80vw] h-[80vh]"
+            :layout="layout"
+            v-model="moduleId"
+            :options="options"
+            option-label="name"
+            option-value="id"
+        >
+            <TabPanel 
+                v-for="module of modules.value" 
+                :name="module.id" 
+                class="w-full h-full"
+            >
+                <div class="flex flex-col w-full h-full p-2">
+                    <!-- 模块设置项 -->
+                    <ListItem
+                        v-for="(item, i) of module.items"
+                        v-show="!item.hidden"
+                        :disabled="!!item.disabled"
+                        :hidden="item.hidden"
+                        :key="i"
+                        :label="item.label"
+                        :caption="item.caption"
+                        :icon="item.icon"
+                        :extras="status[module.id][item.id].extras.value"
+                        right-class="w-48"
+                    >
+                        <!-- 仅当有右侧内容时才显示 -->
+                        <template v-if="item.type" #right>
+                            <SettingInput
+                                v-model="item.value"
+                                :type="item.type"
+                                :props="item.props"
+                            />
                         </template>
-                    </TabPanels>
+                    </ListItem>
+
+                    <!-- 当某模块没有设置时展示占位内容 -->
+                    <div v-if="module.items.length === 0" class="flex justify-center items-center w-full h-full">
+                        {{ t('settings.gui.no-items-placeholder') }}
+                    </div>
+                </div>
+            </TabPanel>
+
+            <template #placeholder>
+                <div class="flex justify-center items-center w-full h-full">
+                    {{ t('settings.gui.tabpanel-placeholder') }}
                 </div>
             </template>
         </TabLayout>

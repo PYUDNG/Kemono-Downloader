@@ -3,6 +3,7 @@ import { buildCssText } from '@/utils/main.js';
 import Button from '@/volt/Button.vue';
 import Card from '@/volt/Card.vue';
 import { Ref, watch } from 'vue';
+import { zIndexManager } from '@/utils/helpers/ui-utils.js';
 
 // props
 const {
@@ -10,7 +11,7 @@ const {
     backgroundColor = 'color-mix(in oklab, black, transparent)',
     backdropDismiss = true,
     seamless = false,
-    zIndex = 1000000,
+    zIndex: propZIndex,
 } = defineProps<{
     /**
      * 弹窗标题
@@ -38,7 +39,8 @@ const {
 
     /**
      * 弹窗整体的z-index层级
-     * @default 1000000
+     * 如果未提供，将使用z-index管理器自动分配
+     * @default undefined
      */
     zIndex?: number
 }>();
@@ -55,26 +57,27 @@ const visible = defineModel<boolean>() as Ref<boolean>;
 // expose
 defineExpose({ show, hide });
 
+// 动态z-index管理
+const dynamicZIndex = propZIndex ?? zIndexManager.getNextZIndex();
+
 const containerCssText = buildCssText({
-    'z-index': zIndex.toString(),
+    'z-index': dynamicZIndex.toString(),
 });
 const backdropCssText = buildCssText({
-    'z-index': zIndex.toString(),
+    'z-index': dynamicZIndex.toString(),
     'background-color': backgroundColor ?? 'color-mix(in oklab, black, transparent)',
 });
 
 // 当弹窗可见时使网页无法滚动
 let beforeShow = {
-    overflow: '',
     scrollTop: 0,
     scrollLeft: 0,
 };
 watch(visible, val => {
     const target = (document.scrollingElement ?? document.body.parentElement) as HTMLElement;
-    val && (beforeShow.overflow = target.style.overflow);
     beforeShow.scrollTop = target.scrollTop;
     beforeShow.scrollLeft = target.scrollLeft;
-    target.style.overflow = val ? 'hidden' : beforeShow.overflow;
+    target.style.overflow = val ? 'hidden' : '';
     target.scrollTop = beforeShow.scrollTop;
     target.scrollLeft = beforeShow.scrollLeft;
 }, { immediate: true });
@@ -106,6 +109,8 @@ function dismiss() {
         <div class="main" :style="containerCssText">
             <Card
                 :pt:root:class="'border-solid border border-gray-600'"
+                :pt:body:class="'w-full h-full'"
+                :pt:content:class="'w-full h-full overflow-auto'"
                 v-bind="$attrs"
             >
                 <template #title>
@@ -154,3 +159,4 @@ function dismiss() {
         pointer-events: auto;
     }
 </style>
+

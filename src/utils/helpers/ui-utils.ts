@@ -2,6 +2,8 @@ import { createApp, ref, Ref } from "vue";
 import PrimeVue from 'primevue/config';
 import { $CrE, CreateElementOptions } from "./dom-utils";
 import i18n from '@/i18n/main.js';
+import Ripple from 'primevue/ripple';
+import ConfirmationService from "primevue/confirmationservice";
 
 interface ShadowAppCreationOptions {
     /**
@@ -23,39 +25,64 @@ interface ShadowAppCreationOptions {
     props?: Record<string, any>,
 
     /**
+     * 应用级别的provide
+     */
+    provides?: Record<string | symbol, any>,
+
+    /**
      * 内部元素创建附加选项
      */
     options?: Partial<Record<'host' | 'app', CreateElementOptions>>,
 }
-const defaultOptions: ShadowAppCreationOptions = {
+const defaultOptions: Required<ShadowAppCreationOptions> = {
     host: null,
     init: { mode: 'open' },
     props: {},
     options: {},
+    provides: {},
 };
 
 /**
  * 挂载Shadowroot，并在其中创建Vue App
  * @param hostId 
- * @returns 创建的Vue app
+ * @returns 创建的Vue app的根组件实例
  */
-export function createShadowApp(
-    app: any,
+export function createShadowApp<
+    T extends new (...args: any) => any // Vue接受任意构造函数作为组件定义
+>(
+    app: T,
     options: ShadowAppCreationOptions = defaultOptions,
 ) {
-    const { host, init, props } = Object.assign({}, defaultOptions, options);
+    // 创建挂载Shadown DOM的宿主元素
+    const { host, init, props, provides } = Object.assign({}, defaultOptions, options);
     const hostElm: HTMLElement =
         host instanceof HTMLElement ? host : document.body.appendChild($CrE('div', options.options?.host ?? {}));
     typeof host === 'string' && hostElm.setAttribute('id', host);
     
-    const shadow = hostElm.attachShadow(init!);
+    // 挂载Shadow DOM
+    const shadow = hostElm.attachShadow(init);
     import('@/styling').then(styling => styling.styling.applyTo(shadow));
 
+    // 在Shadow DOM中创建vue挂载元素
     const appElm = $CrE('div', options.options?.app ?? {});
     shadow.append(appElm);
 
-    const appInstance = createApp(app, props).use(i18n).use(PrimeVue, { unstyled: true }).mount(appElm);
-    return appInstance;
+    // 创建应用实例
+    const appInstance = createApp(app, props)
+        .use(i18n)
+        .use(PrimeVue, {
+            unstyled: true,
+            ripple: true,
+        })
+        .use(ConfirmationService)
+        .directive('ripple', Ripple);
+    Reflect.ownKeys(provides).forEach(key => appInstance.provide(key, provides[key]));
+
+    // 挂载应用并获得根组件实例
+    const rootComponent = appInstance.mount(appElm);
+
+    // 返回根组件实例
+    return rootComponent as InstanceType<T>;
 }
 
 /**
@@ -82,4 +109,88 @@ export function getLayoutRef(ratio: number = 1): Ref<'vertical' | 'horizontal'> 
     window.addEventListener('resize', handleResize);
 
     return layout;
+}
+
+/**
+ * z-index管理器
+ * 用于管理全局的z-index层级，确保后创建的元素覆盖在先创建的元素之上
+ */
+class ZIndexManager {
+    private baseZIndex: number;
+    private currentZIndex: number;
+    private static instance: ZIndexManager;
+
+    private constructor(baseZIndex: number = 1000000) {
+        this.baseZIndex = baseZIndex;
+        this.currentZIndex = baseZIndex;
+    }
+
+    /**
+     * 获取单例实例
+     */
+    public static getInstance(): ZIndexManager {
+        if (!ZIndexManager.instance) {
+            ZIndexManager.instance = new ZIndexManager();
+        }
+        return ZIndexManager.instance;
+    }
+
+    /**
+     * 获取下一个可用的z-index值
+     * @returns 下一个z-index值
+     */
+    public getNextZIndex(): number {
+        this.currentZIndex += 10; // 每次增加10，留出空间给内部元素
+        return this.currentZIndex;
+    }
+
+    /**
+     * 重置z-index计数器
+     * @param baseZIndex 可选的基础z-index值
+     */
+    public reset(baseZIndex?: number): void {
+        if (baseZIndex !== undefined) {
+            this.baseZIndex = baseZIndex;
+        }
+        this.currentZIndex = this.baseZIndex;
+    }
+
+    /**
+     * 获取当前z-index值
+     */
+    public getCurrentZIndex(): number {
+        return this.currentZIndex;
+    }
+
+    /**
+     * 设置基础z-index值
+     */
+    public setBaseZIndex(baseZIndex: number): void {
+        this.baseZIndex = baseZIndex;
+        if (this.currentZIndex < baseZIndex) {
+            this.currentZIndex = baseZIndex;
+        }
+    }
+}
+
+export const zIndexManager = ZIndexManager.getInstance();
+
+/**
+ * 将传入的字节数转化为`'10MB'`、`'2.34GB'`这样的格式化文本  
+ * 单位选用规则：若以某更大单位表示时数字依然大于1，则以此更大单位表示
+ * @param bytes 字节数
+ */
+export function stringifyBytes(bytes: number): string {
+    const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    let value = bytes;
+    let unitIndex = 0;
+    
+    while (value >= 1024 && unitIndex < units.length - 1) {
+        value /= 1024;
+        unitIndex++;
+    }
+
+    // 保留两位小数，但如果是整数则显示整数
+    const formattedValue = value % 1 === 0 ? value.toString() : value.toFixed(2);
+    return `${formattedValue}${units[unitIndex]}`;
 }

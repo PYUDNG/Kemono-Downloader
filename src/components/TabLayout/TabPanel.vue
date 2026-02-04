@@ -24,7 +24,7 @@ onMounted(() => allNames.value.push(name));
 </script>
 
 <template>
-    <div :class="{ 'hidden': !visible }">
+    <div :class="{ 'hidden': !visible }" class="w-full h-full">
         <slot></slot>
     </div>
 </template>

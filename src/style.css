@@ -89,3 +89,163 @@
     --p-text-muted-color: var(--p-surface-400);
     --p-text-hover-muted-color: var(--p-surface-300);
 }
+
+/* ============================================
+   PrimeVue Ripple 效果样式 (unstyled模式)
+   ============================================ */
+
+/* 
+ * Ripple 效果核心样式 - 根据 PrimeVue Ripple 源码分析
+ * 源码位置：node_modules/primevue/ripple/index.mjs
+ * 
+ * 关键发现：在 unstyled 模式下，PrimeVue 不会添加 p-ink 和 p-ink-active 类
+ * 而是使用 data-p-ink 和 data-p-ink-active 属性
+ * 
+ * span 元素属性：
+ * - data-p-ink="true"
+ * - data-p-ink-active="false" (初始) / "true" (激活时)
+ * - data-pc-name="ripple"
+ * - data-pc-section="root"
+ */
+
+/* Ripple 涟漪元素 - 使用属性选择器 */
+[data-p-ink="true"] {
+    position: absolute;
+    background: var(--p-ripple-background, rgba(0, 0, 0, 0.1));
+    border-radius: 50%;
+    transform: scale(0);
+    pointer-events: none;
+    z-index: 1;
+    /* 初始状态不显示动画 */
+    animation: none;
+}
+
+/* 关键：data-p-ink-active="true" 触发动画 */
+[data-p-ink-active="true"] {
+    animation: p-ripple-animation 0.6s linear !important;
+}
+
+@keyframes p-ripple-animation {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* 向后兼容：如果未来 PrimeVue 添加了类，也支持类选择器 */
+.p-ink,
+[data-p-ink="true"] {
+    position: absolute;
+    background: var(--p-ripple-background, rgba(0, 0, 0, 0.1));
+    border-radius: 50%;
+    transform: scale(0);
+    pointer-events: none;
+    z-index: 1;
+    animation: none;
+}
+
+.p-ink-active,
+[data-p-ink-active="true"] {
+    animation: p-ripple-animation 0.6s linear !important;
+}
+
+/* 为使用 v-ripple 指令的元素添加基础样式 */
+[v-ripple] {
+    position: relative;
+    overflow: hidden;
+}
+
+/* PrimeVue 内置组件 Ripple 样式适配 */
+
+/* Button 组件的 Ripple 适配 */
+.p-button {
+    position: relative;
+    overflow: hidden;
+}
+
+/* 浅色背景上的深色 Ripple */
+.p-button:not(.p-button-text):not(.p-button-outlined):not(.p-button-link) [data-p-ink="true"] {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* 文本按钮、轮廓按钮、链接按钮使用深色 Ripple */
+.p-button-text [data-p-ink="true"],
+.p-button-outlined [data-p-ink="true"],
+.p-button-link [data-p-ink="true"] {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* 深色模式适配 */
+.dark [data-p-ink="true"] {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.dark .p-button:not(.p-button-text):not(.p-button-outlined):not(.p-button-link) [data-p-ink="true"] {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* 主题色 Ripple 变体 - 使用 CSS 变量 */
+.p-ripple-primary [data-p-ink="true"] {
+    --p-ripple-background: rgba(59, 130, 246, 0.3);
+}
+
+.p-ripple-success [data-p-ink="true"] {
+    --p-ripple-background: rgba(34, 197, 94, 0.3);
+}
+
+.p-ripple-warning [data-p-ink="true"] {
+    --p-ripple-background: rgba(245, 158, 11, 0.3);
+}
+
+.p-ripple-danger [data-p-ink="true"] {
+    --p-ripple-background: rgba(239, 68, 68, 0.3);
+}
+
+.p-ripple-brand [data-p-ink="true"] {
+    --p-ripple-background: rgba(234, 113, 47, 0.3); /* Kemono 主色 */
+}
+
+/* 禁用状态的 Ripple 效果 */
+.p-disabled [v-ripple],
+.p-disabled [data-p-ink="true"] {
+    animation: none !important;
+}
+
+/* 其他支持 Ripple 的 PrimeVue 组件适配 */
+.p-checkbox-box,
+.p-radiobutton-box,
+.p-selectbutton-button,
+.p-togglebutton,
+.p-tieredmenu-item,
+.p-menuitem,
+.p-speeddial-action {
+    position: relative;
+    overflow: hidden;
+}
+
+/* 自定义 Ripple 颜色类 - 使用 CSS 变量 */
+.ripple-light [data-p-ink="true"] {
+    --p-ripple-background: rgba(255, 255, 255, 0.3);
+}
+
+.ripple-dark [data-p-ink="true"] {
+    --p-ripple-background: rgba(0, 0, 0, 0.2);
+}
+
+/* Ripple 动画速度变体 */
+.ripple-fast [data-p-ink-active="true"] {
+    animation-duration: 0.4s !important;
+}
+
+.ripple-slow [data-p-ink-active="true"] {
+    animation-duration: 0.8s !important;
+}
+
+/* 禁用鼠标事件时的 Ripple */
+.no-ripple [v-ripple] {
+    overflow: visible;
+}
+
+.no-ripple [data-p-ink="true"] {
+    display: none;
+}

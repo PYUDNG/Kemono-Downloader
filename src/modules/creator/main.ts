@@ -2,6 +2,7 @@
 
 import { $CrE, detectDom, logger as globalLogger, Optional } from '@/utils/main.js';
 import { defineModule } from '../types.js';
+import {  } from '../downloader/main.js';
 
 const logger = globalLogger.withPath('creator');
 
@@ -27,6 +28,7 @@ export default defineModule({
             },
             listeners: [['click', _e => {
                 logger.simple('Important', 'Start downloading');
+                //
             }]]
         }));
     },

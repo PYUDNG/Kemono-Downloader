@@ -27,5 +27,6 @@
         "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "exclude": ["src/volt/AccordionHeader.vue", "src/volt/Checkbox.vue"]
 }

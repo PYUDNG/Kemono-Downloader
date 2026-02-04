@@ -189,10 +189,10 @@ class Logger {
      * 从当前logger衍生一个新的、拥有更深一层作用域路径的logger实例
      * @param name 新增作用域层名称
      */
-    withPath(name: string) {
+    withPath(name: string, ...names: string[]) {
         return new Logger({
             level: this.level,
-            path: this.prefixPath.concat(name),
+            path: this.prefixPath.concat(name, ...names),
         });
     }
 }
@@ -292,4 +292,176 @@ export function deepEqual(value1: any, value2: any, sorting: boolean = true): bo
     // 其他情况（如Date、RegExp等）可以在这里添加特殊处理
     // 目前简单转为字符串比较
     return String(value1) === String(value2);
+}
+
+/**
+ * 队列任务
+ */
+interface Task {
+    /**
+     * 任务执行的函数/方法
+     */
+    func: Function;
+
+    /**
+     * 任务完成时，提交返回值的回调
+     */
+    resolve: Function;
+
+    /**
+     * 任务报错时，处理错误的回调
+     */
+    reject: Function;
+
+    /**
+     * 任务状态
+     */
+    status: 'queue' | 'ongoing' | 'resolved' | 'rejected';
+};
+
+interface QueueConfig {
+    /**
+     * 最大同时执行任务数量
+     * @default 3
+     */
+    max: number;
+
+    /**
+     * 从一个任务结束，到新任务开始，中间需要等待的时间（毫秒）
+     * @default 500
+     */
+    sleep: number;
+
+    /**
+     * 任务结束后，是否在任务队列中保留任务
+     * @default false
+     */
+    preserve: boolean;
+}
+
+/**
+ * 任务队列类
+ */
+export class Queue {
+    /**
+     * 任务列表
+     */
+    private tasks: Task[] = [];
+
+    /**
+     * 正在执行的任务数量
+     */
+    private ongoing: number = 0;
+
+    /**
+     * 队列配置
+     */
+    private config: QueueConfig;
+
+    /**
+     * 创建一个新的任务队列
+     * @param config 队列配置
+     */
+    constructor(config?: Partial<QueueConfig>) {
+        this.config = {
+            max: config?.max ?? 3,
+            sleep: config?.sleep ?? 500,
+            preserve: config?.preserve ?? false,
+        };
+    }
+
+    /**
+     * 将给定函数/方法排队执行，以限制并发数和执行频率
+     * @param func 排队执行的函数/方法
+     * @param signal 一个{@link AbortSignal}，当被abort时从队列移除此任务（如果任务已在执行中或已执行完毕，仍可从队列中移除，但无法终止任务）
+     */
+    enqueue<R>(func: () => R, signal?: AbortSignal): Promise<Awaited<R>> {
+        const { promise, reject, resolve } = Promise.withResolvers<Awaited<R>>();
+        const task: Task = { func, reject, resolve, status: 'queue' };
+        this.tasks.push(task);
+
+        // 任务结束时进行清理
+        promise.then(() => {
+            // 更新任务状态
+            task.status = 'resolved';
+        }).catch(() => {
+            // 更新任务状态
+            task.status = 'rejected';
+        }).finally(() => {
+            // 释放任务并行槽位
+            this.ongoing--;
+            // 从队列移除任务
+            this.config.preserve || this.tasks.splice(this.tasks.indexOf(task), 1);
+            // 检查是否有待执行的任务
+            this.checkTask();
+        })
+
+        // 处理abort
+        signal?.addEventListener('abort', () => task.reject('aborted'));
+
+        // 排队执行
+        this.checkTask();
+
+        // 返回最终以原返回值resolve的Promise
+        return promise;
+    }
+
+    /**
+     * 检查是否有空闲的并行执行槽位，如果有就将一个任务出队执行
+     */
+    private checkTask() {
+        while (this.ongoing < this.config.max) {
+            const task = this.tasks.find(t => t.status === 'queue');
+            if (!task) break;
+            this.run(task);
+        }
+    }
+
+    /**
+     * 执行给定队列任务
+     * @param task 任务
+     */
+    private run(task: Task) {
+        // 申请任务并行槽位
+        this.ongoing++;
+
+        // 更新任务状态
+        task.status = 'ongoing';
+
+        // 根据队列配置延迟执行任务
+        setTimeout(async () => {
+            try {
+                // 执行任务，兼容同步任务和Promise异步任务
+                const val = await Promise.resolve(task.func());
+                // 执行完毕，回调返回值
+                task.resolve(val);
+            } catch(err) {
+                // 出现错误，reject
+                task.reject(err);
+            }
+        }, this.config.sleep);
+    }
+
+    /**
+     * 获取队列当前状态
+     */
+    getStatus() {
+        return {
+            pending: this.tasks.length,
+            ongoing: this.ongoing,
+            maxConcurrent: this.config.max,
+            sleepBetweenTasks: this.config.sleep,
+        };
+    }
+
+    /**
+     * 清空队列中所有待执行的任务
+     */
+    clear() {
+        // 拒绝所有待执行的任务
+        for (const task of this.tasks) {
+            task.reject(new Error('Queue cleared'));
+        }
+        this.tasks = [];
+    }
 }

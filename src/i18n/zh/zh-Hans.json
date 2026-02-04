@@ -9,7 +9,57 @@
     },
     "downloader": {
         "gui": {
-            "title": "下载器"
+            "title": "下载器",
+            "tabs": {
+                "queue": "排队中",
+                "ongoing": "下载中",
+                "complete": "已完成",
+                "aborted": "已终止",
+                "error": "存在错误"
+            },
+            "task-component": {
+                "common": {
+                    "caption": "下载进度: {percentage}%, {finished} / {total}",
+                    "unknown": "未知",
+                    "queue": "排队中",
+                    "ongoing": "下载中",
+                    "complete": "已完成",
+                    "aborted": "已终止",
+                    "error": "存在错误",
+                    "title-nodata": "等待获取任务信息中",
+                    "caption-nodata": "service: {service}, creator id: {creatorId}, post id: {postId}",
+                    "confirm-restart": {
+                        "label": "重新下载",
+                        "message": "确定要重新开始下载任务 <span class='text-primary'>{name}</span> 吗？<br>现有下载进度将丢失，从头开始下载",
+                        "header": "确认重新下载",
+                        "accept": "重新下载",
+                        "reject": "算了",
+                        "delete-files": "同时删除已下载的文件"
+                    },
+                    "confirm-abort": {
+                        "label": "停止下载",
+                        "message": "确定要停止下载任务 <span class='text-primary'>{name}</span> 吗？<br>尚不支持断点续传，如需重新下载将会从头开始",
+                        "header": "确认停止下载",
+                        "accept": "停止",
+                        "reject": "算了",
+                        "delete-files": "同时删除已下载的文件"
+                    },
+                    "confirm-remove": {
+                        "label": "移除下载任务",
+                        "message": "确定要移除下载任务 <span class='text-primary'>{name}</span> 吗？<br>将彻底移除下载任务，如需重新下载请重新在对应页面点击下载按钮",
+                        "header": "确认移除下载任务",
+                        "accept": "移除",
+                        "reject": "算了",
+                        "delete-files": "同时删除已下载的文件"
+                    }
+                },
+                "post": {
+                    "caption": "共 {total} 个文件，已下载 {finished} 个"
+                },
+                "file": {
+                    "caption": "下载进度: {percentage}%, {finished} / {total}"
+                }
+            }
         },
         "settings": {
             "label": "下载器",

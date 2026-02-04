@@ -1,15 +1,76 @@
 {
     "settings": {
         "gui": {
-            "tabpanel-placeholder": "モジュールを選択して設定に入る"
+            "title": "設定",
+            "tabpanel-placeholder": "モジュールを選択して設定に入る",
+            "no-items-placeholder": "このモジュールにはまだ設定がないようです",
+            "reload-to-apply": "この設定を変更した後、開いているページを更新して有効にする必要があります"
         }
     },
     "downloader": {
+        "gui": {
+            "title": "ダウンローダー",
+            "tabs": {
+                "queue": "キュー待ち",
+                "ongoing": "ダウンロード中",
+                "complete": "完了",
+                "aborted": "中止",
+                "error": "エラー"
+            },
+            "task-component": {
+                "common": {
+                    "caption": "ダウンロード進捗: {percentage}%, {finished} / {total}",
+                    "unknown": "不明",
+                    "queue": "キュー待ち",
+                    "ongoing": "ダウンロード中",
+                    "complete": "完了",
+                    "aborted": "中止",
+                    "error": "エラー",
+                    "title-nodata": "タスク情報を待機中",
+                    "caption-nodata": "サービス: {service}, クリエイターID: {creatorId}, 投稿ID: {postId}",
+                    "confirm-restart": {
+                        "label": "ダウンロード再開",
+                        "message": "ダウンロードタスク <span class='text-primary'>{name}</span> を再開してもよろしいですか？<br>既存のダウンロード進捗は失われ、最初からダウンロードが開始されます",
+                        "header": "ダウンロード再開の確認",
+                        "accept": "再開",
+                        "reject": "キャンセル",
+                        "delete-files": "ダウンロード済みファイルも削除"
+                    },
+                    "confirm-abort": {
+                        "label": "ダウンロード停止",
+                        "message": "ダウンロードタスク <span class='text-primary'>{name}</span> を停止してもよろしいですか？<br>現在は途中からの再開はサポートされていません。再ダウンロードする場合は最初から開始されます",
+                        "header": "ダウンロード停止の確認",
+                        "accept": "停止",
+                        "reject": "キャンセル",
+                        "delete-files": "ダウンロード済みファイルも削除"
+                    },
+                    "confirm-remove": {
+                        "label": "ダウンロードタスク削除",
+                        "message": "ダウンロードタスク <span class='text-primary'>{name}</span> を削除してもよろしいですか？<br>ダウンロードタスクは完全に削除されます。再ダウンロードする場合は対応するページのダウンロードボタンをクリックしてください",
+                        "header": "ダウンロードタスク削除の確認",
+                        "accept": "削除",
+                        "reject": "キャンセル",
+                        "delete-files": "ダウンロード済みファイルも削除"
+                    }
+                },
+                "post": {
+                    "caption": "合計 {total} ファイル、{finished} ダウンロード済み"
+                },
+                "file": {
+                    "caption": "ダウンロード進捗: {percentage}%, {finished} / {total}"
+                }
+            }
+        },
         "settings": {
             "label": "ダウンローダー",
             "provider": {
                 "label": "ダウンロード方法",
-                "caption": "デフォルトはブラウザの組み込みダウンロードを使用します。他のダウンロード方法には独自の利点がありますが、ブラウザとの互換性をテストする必要があります"
+                "caption": "デフォルトはブラウザの組み込みダウンロードを使用します。他のダウンロード方法には独自の利点がありますが、ブラウザとの互換性をテストする必要があります",
+                "options": {
+                    "browser": "ブラウザ組み込みダウンロード",
+                    "fsa": "File System API",
+                    "aria2": "Aria2 RPC"
+                }
             }
         }
     }

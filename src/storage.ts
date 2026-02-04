@@ -1,6 +1,7 @@
 import { GM_getValue, GM_setValue, GM_deleteValue, GM_listValues, GM_addValueChangeListener } from "$";
-import { deepEqual, UserscriptStorage } from "@/utils/main";
+import { deepEqual, HintedString, UserscriptStorage } from "@/utils/main.js";
 import { ref, watch } from "vue";
+import { ProviderType } from "./modules/downloader/types/interface/main.js";
 
 /**
  * 全局作用域的用户存储管理器
@@ -12,7 +13,16 @@ export const globalStorage = new UserscriptStorage(
             /**
              * 使用哪种下载器
              */
-            provider: 'browser' as 'browser' | 'fsa' | 'aria2'
+            provider: 'browser' as ProviderType,
+            /**
+             * 移除下载任务时，是否默认勾选“同时删除已下载文件”复选框
+             */
+            removeFiles: true as boolean,
+
+            /**
+             * 不同provider自己的设置空间
+             */
+            providerSettings: {} as Record<string, unknown>,
         },
     }
 );
@@ -24,7 +34,7 @@ export const globalStorage = new UserscriptStorage(
  * @returns 
  */
 export function makeStorageRef<
-    K extends string,
+    K extends HintedString<keyof D & string>,
     D extends Record<string, any>
 >(
     key: K,

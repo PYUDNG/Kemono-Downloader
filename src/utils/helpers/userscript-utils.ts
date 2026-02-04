@@ -1,5 +1,6 @@
 import { GM_addValueChangeListener, GM_deleteValue, GM_getValue, GM_listValues, GM_setValue, GmAddValueChangeListenerType, GmValueListenerId } from "$";
 import { ref, watch } from "vue";
+import { HintedString } from "../main.js";
 
 export interface GM_Storage {
     GM_getValue: typeof GM_getValue,
@@ -36,26 +37,21 @@ export class UserscriptStorage<D extends Record<string, any>> {
      * @returns 
      */
     get<
-        K extends string,
-        T = D[K],
+        K extends HintedString<string & keyof D>,
+        T = undefined,
     >(
         name: K,
         defaultVal?: T
     ):
-        typeof defaultVal extends D[K] ?
-            // 当本次调用默认值类型与默认值对象中此键类型一致时，返回类型为此类型
-            D[K] :
-            // 不一致时
-            (typeof defaultVal extends undefined ?
-                // 本次调用未提供默认值时
-                (K extends keyof D ?
-                    // 默认值对象中存在此键，返回值类型为默认值对象中此键的值
-                    D[K] :
-                    // 默认值对象中无此键时，返回值类型为any（取决于实际已存储的值）
-                    any) :
-                // 本地调用提供了默认值时，返回值类型为本次提供的默认值的类型
-                T
-            )
+        typeof defaultVal extends undefined ?
+            // 本次调用未提供默认值时
+            K extends keyof D ?
+                // 默认值对象中存在此键，返回值类型为默认值对象中此键的值
+                D[K] :
+                // 默认值对象中无此键时，返回值类型为any（取决于实际已存储的值）
+                any :
+            // 本地调用提供了默认值时，返回值类型为本次提供的默认值的类型
+            T
     {
         // 默认值
         defaultVal = defaultVal !== undefined ?
@@ -83,11 +79,13 @@ export class UserscriptStorage<D extends Record<string, any>> {
      * @param writeDefault 当存储值为undefined时是否写入默认值
      */
     set<
-        K extends string,
+        K extends keyof D,
     >(
         name: K,
-        value: K extends keyof D ? D[K] : any,
-    ): void {
+        value: D[K],
+    ): void;
+    set(name: string, value: unknown): void;
+    set(name: string, value: any) {
         this.storage.GM_setValue(name, value);
     }
 
@@ -96,7 +94,9 @@ export class UserscriptStorage<D extends Record<string, any>> {
      * @param name 存储键
      * @returns 该键是否已写入存储
      */
-    has(name: string) {
+    has<
+        K extends HintedString<string & keyof D>
+    >(name: K) {
         return this.storage.GM_getValue(name, undefined) !== undefined;
     }
 
@@ -120,7 +120,9 @@ export class UserscriptStorage<D extends Record<string, any>> {
      * 删除存储键
      * @param name 存储键
      */
-    delete(name: string): void {
+    delete<
+        K extends HintedString<string & keyof D>
+    >(name: K): void {
         this.storage.GM_deleteValue(name);
     }
 

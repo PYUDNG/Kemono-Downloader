@@ -1,12 +1,16 @@
-import { createShadowApp, SingleOrArray } from "@/utils/main";
-import { defineModule } from "../types";
-import { DownloadProvider, DownloadTaskInfo } from "./types";
+import { createShadowApp } from "@/utils/main";
+import { defineModule } from "../types.js";
+import * as providers from './providers/main.js';
+import { IDownloadProvider, ProviderType } from "./types/interface/main.js";
 import { registerModule } from "../settings/main.js";
 import i18n from "@/i18n/main.js";
 import { globalStorage, makeStorageRef } from '@/storage.js';
-import BrowserDownloadProvider from "./provider/browser/main.js";
 import App from './gui/app.vue';
-export * as gui from './gui/app.vue';
+import AppTaskDetail from './gui/app-taskdetail.vue';
+import { reactive } from "vue";
+import { PostInfo } from "../api/types/common.js";
+import { appTaskDetailInjectionKey } from "./gui/utils.js";
+export { default as gui } from './gui/app.vue';
 
 const t = i18n.global.t;
 const storage = globalStorage.withKeys('downloader');
@@ -30,37 +34,43 @@ registerModule({
         props: {
             optionLabel: 'label',
             optionValue: 'value',
-            options: [{
-                label: t('downloader.settings.provider.options.browser'),
-                value: 'browser',
-            }, {
-                label: t('downloader.settings.provider.options.fsa'),
-                value: 'fsa',
-            }, {
-                label: t('downloader.settings.provider.options.aria2'),
-                value: 'aria2',
-            }],
+            options: Object.keys(providers).map(name => ({
+                label: t('downloader.settings.provider.options.' + name),
+                value: name,
+            })),
         },
         reload: true,
     }],
 });
 
 // 初始化下载器Provider
-const provider: DownloadProvider = new ({
-    browser: BrowserDownloadProvider,
-    fsa: BrowserDownloadProvider,
-    aria2: BrowserDownloadProvider,
-})[storage.get('provider')];
+const providerType: ProviderType = storage.get('provider');
+const provider: IDownloadProvider = reactive(new providers[providerType]);
 
 // 创建GUI
-createShadowApp(App, {
-    props: { provider }
+const appTaskDetail = createShadowApp(AppTaskDetail, {
+    props: { provider, tasks: [] },
+    options: {
+        app: {
+            classes: 'dark'
+        }
+    }
+});
+const app = createShadowApp(App, {
+    props: { provider },
+    options: {
+        app: {
+            classes: 'dark'
+        },
+    },
+    provides: {
+        [appTaskDetailInjectionKey]: appTaskDetail
+    }
 });
 
-/**
- * 创建下载任务
- */
-export function download(tasks: SingleOrArray<DownloadTaskInfo>) {
-    tasks = Array.isArray(tasks) ? tasks : [tasks];
-    tasks.forEach(task => provider.addTask(task));
+export function downloadPost(info: PostInfo) {
+    const taskId = provider.downloadPost(info);
+    const status = provider.tasks.find(t => t.id === taskId)!.progress.status;
+    app.tab = status;
+    app.visible = true;
 }

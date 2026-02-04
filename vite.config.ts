@@ -3,7 +3,7 @@ import vue from '@vitejs/plugin-vue';
 import monkey, { cdn } from 'vite-plugin-monkey';
 import path from 'path';
 import pkg from './package.json';
-import tailwindcss from '@tailwindcss/vite'
+import tailwindcss from '@tailwindcss/vite';
 import postcssUrl from 'postcss-url';
 import cssnano from 'cssnano';
 import stringCssTransformer from './build-utils/stringCssTransformer.js';
@@ -57,7 +57,7 @@ export default defineConfig({
         },
     },
     build: {
-        minify: true,
+        minify: false,
         emptyOutDir: false,
     },
 });
