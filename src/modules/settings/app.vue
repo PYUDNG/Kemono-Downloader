@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Dialog from '@/components/Dialog.vue';
+import Dialog from '@/volt/Dialog.vue';
 import { computed, Ref, ref, UnwrapNestedRefs } from 'vue';
 import { SettingModule, SettingItem } from './types';
 import TabPanel from '@/components/TabLayout/TabPanel.vue';
@@ -34,11 +34,11 @@ const layout = getLayoutRef(1.2);
 /** 每一条设置的UI相关状态信息 */
 type SettingStatus = {
     /** 最初渲染时该设置项的初始值 */
-    initVal: any,
+    initVal: any;
     /** 当前值是否和初始值不同 */
-    modified: Ref<boolean>,
+    modified: Ref<boolean>;
     /** 需要额外显示的文本 */
-    extras: Ref<ExtraCaption[]>,
+    extras: Ref<ExtraCaption[]>;
 };
 
 /** 生成设置项状态信息 */
@@ -68,14 +68,19 @@ const status = modules.value.reduce((acc, module) => {
     return acc;
 }, {} as Record<string, Record<string, SettingStatus>>)
 
-
+/** 生产环境下反复切换点击，为防止意外关闭界面，设置为不可通过点击背景遮罩关闭Dialog */
 const backdropDismiss = import.meta.env.PROD;
 
 defineExpose({ visible });
 </script>
 
 <template>
-    <Dialog v-model="visible" :title="t('settings.gui.title')" :backdrop-dismiss="backdropDismiss">
+    <Dialog
+        v-model:visible="visible"
+        :header="t('settings.gui.title')"
+        :dismissableMask="backdropDismiss"
+        modal
+    >
         <TabLayout 
             class="w-[80vw] h-[80vh]"
             :layout="layout"

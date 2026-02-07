@@ -1,4 +1,5 @@
 import { GM_info } from "$";
+import { Ref, toRaw, watch } from "vue";
 
 /** @satisfies {Record<string, (...args: any[]) => boolean>} */
 const checkers = {
@@ -54,7 +55,7 @@ export function testChecker(
 type LogLevel = keyof typeof Logger.Level;
 type LogLevelNum = typeof Logger.Level[LogLevel];
 type ConsoleMethods = {
-  [K in keyof Console]: Console[K] extends (...args: any[]) => any ? K : never
+    [K in keyof Console]: Console[K] extends (...args: any[]) => any ? K : never
 }[keyof Console];
 
 class Logger {
@@ -161,10 +162,10 @@ class Logger {
         if (isStringLog(content)) {
             const prefix = this.prefixPath.join('.');
             content = [
-                `%c[${ GM_info.script.name }] %c[${ prefix }] %c[${ level }]\n${ content[0] }`,
-                `color: ${ Logger.PrefixColor };`,
-                `color: ${ Logger.PrefixPathColor };`,
-                `color: ${ Logger.LevelColor[level] };`,
+                `%c[${GM_info.script.name}] %c[${prefix}] %c[${level}]\n${content[0]}`,
+                `color: ${Logger.PrefixColor};`,
+                `color: ${Logger.PrefixPathColor};`,
+                `color: ${Logger.LevelColor[level]};`,
             ];
         }
 
@@ -435,7 +436,7 @@ export class Queue {
                 const val = await Promise.resolve(task.func());
                 // 执行完毕，回调返回值
                 task.resolve(val);
-            } catch(err) {
+            } catch (err) {
                 // 出现错误，reject
                 task.reject(err);
             }
@@ -464,4 +465,39 @@ export class Queue {
         }
         this.tasks = [];
     }
+}
+
+/**
+ * 对传入的响应式数组中的每个元素执行`load`回调，包括调用时就有的元素和未来新增的元素  
+ * 当未来从该响应式数组中移除元素时，对其执行`unload`回调
+ * @param listRef 
+ * @param load 
+ * @param unload 
+ */
+export function useListEffect<T>(
+    listRef: Ref<T[]>,
+    load: (elm: T, ...rest: any[]) => any,
+    unload?: (elm: T, ...rest: any[]) => any
+) {
+    const processed = new Set<T>();
+
+    watch(listRef, (curr) => {
+        const nextSet = new Set(toRaw(curr));
+
+        // Unload removed
+        processed.forEach(item => {
+            if (!nextSet.has(item)) {
+                unload?.(item);
+                processed.delete(item);
+            }
+        });
+
+        // Load added
+        nextSet.forEach(item => {
+            if (!processed.has(item)) {
+                load(item);
+                processed.add(item);
+            }
+        });
+    }, { deep: false, immediate: true });
 }

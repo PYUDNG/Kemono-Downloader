@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Dialog from '@/components/Dialog.vue';
+import Dialog from '@/volt/Dialog.vue';
 import { IDownloadProvider, Status } from '../types/interface/main.ts';
 import { computed, provide, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -68,9 +68,10 @@ defineExpose({ visible, tab });
 
 <template>
     <Dialog
-        v-model="visible"
-        :title="t('downloader.gui.title')"
-        :z-index="1000000"
+        v-model:visible="visible"
+        :header="t('downloader.gui.title')"
+        append-to="self"
+        modal
     >
         <TabLayout
             v-model="tab"

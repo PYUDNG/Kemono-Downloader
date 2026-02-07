@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Dialog from '@/components/Dialog.vue';
+import Dialog from '@/volt/Dialog.vue';
 import { IDownloadProvider, IDownloadTask } from '../types/interface/main.ts';
 import { provide, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -62,12 +62,12 @@ defineExpose({
 
 <template>
     <Dialog
-        v-model="visible"
-        :title="t('downloader.gui.title')"
+        v-model:visible="visible"
+        :header="t('downloader.gui.title')"
         class="w-[80vw] h-[80vh]"
-        :z-index="1000020"
+        append-to="self"
+        modal
     >
-        <!-- Hello -->
         <TaskItem
             v-for="task of internalTasks"
             :key="task.id"

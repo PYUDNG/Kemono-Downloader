@@ -4,6 +4,7 @@ import Button from '@/volt/Button.vue';
 import Card from '@/volt/Card.vue';
 import { Ref, watch } from 'vue';
 import { zIndexManager } from '@/utils/helpers/ui-utils.js';
+import { manager } from './utils/main.js';
 
 // props
 const {
@@ -17,32 +18,32 @@ const {
      * 弹窗标题
      * @default ''
      */
-    title?: string
+    title?: string;
 
     /**
      * 背景层颜色
      * @default 'color-mix(in oklab, black, transparent)'
      */
-    backgroundColor?: string
+    backgroundColor?: string;
 
     /**
      * 无缝模式，即没有背景层、用户可直接与后方网页交互
      * @default false
      */
-    seamless?: boolean
+    seamless?: boolean;
 
     /**
      * 点击背景层是否自动关闭弹窗
      * @default true
      */
-    backdropDismiss?: boolean
+    backdropDismiss?: boolean;
 
     /**
      * 弹窗整体的z-index层级
      * 如果未提供，将使用z-index管理器自动分配
      * @default undefined
      */
-    zIndex?: number
+    zIndex?: number;
 }>();
 
 // emits
@@ -56,6 +57,11 @@ const visible = defineModel<boolean>() as Ref<boolean>;
 
 // expose
 defineExpose({ show, hide });
+
+// 创建popup
+const popupId = manager.newPopup({
+
+});
 
 // 动态z-index管理
 const dynamicZIndex = propZIndex ?? zIndexManager.getNextZIndex();
