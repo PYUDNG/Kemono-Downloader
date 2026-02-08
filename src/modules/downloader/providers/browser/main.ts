@@ -1,13 +1,13 @@
 import { PostInfo } from "@/modules/api/types/common.js";
 import { BaseDownloadProvider } from "../../types/base/provider.js";
 import { BaseFileDownloadTask } from "../../types/base/task.js";
-import { IPostDownloadTask } from "../../types/interface/post.js";
+import { IPostDownloadTask, IPostsDownloadTask } from "../../types/interface/post.js";
 import { IDownloadProvider } from "../../types/interface/provider.js";
 import { IFileDownloadTask, Status } from "../../types/interface/task.js";
 import { PostApiResponse } from "@/modules/api/types/post.js";
 import { download, logger as globalLogger, Queue } from "@/utils/main.js";
 import { post } from "@/modules/api/main.js";
-import { BasePostDownloadTask } from "../../types/base/post.js";
+import { BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/post.js";
 import { Reactive, reactive, watch } from "vue";
 
 const logger = globalLogger.withPath('downloader', 'provider', 'browser');
@@ -111,15 +111,10 @@ class BrowserFileDownloadTask extends BaseFileDownloadTask implements IFileDownl
 }
 
 export class PostDownloadTask extends BasePostDownloadTask implements IPostDownloadTask {
-    public name: string = '';
+    public name: string | null = null;
     public data: PostApiResponse | null = null;
-    public fileTasks: Reactive<BaseFileDownloadTask[]> = reactive([]);
+    public subTasks: Reactive<BaseFileDownloadTask[]> = reactive([]);
     public dataPromise: Promise<PostApiResponse>;
-
-    /**
-     * 用于终止任务的信号控制器
-     */
-    private controller: AbortController = new AbortController();
 
     /**
      * 一个run过程中pending、run完毕后resolve的Promise  
@@ -137,9 +132,6 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
             return this.data;
         });
 
-        // 提供abort方法
-        this.provideAbortSignal();
-
         // 当api数据获取完毕时
         this.dataPromise.then(() => {
             // 为post任务设置名称
@@ -152,19 +144,19 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
                     url: `https://n1.${location.hostname}/data` + file.path,
                     path: file.name,
                 });
-                this.fileTasks.push(fileTask);
+                this.subTasks.push(fileTask);
 
                 // 根据文件下载任务状态，更新Post下载任务状态
                 watch(() => fileTask.progress.status, (newVal, oldVal) => {
                     if (newVal === 'complete') this.progress.finished++;
                     if (oldVal === 'complete') this.progress.finished--;
-                    if (this.hasFileStatus('ongoing') || this.hasFileStatus('queue')) {
+                    if (this.hasTaskStatus('ongoing') || this.hasTaskStatus('queue')) {
                         this.progress.status = 'ongoing';
-                    } else if (this.hasFileStatus('aborted')) {
+                    } else if (this.hasTaskStatus('aborted')) {
                         this.progress.status = 'aborted';
-                    } else if (this.hasFileStatus('error')) {
+                    } else if (this.hasTaskStatus('error')) {
                         this.progress.status = 'error';
-                    } else if (this.fileTasks.every(t => t.progress.status === 'complete')) {
+                    } else if (this.subTasks.every(t => t.progress.status === 'complete')) {
                         this.progress.status = 'complete';
                     }
                 });
@@ -185,14 +177,11 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
         // 确保api数据已获取完毕
         await this.dataPromise;
 
-        // 更新AbortSiginal
-        if (this.controller.signal.aborted) this.provideAbortSignal();
-
         // 排队下载所有文件
         this.progress.status = 'ongoing' as Status;
-        await Promise.allSettled(this.fileTasks.map(fileTask =>
+        await Promise.allSettled(this.subTasks.map(subTask =>
             // fileTask.run内部已存在错误处理逻辑，即使下载出错，这里也不应报错（除非是代码错误）
-            fileTask.run()
+            subTask.run()
         ));
 
         // 下载完毕，设置任务状态
@@ -200,7 +189,7 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
             // 如果任务已取消，则状态依然aborted
             'aborted' :
             // 如果任务没有被取消
-            this.hasFileStatus('error') ?
+            this.hasTaskStatus('error') ?
                 // 如果任一文件下载子任务存在错误，即视作任务整体出错
                 'error' :
                 // 一个错误也没有，任务完成
@@ -214,32 +203,102 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
         if (this.progress.status !== 'queue' && this.progress.status !== 'ongoing') return;
         // 首先设置为aborted状态
         this.progress.status = 'aborted';
-        // 然后立即发送abort信号
-        this.controller?.abort();
+        // 然后停止所有子任务
+        await Promise.allSettled(this.subTasks.map(task => task.abort()));
         // 等待本次run执行完毕后返回
         await this.runPromise;
     }
 
     /**
-     * 更换新的AbortSignal
+     * 检查所有subTasks中是否存在给定状态的task
      */
-    provideAbortSignal() {
-        this.controller = new AbortController();
-        this.controller.signal.addEventListener('abort', () =>
-            this.fileTasks.forEach(fileTask => fileTask.abort()));
+    hasTaskStatus(status: Status) {
+        return this.subTasks.some(task => task.progress.status === status);
+    }
+}
+
+export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDownloadTask {
+    public subTasks: Reactive<IPostDownloadTask[]>;
+    public name: string;
+
+    /**
+     * @param name 下载任务名称
+     * @param infos 需要下载的posts信息列表
+     */
+    constructor(name: string, infos: PostInfo[]) {
+        super(infos);
+
+        // 设置名称
+        this.name = name;
+        
+        // 为所有post创建子任务
+        this.subTasks = this.infos.map(info => new PostDownloadTask(info));
+
+        // 设置进度
+        this.progress.total = this.subTasks.length;
+    }
+
+    async run(): Promise<void> {
+        // 防止重复运行
+        if (this.progress.status === 'ongoing') return;
+
+        // 开始下载
+        this.progress.finished = 0;
+        this.progress.status = 'ongoing' as Status;
+        await Promise.allSettled(this.subTasks.map(async task => {
+            await task.run();
+            this.progress.finished++;
+        }));
+
+        // 设置下载完成状态
+        this.progress.status = this.progress.status === 'aborted' ?
+            // 如果任务已取消，则状态依然aborted
+            'aborted' :
+            // 如果任务没有被取消
+            this.hasTaskStatus('error') ?
+                // 如果任一文件下载子任务存在错误，即视作任务整体出错
+                'error' :
+                // 一个错误也没有，任务完成
+                'complete';
+    }
+
+    async abort(): Promise<void> {
+        if (this.progress.status !== 'queue' && this.progress.status !== 'ongoing') return;
+        // 设置abort状态
+        this.progress.status = 'aborted';
+        // 终止每一个子任务
+        await Promise.allSettled(this.subTasks.map(task => task.abort()));
+        // 等待本次run完成后返回：由于此时每个子任务都已完成（终止），run自然就已经完成，因此无需额外等待
     }
 
     /**
-     * 检查所有fileTasks中是否存在给定状态的task
+     * 检查所有subTasks中是否存在给定状态的task
      */
-    hasFileStatus(status: Status) {
-        return this.fileTasks.some(task => task.progress.status === status);
+    hasTaskStatus(status: Status) {
+        return this.subTasks.some(task => task.progress.status === status);
     }
 }
 
 export default class BrowserDownloadProvider extends BaseDownloadProvider implements IDownloadProvider {
+    /**
+     * 下载单Post
+     * @param info 下载任务信息
+     * @returns 
+     */
     downloadPost(info: PostInfo): string {
         const task = new PostDownloadTask(info);
+        this.tasks.push(task);
+        task.run();
+        return task.id;
+    }
+
+    /**
+     * 下载多Post
+     * @param name 下载任务名称
+     * @param infos 需要下载的posts信息列表
+     */
+    downloadPosts(name: string, infos: PostInfo[]): string {
+        const task = new PostsDownloadTask(name, infos);
         this.tasks.push(task);
         task.run();
         return task.id;

@@ -100,10 +100,11 @@ export interface IDownloadTask extends ITask {
     type: HintedString<'download'>;
     
     /**
-     * 任务人类可读名称  
-     * 通常用于UI展示
+     * 任务的人类可读名称  
+     * 通常用于UI展示  
+     * 当由于各种原因（如数据未加载完成等）缺失时，为`null`
      */
-    name: string;
+    name: string | null;
 
     /**
      * 开始下载  
@@ -136,10 +137,11 @@ export interface IMultiFileDownloadTask extends IDownloadTask {
     type: HintedString<'multifile'>;
 
     /**
-     * 多文件下载任务列表  
+     * 子下载任务列表  
+     * 可以是文件下载任务，也可以是任何继承于文件下载任务的下载任务类型  
      * 响应式对象
      */
-    fileTasks: Reactive<IFileDownloadTask[]>;
+    subTasks: Reactive<IDownloadTask[]>;
 
     /**
      * 开始下载  

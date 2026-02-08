@@ -25,4 +25,11 @@ export interface IDownloadProvider {
      * @returns 为此次下载创建的任务ID
      */
     downloadPost(info: PostInfo): string;
+
+    /**
+     * 下载指定的一组Post
+     * @param name 下载任务名称
+     * @param infos 需要下载的posts信息列表
+     */
+    downloadPosts(name: string, infos: PostInfo[]): string;
 }

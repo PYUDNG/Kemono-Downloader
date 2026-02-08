@@ -9,7 +9,7 @@ import App from './gui/app.vue';
 import AppTaskDetail from './gui/app-taskdetail.vue';
 import { reactive } from "vue";
 import { PostInfo } from "../api/types/common.js";
-import { appTaskDetailInjectionKey } from "./gui/utils.js";
+import { rootTaskDetailInjectionKey } from "./gui/utils.js";
 export { default as gui } from './gui/app.vue';
 
 const t = i18n.global.t;
@@ -48,7 +48,7 @@ const providerType: ProviderType = storage.get('provider');
 const provider: IDownloadProvider = reactive(new providers[providerType]);
 
 // 创建GUI
-const appTaskDetail = createShadowApp(AppTaskDetail, {
+const { app, root: rootTaskDetail } = createShadowApp(AppTaskDetail, {
     props: { provider, tasks: [] },
     options: {
         app: {
@@ -56,7 +56,9 @@ const appTaskDetail = createShadowApp(AppTaskDetail, {
         }
     }
 });
-const app = createShadowApp(App, {
+app.provide(rootTaskDetailInjectionKey, rootTaskDetail);
+
+const { root } = createShadowApp(App, {
     props: { provider },
     options: {
         app: {
@@ -64,13 +66,20 @@ const app = createShadowApp(App, {
         },
     },
     provides: {
-        [appTaskDetailInjectionKey]: appTaskDetail
+        [rootTaskDetailInjectionKey]: rootTaskDetail
     }
 });
 
 export function downloadPost(info: PostInfo) {
     const taskId = provider.downloadPost(info);
     const status = provider.tasks.find(t => t.id === taskId)!.progress.status;
-    app.tab = status;
-    app.visible = true;
+    root.tab = status;
+    root.visible = true;
+}
+
+export function downloadPosts(infos: PostInfo[]) {
+    const taskId = provider.downloadPosts('__default_name__', infos);
+    const status = provider.tasks.find(t => t.id === taskId)!.progress.status;
+    root.tab = status;
+    root.visible = true;
 }

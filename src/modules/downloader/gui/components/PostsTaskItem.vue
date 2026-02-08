@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { IPostDownloadTask } from '../../types/interface/main.js';
+import type { IPostsDownloadTask } from '../../types/interface/main.js';
 import { inject, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { providerInjectionKey } from '../utils.js';
@@ -16,7 +16,7 @@ const { task, isSubtask = false } = defineProps<{
     /**
      * Post下载任务实例
      */
-    task: IPostDownloadTask;
+    task: IPostsDownloadTask;
 
     /**
      * 当前task是否从属于某父级task
@@ -43,7 +43,7 @@ const toProgressString = (num: number) => num > -1 ? num.toString() : t(tsCommon
  * 用户停止下载任务
  * @param task 任务实例，和props传入的task应当相同
  */
-async function abort(task: IPostDownloadTask) {
+async function abort(task: IPostsDownloadTask) {
     loading.value = true;
     await task.abort();
     loading.value = false;
@@ -53,7 +53,7 @@ async function abort(task: IPostDownloadTask) {
  * 用户移除下载任务
  * @param task 任务实例，和props传入的task应当相同
  */
-async function remove(task: IPostDownloadTask) {
+async function remove(task: IPostsDownloadTask) {
     loading.value = true;
     await task.abort();
     provider.removeTask(task.id);
@@ -64,7 +64,7 @@ async function remove(task: IPostDownloadTask) {
  * 用户重新开始下载任务
  * @param task 任务实例，和props传入的task应当相同
  */
-async function restart(task: IPostDownloadTask) {
+async function restart(task: IPostsDownloadTask) {
     loading.value = true;
     await task.abort();
     task.run();
@@ -76,7 +76,7 @@ async function restart(task: IPostDownloadTask) {
  * @param _e 点击事件
  * @param task 任务实例，和props传入的task应当相同
  */
-function detail(_e: PointerEvent, task: IPostDownloadTask) {
+function detail(_e: PointerEvent, task: IPostsDownloadTask) {
     // 创建并展示子任务窗口
     const { host, app, root } = createShadowApp(AppTaskDetail, {
         props: { provider, tasks: [] },

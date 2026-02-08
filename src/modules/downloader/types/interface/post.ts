@@ -24,7 +24,24 @@ export interface IPostDownloadTask extends IMultiFileDownloadTask {
 
     /**
      * Post API获取状态  
-     * 当此项不为`'complete'`时`data`属性应为`null`
+     * 当此项未resolve时`data`属性应为`null`
      */
     dataPromise: Promise<PostApiResponse>;
+}
+
+export interface IPostsDownloadTask extends IMultiFileDownloadTask {
+    /**
+     * 任务类型
+     */
+    type: 'posts';
+
+    /**
+     * Posts 信息列表
+     */
+    infos: PostInfo[];
+    
+    /**
+     * 下载Post的任务列表
+     */
+    subTasks: IPostDownloadTask[];
 }

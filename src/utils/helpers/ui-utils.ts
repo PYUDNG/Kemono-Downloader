@@ -42,6 +42,9 @@ const defaultOptions: Required<ShadowAppCreationOptions> = {
     provides: {},
 };
 
+// 异步导入styling，防止循环导入初始化死锁
+let styling = import('@/styling.js');
+
 /**
  * 挂载Shadowroot，并在其中创建Vue App
  * @param hostId 
@@ -61,7 +64,7 @@ export function createShadowApp<
     
     // 挂载Shadow DOM
     const shadow = hostElm.attachShadow(init);
-    import('@/styling').then(styling => styling.styling.applyTo(shadow));
+    styling.then(styling => styling.styling.applyTo(shadow));
 
     // 在Shadow DOM中创建vue挂载元素
     const appElm = $CrE('div', options.options?.app ?? {});
@@ -79,10 +82,17 @@ export function createShadowApp<
     Reflect.ownKeys(provides).forEach(key => appInstance.provide(key, provides[key]));
 
     // 挂载应用并获得根组件实例
-    const rootComponent = appInstance.mount(appElm);
+    const rootComponent = appInstance.mount(appElm) as InstanceType<T>;
 
     // 返回根组件实例
-    return rootComponent as InstanceType<T>;
+    return {
+        /** 挂载Shadow DOM的宿主元素 */
+        host: hostElm,
+        /** Vue App */
+        app: appInstance,
+        /** Vue 根组件实例 */
+        root: rootComponent,
+    };
 }
 
 /**

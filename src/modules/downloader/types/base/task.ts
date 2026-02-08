@@ -25,7 +25,7 @@ export abstract class BaseTask implements ITask {
 }
 export abstract class BaseDownloadTask extends BaseTask implements IDownloadTask {
     public readonly type: string = 'download';
-    abstract name: string;
+    abstract name: string | null;
 
     /**
      * 开始下载
@@ -45,7 +45,7 @@ export abstract class BaseFileDownloadTask extends BaseDownloadTask implements I
     }
 };
 
-export abstract class BaseMultiFileDownloadTask extends BaseDownloadTask implements IMultiFileDownloadTask {
+export abstract class BaseMultiDownloadTask extends BaseDownloadTask implements IMultiFileDownloadTask {
     public readonly type: string = 'multifile';
-    public fileTasks: Reactive<IFileDownloadTask[]> = reactive([]);
+    public subTasks: Reactive<IDownloadTask[]> = reactive([]);
 }
