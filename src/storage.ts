@@ -14,15 +14,27 @@ export const globalStorage = new UserscriptStorage(
              * 使用哪种下载器
              */
             provider: 'browser' as ProviderType,
+
             /**
              * 移除下载任务时，是否默认勾选“同时删除已下载文件”复选框
              */
             removeFiles: true as boolean,
 
             /**
+             * 文件名命名模板
+             */
+            filename: '{Name}' as string,
+
+            /**
              * 不同provider自己的设置空间
              */
             providerSettings: {} as Record<string, unknown>,
+        },
+        settings: {
+            /**
+             * 设置项输入时是否保持帮助文本常态化显示（如果有）
+             */
+            helpOnInput: true as boolean,
         },
     }
 );

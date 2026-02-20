@@ -89,6 +89,7 @@ const placeholder = computed(() => ([null, undefined] as (string | null | undefi
                             actualLayout === 'vertical' ? 'rounded-b-none' : 'rounded-r-none',
                             'border-none'
                         ]"
+                        :listStyle="actualLayout === 'vertical' ? false : 'max-height: 100%;'"
                     />
                 </template>
                 <!-- 如果没有options，则使用slot -->

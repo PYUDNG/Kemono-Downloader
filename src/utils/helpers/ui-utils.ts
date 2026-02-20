@@ -1,11 +1,15 @@
-import { createApp, ref, Ref } from "vue";
+import { Component, createApp, h, reactive, ref, Ref } from "vue";
+import type { ComponentExposed, ComponentProps } from 'vue-component-type-helpers'
 import PrimeVue from 'primevue/config';
 import { $CrE, CreateElementOptions } from "./dom-utils";
 import i18n from '@/i18n/main.js';
 import Ripple from 'primevue/ripple';
 import ConfirmationService from "primevue/confirmationservice";
+import { Nullable } from "../main";
 
-interface ShadowAppCreationOptions {
+interface ShadowAppCreationOptions<
+    C extends Component
+> {
     /**
      * 挂载Shadow DOM的HTML元素 或 元素的id  
      * 提供HTMLElement时，将直接挂载在该元素上  
@@ -22,7 +26,7 @@ interface ShadowAppCreationOptions {
     /**
      * 传递给根组件的props
      */
-    props?: Record<string, any>,
+    props?: ComponentProps<C>,//Record<string, any>,
 
     /**
      * 应用级别的provide
@@ -34,7 +38,7 @@ interface ShadowAppCreationOptions {
      */
     options?: Partial<Record<'host' | 'app', CreateElementOptions>>,
 }
-const defaultOptions: Required<ShadowAppCreationOptions> = {
+const defaultOptions: Required<ShadowAppCreationOptions<Component>> = {
     host: null,
     init: { mode: 'open' },
     props: {},
@@ -51,10 +55,10 @@ let styling = import('@/styling.js');
  * @returns 创建的Vue app的根组件实例
  */
 export function createShadowApp<
-    T extends new (...args: any) => any // Vue接受任意构造函数作为组件定义
+    T extends Component,
 >(
     app: T,
-    options: ShadowAppCreationOptions = defaultOptions,
+    options: ShadowAppCreationOptions<T> = defaultOptions,
 ) {
     // 创建挂载Shadown DOM的宿主元素
     const { host, init, props, provides } = Object.assign({}, defaultOptions, options);
@@ -71,7 +75,13 @@ export function createShadowApp<
     shadow.append(appElm);
 
     // 创建应用实例
-    const appInstance = createApp(app, props)
+    // 为了保持根组件props的响应性，采用以下workaround，参考此issue：
+    // https://github.com/vuejs/core/issues/4874#issuecomment-959008724
+    // https://github.com/vuejs/core/issues/4874#issuecomment-1353941493
+    let expose: Nullable<ComponentExposed<T>> = null;
+    const appInstance = createApp({
+        render: () => expose = h(app, props) as typeof expose
+    })
         .use(i18n)
         .use(PrimeVue, {
             unstyled: true,
@@ -82,7 +92,9 @@ export function createShadowApp<
     Reflect.ownKeys(provides).forEach(key => appInstance.provide(key, provides[key]));
 
     // 挂载应用并获得根组件实例
-    const rootComponent = appInstance.mount(appElm) as InstanceType<T>;
+    //const rootComponent = appInstance.mount(appElm) as ComponentExposed<T>;
+    appInstance.mount(appElm);
+    const rootComponent = reactive(expose!.component.exposed) as ComponentExposed<T>;
 
     // 返回根组件实例
     return {
@@ -203,4 +215,14 @@ export function stringifyBytes(bytes: number): string {
     // 保留两位小数，但如果是整数则显示整数
     const formattedValue = value % 1 === 0 ? value.toString() : value.toFixed(2);
     return `${formattedValue}${units[unitIndex]}`;
+}
+
+/**
+ * 从给定HTML代码渲染成Text纯文本
+ * @param html HTML代码
+ */
+export function extractText(html: string): string {
+    return $CrE('div', {
+        props: { innerHTML: html }
+    }).innerText;
 }

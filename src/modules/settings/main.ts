@@ -3,6 +3,10 @@ import { defineModule } from "../types";
 import App from './app.vue';
 import { SettingItem, SettingModule } from "./types";
 import { computed, reactive, ref } from "vue";
+import { GM_registerMenuCommand } from "$";
+import i18n from "@/i18n/main";
+
+const t = i18n.global.t;
 
 /**
  * 全部设置模块
@@ -35,7 +39,7 @@ export default defineModule({
         value: true,
     },
     async enter() {
-        createShadowApp(App, {
+        const { root } = createShadowApp(App, {
             props: { modules },
             options: {
                 app: {
@@ -43,6 +47,8 @@ export default defineModule({
                 },
             },
         });
+
+        GM_registerMenuCommand(t('settings.menu.label'), () => root.visible = true);
     },
 });
 

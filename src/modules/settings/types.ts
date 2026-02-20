@@ -17,14 +17,22 @@ export interface SettingItem {
     type: CompType,
 
     /**
-     * 主要描述文本
+     * 主要描述文本  
+     * 占据主要文本区域展示
      */
     label: string;
 
     /**
-     * 次要描述文本
+     * 次要描述文本  
+     * 占据次要文本区域展示
      */
     caption?: string;
+
+    /**
+     * 补充描述文本  
+     * 默认不展示，用户交互时在额外UI区域展示
+     */
+    help?: string;
 
     /**
      * 图标

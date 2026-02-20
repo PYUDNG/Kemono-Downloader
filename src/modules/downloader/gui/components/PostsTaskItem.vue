@@ -9,7 +9,7 @@ import { createShadowApp } from '@/utils/main.js';
 
 const { t } = useI18n();
 const tsCommonPrefix = 'downloader.gui.task-component.common.';
-const tsPostPrefix = 'downloader.gui.task-component.post.';
+const tsPostsPrefix = 'downloader.gui.task-component.posts.';
 
 // props
 const { task, isSubtask = false } = defineProps<{
@@ -79,15 +79,15 @@ async function restart(task: IPostsDownloadTask) {
 function detail(_e: PointerEvent, task: IPostsDownloadTask) {
     // 创建并展示子任务窗口
     const { host, app, root } = createShadowApp(AppTaskDetail, {
-        props: { provider, tasks: [] },
+        props: { provider, tasks: [], name: task.name },
         options: {
             app: {
                 classes: 'dark'
             }
         }
     });
-    root.showWithTasks(task.subTasks);
-    
+    root.showWithTasks(task.subTasks, task.name);
+
     // 当子任务窗口隐藏（被关闭）时销毁它
     watch(() => root.visible, (newVal, oldVal) => {
         if (!newVal && oldVal) {
@@ -115,7 +115,7 @@ function detail(_e: PointerEvent, task: IPostsDownloadTask) {
 
         <!-- 副标题-进度文本插槽 -->
         <template #progress>
-            {{ t(tsPostPrefix + 'caption', {
+            {{ t(tsPostsPrefix + 'caption', {
                 total: toProgressString(task.progress.total),
                 finished: toProgressString(task.progress.finished),
             }) }}

@@ -1,0 +1,93 @@
+<script setup lang="ts">
+import Checkbox from '@/volt/Checkbox.vue';
+import { computed } from 'vue';
+import { v4 as uuid } from 'uuid';
+import { PostsApiItem } from '@/modules/api/types/posts.js';
+import { PostApiResponse } from '@/modules/api/types/post.js';
+import { extractText } from '@/utils/main.js';
+import Button from '@/volt/Button.vue';
+import { PostInfo } from '@/modules/api/types/common';
+import { getPostContent, getPostFilePath, getPostTitle, isPostsApiItem } from './utils.js';
+
+const { data, id } = defineProps<{
+    /**
+     * 用作`<label>`的`for`和`<input type="checkbox">`的`id`
+     */
+    id?: string;
+    data: PostsApiItem | PostApiResponse;
+}>();
+
+const checked = defineModel<boolean>({ default: false });
+
+// 生成唯一的id：如果props.id存在则使用，否则生成内部唯一id
+const uniqueId = computed(() => id ?? `post-item-${ uuid() }`);
+
+const emit = defineEmits<{
+    click: [event: PointerEvent];
+}>();
+
+/**
+ * 当前post的信息
+ */
+const info = computed<PostInfo>(() => {
+    const obj = isPostsApiItem(data) ? data : data.post;
+    return {
+        service: obj.service,
+        creatorId: obj.user,
+        postId: obj.id
+    };
+});
+
+/**
+ * 封面图url
+ */
+const coverUrl = computed(() =>
+    `https://img.${ location.host }/thumbnail/data${ getPostFilePath(data) }`
+);
+
+/**
+ * post页面url
+ */
+const postUrl = computed(() => `https://${ location.host }/${ info.value.service }/user/${ info.value.creatorId }/post/${ info.value.postId }`);
+</script>
+
+<template>
+    <label
+        class="w-full flex flex-row px-3 py-2 hover:bg-surface-800 transition-colors duration-200"
+        :for="uniqueId"
+        v-ripple
+        @click="$emit('click', $event)"
+    >
+        <!-- 复选框 -->
+        <div class="grow-0 shrink-0 flex flex-row items-center px-3 py-2">
+            <Checkbox v-model="checked" :inputId="uniqueId" binary />
+        </div>
+
+        <!-- 缩略图 -->
+        <div class="grow-0 shrink-0 flex flex-row items-center px-3 py-2">
+            <img :src="coverUrl" class="object-cover object-center w-10 h-10">
+        </div>
+
+        <!-- 文字部分 -->
+        <div class="grow shrink flex flex-col justify-center truncate">
+            <!-- 主标题 -->
+            <div class="text-base w-full">
+                {{ getPostTitle(data) }}
+            </div>
+            <!-- 副标题 -->
+            <!-- PostsApiItem类暂时不展示：服务端返回的.substring是一个从html代码简单取前50个字符的截断字符串，不适合人类阅读
+            <div>{{ isPostsApiItem(data) ? data.substring : data.post.content.substring(50) }}</div>
+            -->
+            <div
+                class="text-sm text-surface-500 dark:text-surface-400 flex flex-row items-center w-full truncate"
+            >{{ extractText(getPostContent(data)) }}</div>
+        </div>
+
+        <!-- 按钮 -->
+        <div class="flex flex-row items-center px-3 py-2">
+            <a :href="postUrl" target="_blank">
+                <Button icon="pi pi-external-link" variant="text" />
+            </a>
+        </div>
+    </label>
+</template>

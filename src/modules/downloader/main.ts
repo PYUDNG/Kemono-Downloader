@@ -40,6 +40,12 @@ registerModule({
             })),
         },
         reload: true,
+    }, {
+        id: 'filename',
+        type: 'text',
+        label: t('downloader.settings.filename.label'),
+        help: t('downloader.settings.filename.help'),
+        value: makeStorageRef('filename', storage),
     }],
 });
 
@@ -49,7 +55,7 @@ const provider: IDownloadProvider = reactive(new providers[providerType]);
 
 // 创建GUI
 const { app, root: rootTaskDetail } = createShadowApp(AppTaskDetail, {
-    props: { provider, tasks: [] },
+    props: { provider, tasks: [], name: null },
     options: {
         app: {
             classes: 'dark'
@@ -77,8 +83,8 @@ export function downloadPost(info: PostInfo) {
     root.visible = true;
 }
 
-export function downloadPosts(infos: PostInfo[]) {
-    const taskId = provider.downloadPosts('__default_name__', infos);
+export function downloadPosts(name: string, infos: PostInfo[]) {
+    const taskId = provider.downloadPosts(name, infos);
     const status = provider.tasks.find(t => t.id === taskId)!.progress.status;
     root.tab = status;
     root.visible = true;

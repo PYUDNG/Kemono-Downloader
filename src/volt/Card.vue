@@ -7,18 +7,19 @@
         }"
     >
         <template v-for="(_, slotName) in $slots" #[slotName]="slotProps">
-            <slot :name="slotName" v-bind="slotProps ?? {}" />
+            <slot :name="slotName as keyof CardSlots" v-bind="slotProps ?? {}" />
         </template>
     </Card>
 </template>
 
 <script setup lang="ts">
-import Card, { type CardPassThroughOptions, type CardProps } from 'primevue/card';
+import Card, { CardSlots, type CardPassThroughOptions, type CardProps } from 'primevue/card';
 import { ref } from 'vue';
 import { ptViewMerge } from './utils';
 
 interface Props extends /* @vue-ignore */ CardProps {}
 defineProps<Props>();
+defineSlots<CardSlots>();
 
 const theme = ref<CardPassThroughOptions>({
     root: `flex flex-col rounded-xl

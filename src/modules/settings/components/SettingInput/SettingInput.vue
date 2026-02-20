@@ -13,6 +13,12 @@ const { type, props } = defineProps<{
     props?: Record<string, any>
 }>();
 
+// emits
+defineEmits<{
+    focus: [e: Event];
+    blur: [e: Event];
+}>();
+
 // 向下透传的model
 const model = defineModel<any>();
 
@@ -31,5 +37,11 @@ const component = computed(() => {
 </script>
 
 <template>
-    <component v-model="model" :is="component" v-bind="props ?? {}" />
+    <component
+        v-model="model"
+        :is="component"
+        v-bind="props ?? {}"
+        @focus="e => $emit('focus', e)"
+        @blur="e => $emit('blur', e)"
+    />
 </template>

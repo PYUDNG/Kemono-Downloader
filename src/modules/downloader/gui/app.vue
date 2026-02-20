@@ -26,7 +26,7 @@ const visible = ref(false);
 /**
  * 选项卡列表
  */
-const options: Record<'label' | 'value', string>[] = ['queue', 'ongoing', 'complete', 'aborted', 'error'].map(name => ({
+const options: Record<'label' | 'value', string>[] = ['init', 'queue', 'ongoing', 'complete', 'aborted', 'error'].map(name => ({
     label: t('downloader.gui.tabs.' + name),
     value: name
 }));
@@ -42,17 +42,21 @@ const tab = ref<Status>();
  */
 const filterTask = (status: Status) => computed(() => provider.tasks.filter(t => t.progress.status === status));
 /**
- * 已完成的下载任务
+ * 初始化的下载任务
  */
-const completedTasks = filterTask('complete');
+const initTasks = filterTask('init');
+/**
+ * 队列中的下载任务
+ */
+const queueTasks = filterTask('queue');
 /**
  * 进行中的下载任务
  */
 const ongoingTasks = filterTask('ongoing');
 /**
- * 队列中的下载任务
+ * 已完成的下载任务
  */
-const queueTasks = filterTask('queue');
+const completedTasks = filterTask('complete');
 /**
  * 已终止的下载任务
  */
@@ -71,6 +75,7 @@ defineExpose({ visible, tab });
         v-model:visible="visible"
         :header="t('downloader.gui.title')"
         append-to="self"
+        dismissable-mask
         modal
     >
         <TabLayout
@@ -80,6 +85,14 @@ defineExpose({ visible, tab });
             option-value="value"
             class="w-[80vw] h-[80vh]"
         >
+            <!-- 初始化 -->
+            <TabPanel name="init">
+                <TaskItem
+                    v-for="task of initTasks"
+                    :task="task"
+                />
+            </TabPanel>
+
             <!-- 队列中 -->
             <TabPanel name="queue">
                 <TaskItem

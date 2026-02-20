@@ -1,6 +1,7 @@
 import { DownloadFile, IDownloadTask, IFileDownloadTask, IMultiFileDownloadTask, Progress, ITask } from "../interface/task.js";
 import { v4 as uuid } from "uuid";
 import { Reactive, reactive } from "vue";
+import { Nullable } from "@/utils/main.js";
 
 export abstract class BaseTask implements ITask {
     public id: string = uuid();
@@ -10,6 +11,14 @@ export abstract class BaseTask implements ITask {
         finished: -1,
         status: 'queue'
     });
+    abstract init: Promise<void>;
+    public parent: Nullable<BaseTask> = null;
+    public subTasks: BaseTask[] = [];
+
+    constructor(parent: Nullable<BaseTask>) {
+        this.parent = parent ?? null;
+    };
+
     /**
      * 开始执行任务
      * 如果是同步任务，应在任务完成后返回
@@ -38,8 +47,8 @@ export abstract class BaseFileDownloadTask extends BaseDownloadTask implements I
     public name: string;
     file: DownloadFile;
 
-    constructor(file: DownloadFile) {
-        super();
+    constructor(parent: Nullable<BaseTask>, file: DownloadFile) {
+        super(parent);
         this.file = file;
         this.name = file.path;
     }
@@ -47,5 +56,5 @@ export abstract class BaseFileDownloadTask extends BaseDownloadTask implements I
 
 export abstract class BaseMultiDownloadTask extends BaseDownloadTask implements IMultiFileDownloadTask {
     public readonly type: string = 'multifile';
-    public subTasks: Reactive<IDownloadTask[]> = reactive([]);
+    public subTasks: Reactive<BaseDownloadTask[]> = reactive([]);
 }

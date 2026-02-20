@@ -15,6 +15,7 @@
         "@primeuix/themes": "^2.0.2",
         "@tailwindcss/vite": "^4.1.18",
         "@types/postcss-url": "^10.0.4",
+        "dedent": "^1.7.1",
         "mitt": "^3.0.1",
         "primeicons": "^7.0.0",
         "primevue": "^4.5.4",
@@ -34,6 +35,7 @@
         "typescript": "^5.9.2",
         "vite": "^7.1.3",
         "vite-plugin-monkey": "^7.1.1",
+        "vue-component-type-helpers": "^3.2.4",
         "vue-tsc": "^3.0.6"
     }
 }

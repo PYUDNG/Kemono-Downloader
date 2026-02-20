@@ -1,14 +1,15 @@
 import { PostInfo } from "@/modules/api/types/common.js";
 import { BaseDownloadProvider } from "../../types/base/provider.js";
-import { BaseFileDownloadTask } from "../../types/base/task.js";
+import { BaseDownloadTask, BaseFileDownloadTask } from "../../types/base/task.js";
 import { IPostDownloadTask, IPostsDownloadTask } from "../../types/interface/post.js";
 import { IDownloadProvider } from "../../types/interface/provider.js";
-import { IFileDownloadTask, Status } from "../../types/interface/task.js";
+import { DownloadFile, IFileDownloadTask, Status } from "../../types/interface/task.js";
 import { PostApiResponse } from "@/modules/api/types/post.js";
-import { download, logger as globalLogger, Queue } from "@/utils/main.js";
-import { post } from "@/modules/api/main.js";
+import { download, logger as globalLogger, Nullable, Queue } from "@/utils/main.js";
+import { post, profile } from "@/modules/api/main.js";
 import { BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/post.js";
 import { Reactive, reactive, watch } from "vue";
+import { constructFilename } from "../../utils/main.js";
 
 const logger = globalLogger.withPath('downloader', 'provider', 'browser');
 
@@ -35,6 +36,8 @@ logger.log('Debug', 'raw', 'log', queueFile);
  * 浏览器内置下载器实现
  */
 class BrowserFileDownloadTask extends BaseFileDownloadTask implements IFileDownloadTask {
+    public init: Promise<void> = Promise.resolve();
+
     /**
      * 用于终止任务的信号控制器
      */
@@ -48,6 +51,11 @@ class BrowserFileDownloadTask extends BaseFileDownloadTask implements IFileDownl
     private runPromise: Promise<void> = Promise.resolve();
 
     private logger = logger.withPath('BrowserFileDownloadTask');
+
+    constructor(parent: Nullable<BaseDownloadTask>, file: DownloadFile) {
+        super(parent, file);
+        this.parent = parent ?? null;
+    }
 
     /**
      * 开始下载文件
@@ -111,10 +119,11 @@ class BrowserFileDownloadTask extends BaseFileDownloadTask implements IFileDownl
 }
 
 export class PostDownloadTask extends BasePostDownloadTask implements IPostDownloadTask {
-    public name: string | null = null;
-    public data: PostApiResponse | null = null;
+    public name: Nullable<string> = null;
+    public data: Nullable<PostApiResponse> = null;
     public subTasks: Reactive<BaseFileDownloadTask[]> = reactive([]);
     public dataPromise: Promise<PostApiResponse>;
+    public init: Promise<void>;
 
     /**
      * 一个run过程中pending、run完毕后resolve的Promise  
@@ -123,27 +132,47 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
      */
     private runPromise: Promise<void> = Promise.resolve();
 
-    constructor(info: PostInfo) {
-        super(info);
+    constructor(parent: Nullable<BaseDownloadTask>, info: PostInfo) {
+        super(parent, info);
+        this.parent = parent ?? null;
+
+        const { promise, resolve } = Promise.withResolvers<void>();
+        this.init = promise;
 
         // 排队访问API，获取Post数据
         this.dataPromise = queueApi.enqueue(async () => {
-            this.data = await post(this.info.service, this.info.creatorId, this.info.postId);
+            this.data = await post(this.info);
             return this.data;
         });
 
+
         // 当api数据获取完毕时
-        this.dataPromise.then(() => {
+        this.dataPromise.then(async () => {
             // 为post任务设置名称
             this.name = this.data!.post.title;
 
             // 为每个文件创建下载任务
             const files = [this.data!.post.file, ...this.data!.post.attachments];
-            files.forEach(file => {
-                const fileTask = new BrowserFileDownloadTask({
-                    url: `https://n1.${location.hostname}/data` + file.path,
-                    path: file.name,
+            await Promise.allSettled(files.map(async (file, i) => {
+                const creator = await profile({
+                    service: this.info.service,
+                    creatorId: this.info.creatorId
                 });
+                const filename = constructFilename({
+                    data: {
+                        creator: creator,
+                        post: this.data!,
+                        file: file,
+                    },
+                    p: i + 1,
+                });
+                const fileTask = new BrowserFileDownloadTask(
+                    this,
+                    {
+                        url: `https://n1.${location.hostname}/data` + file.path,
+                        path: filename,
+                    }
+                );
                 this.subTasks.push(fileTask);
 
                 // 根据文件下载任务状态，更新Post下载任务状态
@@ -160,9 +189,11 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
                         this.progress.status = 'complete';
                     }
                 });
-            });
+            }));
             this.progress.total = files.length;
             this.progress.finished = 0;
+
+            resolve();
         });
     }
 
@@ -218,24 +249,30 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
 }
 
 export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDownloadTask {
-    public subTasks: Reactive<IPostDownloadTask[]>;
+    public subTasks: Reactive<PostDownloadTask[]>;
     public name: string;
+    public init: Promise<void>;
 
     /**
      * @param name 下载任务名称
      * @param infos 需要下载的posts信息列表
      */
-    constructor(name: string, infos: PostInfo[]) {
-        super(infos);
+    constructor(parent: Nullable<BaseDownloadTask>, name: string, infos: PostInfo[]) {
+        super(parent, infos);
 
         // 设置名称
         this.name = name;
         
         // 为所有post创建子任务
-        this.subTasks = this.infos.map(info => new PostDownloadTask(info));
+        this.subTasks = this.infos.map(info => new PostDownloadTask(this, info));
 
         // 设置进度
         this.progress.total = this.subTasks.length;
+
+        // 当所有子任务初始化完毕时，当前任务初始化完毕
+        const { promise, resolve } = Promise.withResolvers<void>();
+        this.init = promise;
+        Promise.allSettled(this.subTasks.map(subTask => subTask.init)).then(() => resolve());
     }
 
     async run(): Promise<void> {
@@ -286,9 +323,9 @@ export default class BrowserDownloadProvider extends BaseDownloadProvider implem
      * @returns 
      */
     downloadPost(info: PostInfo): string {
-        const task = new PostDownloadTask(info);
+        const task = new PostDownloadTask(null, info);
         this.tasks.push(task);
-        task.run();
+        task.init.then(() => task.run());
         return task.id;
     }
 
@@ -298,9 +335,9 @@ export default class BrowserDownloadProvider extends BaseDownloadProvider implem
      * @param infos 需要下载的posts信息列表
      */
     downloadPosts(name: string, infos: PostInfo[]): string {
-        const task = new PostsDownloadTask(name, infos);
+        const task = new PostsDownloadTask(null, name, infos);
         this.tasks.push(task);
-        task.run();
+        task.init.then(() => task.run());
         return task.id;
     }
 }

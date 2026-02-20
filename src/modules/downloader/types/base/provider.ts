@@ -21,5 +21,6 @@ export abstract class BaseDownloadProvider implements IDownloadProvider {
     }
     
     abstract downloadPost(info: PostInfo): string;
+    abstract downloadPosts(name: string, infos: PostInfo[]): string;
 }
 

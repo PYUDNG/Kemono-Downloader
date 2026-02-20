@@ -66,16 +66,23 @@ const {
         </div>
 
         <!-- 文字区域（总是显示） -->
-        <div :class="['flex flex-col px-3 py-2 justify-center min-w-0 grow shrink', centerClass]">
-            <!-- min-w-0 防止文本溢出 -->
-            <div :title="label" class="text-base truncate" :class="{ 'brightness-80': disabled, 'grayscale': disabled }">{{ label }}</div>
-            <div v-if="caption" :title="caption" class="text-sm text-surface-500 dark:text-surface-400 line-clamp-2" :class="{ 'brightness-80': disabled, 'grayscale': disabled }">
-                {{ caption }}
+        <div :class="['flex flex-row items-center min-w-0 grow shrink', centerClass]">
+            <!-- 左侧主要区域：文字 -->
+            <div class="flex flex-col px-3 py-2 justify-center grow">
+                <div :title="label" class="text-base truncate" :class="{ 'brightness-80': disabled, 'grayscale': disabled }">{{ label }}</div>
+                <div v-if="caption" :title="caption" class="text-sm text-surface-500 dark:text-surface-400 line-clamp-2" :class="{ 'brightness-80': disabled, 'grayscale': disabled }">
+                    {{ caption }}
+                </div>
+                <div v-for="ex of extras"
+                    class="text-sm"
+                    v-bind="typeof ex === 'object' ? ex.props ?? {} : {}"
+                >{{ typeof ex === 'string' ? ex : ex.text }}</div>
             </div>
-            <div v-for="ex of extras"
-                class="text-sm"
-                v-bind="typeof ex === 'object' ? ex.props ?? {} : {}"
-            >{{ typeof ex === 'string' ? ex : ex.text }}</div>
+
+            <!-- 右侧区域：附加插槽（仅在需要时显示） -->
+            <div v-if="$slots['text-extension']" class="flex flex-row px-3 py-2 w-fit grow-0">
+                <slot name="text-extension" />
+            </div>
         </div>
 
         <!-- 右侧内容插槽（仅在需要时显示） -->

@@ -501,3 +501,67 @@ export function useListEffect<T>(
         });
     }, { deep: false, immediate: true });
 }
+
+
+/**
+ * 块接口：用于区分普通文本和已替换的固定内容
+ */
+export interface TextChunk {
+    text: string;
+    fixed: boolean;
+}
+
+/**
+ * 替换配置项
+ */
+export interface ReplaceRule {
+    search: string;
+    replace: string;
+}
+
+/**
+ * 安全的批量替换函数
+ * 确保后序规则不会影响前序规则生成的结果
+ */
+export function safeBatchReplace(input: string, rules: ReplaceRule[]): string {
+    // 初始状态：整个字符串作为一个未锁定的块
+    let chunks: TextChunk[] = [{ text: input, fixed: false }];
+
+    // 遍历每一条替换规则
+    rules.forEach(({ search, replace }) => {
+        // search 不能为空字符串，否则 split 会导致死循环或异常
+        if (!search) return;
+
+        const nextChunks: TextChunk[] = [];
+
+        chunks.forEach((chunk) => {
+            // 如果块已经标记为 fixed（即被之前的规则处理过），直接保留
+            if (chunk.fixed) {
+                nextChunks.push(chunk);
+                return;
+            }
+
+            // 对未锁定的块进行拆分
+            const parts = chunk.text.split(search);
+
+            parts.forEach((part, index) => {
+                // 1. 放入非匹配部分（标记为未锁定，可能被后续规则匹配）
+                if (part !== "") {
+                    nextChunks.push({ text: part, fixed: false });
+                }
+
+                // 2. 在两个分割点之间插入替换后的内容（标记为锁定）
+                // index < parts.length - 1 表示这不是最后一部分
+                if (index < parts.length - 1) {
+                    nextChunks.push({ text: replace, fixed: true });
+                }
+            });
+        });
+
+        // 更新 chunks，进入下一轮规则匹配
+        chunks = nextChunks;
+    });
+
+    // 最后将所有块合并
+    return chunks.map((c) => c.text).join("");
+}

@@ -84,16 +84,18 @@ defineSlots<{
 const toProgressString = (num: number) => num > -1 ? num.toString() : t(tsCommonPrefix + 'unknown');
 const progress = computed(() => Object.assign({
     color: {
+        init: 'bg-grey-700',
         queue: 'bg-primary',
         ongoing: 'bg-primary',
         complete: 'bg-green-600',
-        aborted: 'bg-primary',
+        aborted: 'bg-grey-700',
         error: 'bg-red-600'
     } [task.progress.status],
     percentage: task.progress.finished / task.progress.total * 100,
     hasPercentage: task.progress.total > -1 && task.progress.finished > -1,
 }, task.progress));
 const progreebarMode = computed(() => ({
+    init: 'indeterminate',
     queue: 'indeterminate',
     ongoing: progress.value.hasPercentage ? 'determinate' : 'indeterminate',
     complete: 'determinate',

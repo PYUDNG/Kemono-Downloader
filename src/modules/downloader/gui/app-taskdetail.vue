@@ -5,6 +5,7 @@ import { provide, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import TaskItem from './components/TaskItem.vue';
 import { providerInjectionKey } from './utils.js';
+import { Nullable } from '@/utils/main.ts';
 
 const { t } = useI18n();
 
@@ -19,6 +20,11 @@ const { provider, tasks } = defineProps<{
      * 需要展示的任务列表
      */
     tasks: IDownloadTask[];
+
+    /**
+     * 父级任务名称
+     */
+    name: Nullable<string>;
 }>();
 
 // provides
@@ -35,6 +41,11 @@ const visible = ref(false);
 const internalTasks = ref<IDownloadTask[]>([]);
 
 /**
+ * 内部管理的父级任务名称（响应式
+ */
+const internalName = ref<Nullable<string>>(null);
+
+/**
  * 更新任务列表的方法
  */
 function updateTasks(newTasks: IDownloadTask[]) {
@@ -44,8 +55,9 @@ function updateTasks(newTasks: IDownloadTask[]) {
 /**
  * 显示对话框并设置任务
  */
-function showWithTasks(tasks: IDownloadTask[]) {
+function showWithTasks(tasks: IDownloadTask[], name: Nullable<string>) {
     updateTasks(tasks);
+    internalName.value = name;
     visible.value = true;
 }
 
@@ -63,9 +75,10 @@ defineExpose({
 <template>
     <Dialog
         v-model:visible="visible"
-        :header="t('downloader.gui.title')"
+        :header="internalName ? t('downloader.gui.title-detail', { name: internalName }) : t('downloader.gui.title-detail-noname')"
         class="w-[80vw] h-[80vh]"
         append-to="self"
+        dismissable-mask
         modal
     >
         <TaskItem

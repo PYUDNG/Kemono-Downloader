@@ -1,4 +1,4 @@
-import { HintedString } from '@/utils/main.js';
+import { HintedString, Nullable } from '@/utils/main.js';
 import { Reactive } from 'vue';
 
 // 注意：这里使用 typeof import() 但不实际导入，以避免循环引用
@@ -10,7 +10,7 @@ export type ProviderType = keyof typeof import('../../providers/main.js');
  * - `'ongoing'`: 任务执行中
  * - `'complete'`: 任务已执行完毕
  */
-export type Status = 'queue' | 'ongoing' | 'complete' | 'aborted' | 'error';
+export type Status = 'init' | 'queue' | 'ongoing' | 'complete' | 'aborted' | 'error';
 
 /**
  * 进度
@@ -58,6 +58,11 @@ export interface ITask {
     progress: Reactive<Progress>;
 
     /**
+     * 当任务初始化完毕（状态由`'init'`变为`'queue'`，可以调用`run`）时resolve的promise
+     */
+    init: Promise<void>;
+
+    /**
      * 开始执行任务  
      * 如果是同步任务，应在任务完成后返回  
      * 如果是异步任务，应当返回一个在任务完成时resolve的Promise  
@@ -72,6 +77,16 @@ export interface ITask {
      * 仅当任务处于`'queue'`或`'ongoing'`状态时有效  
      */
     abort: Function;
+
+    /**
+     * 子任务列表
+     */
+    subTasks: ITask[];
+
+    /**
+     * 父级任务
+     */
+    parent: Nullable<ITask>;
 }
 
 /**
