@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import Checkbox from '@/volt/Checkbox.vue';
-import { computed } from 'vue';
+import { computed, ref, useTemplateRef } from 'vue';
 import { v4 as uuid } from 'uuid';
 import { PostsApiItem } from '@/modules/api/types/posts.js';
 import { PostApiResponse } from '@/modules/api/types/post.js';
-import { extractText } from '@/utils/main.js';
+import { extractText, getViewport, Nullable } from '@/utils/main.js';
 import Button from '@/volt/Button.vue';
 import { PostInfo } from '@/modules/api/types/common';
 import { getPostContent, getPostFilePath, getPostTitle, isPostsApiItem } from './utils.js';
+import Popover from '@/volt/Popover.vue';
 
 const { data, id } = defineProps<{
     /**
@@ -49,6 +50,35 @@ const coverUrl = computed(() =>
  * post页面url
  */
 const postUrl = computed(() => `https://${ location.host }/${ info.value.service }/user/${ info.value.creatorId }/post/${ info.value.postId }`);
+
+// cover overlay元素位置
+// 不建议直接设置为'self'，因为祖先元素中可能存在relative定位元素会干扰overlay定位
+const img = useTemplateRef('img');
+const overlayParent = computed(() => img.value?.closest('[data-v-app]') as Nullable<HTMLElement>);
+
+// 根据长宽计算封面图大小限制，保证在屏幕上完全展示的同时尽量大一些
+const viewport = getViewport();
+const coverSizingClasses = computed(() => {
+    if (!img.value) return [];
+
+    /** 封面图宽度占据viewport宽度的占比 */
+    const wPercent = img.value.naturalWidth / viewport.value.width;
+    /** 封面图高度占据viewport高度的占比 */
+    const hPercent = img.value.naturalHeight / viewport.value.height;
+    return wPercent > hPercent ?
+        ['w-[60vw]'] : ['h-[60vh]'];
+});
+
+// 封面图Popover展示逻辑
+const DEBOUNCE_TIME = 100;
+let timeoutId: Nullable<ReturnType<typeof setTimeout>> = null;
+const coverPop = useTemplateRef('cover-pop');
+const showCoverPop = (e: Event, target?: any) => {
+    timeoutId && clearInterval(timeoutId);
+    coverPop.value?.show(e, target);
+}
+const hideCoverPop = () => 
+    timeoutId = setTimeout(() => coverPop.value?.hide(), DEBOUNCE_TIME);
 </script>
 
 <template>
@@ -65,7 +95,25 @@ const postUrl = computed(() => `https://${ location.host }/${ info.value.service
 
         <!-- 缩略图 -->
         <div class="grow-0 shrink-0 flex flex-row items-center px-3 py-2">
-            <img :src="coverUrl" class="object-cover object-center w-10 h-10">
+            <img
+                ref="img"
+                :src="coverUrl"
+                class="object-cover object-center w-10 h-10"
+                @mouseenter="showCoverPop"
+                @mouseleave="hideCoverPop"
+            >
+            <Popover
+                v-if="overlayParent"
+                ref="cover-pop"
+                :appendTo="overlayParent"
+            >
+                <img
+                    :src="coverUrl"
+                    :class="[...coverSizingClasses]"
+                    @mouseenter="showCoverPop"
+                    @mouseleave="hideCoverPop"
+                >
+            </Popover>
         </div>
 
         <!-- 文字部分 -->

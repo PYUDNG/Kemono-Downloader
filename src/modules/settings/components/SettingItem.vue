@@ -43,7 +43,7 @@ const status = reactive<SettingStatus>((() => {
 }) ());
 
 // help overlay元素位置
-// 不能直接设置为'self'，因为祖先元素中存在relatiive定位元素会干扰overlay定位
+// 不能直接设置为'self'，因为祖先元素中存在relative定位元素会干扰overlay定位
 const icon = useTemplateRef('icon');
 const overlayParent = computed(() => icon.value?.closest('[data-v-app]') as Nullable<HTMLElement>);
 

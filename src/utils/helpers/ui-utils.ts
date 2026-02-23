@@ -254,3 +254,22 @@ export function extractText(html: string): string {
         props: { innerHTML: html }
     }).innerText;
 }
+
+/**
+ * 获取随resize事件实时更新的viewport大小
+ * @returns 代表视口大小的对象: `{ height: window.innerHeight, width: window.innerWidth }`
+ */
+export function getViewport() {
+    const viewport = ref<{
+        height: number;
+        width: number;
+    }>({
+        height: window.innerHeight,
+        width: window.innerWidth,
+    });
+    window.addEventListener('resize', () => {
+        viewport.value.height = window.innerHeight;
+        viewport.value.width = window.innerWidth;
+    });
+    return viewport;
+}
