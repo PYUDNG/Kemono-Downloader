@@ -33,6 +33,7 @@
         "cssnano": "^7.1.2",
         "postcss": "^8.5.6",
         "postcss-rem-to-responsive-pixel": "^7.0.1",
+        "prettier": "3.8.1",
         "tailwind-scrollbar": "^4.0.2",
         "typescript": "^5.9.2",
         "vite": "^7.1.3",

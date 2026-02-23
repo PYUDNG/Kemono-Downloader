@@ -44,7 +44,7 @@ export default defineConfig({
                 ],
             },
             build: {
-                fileName: pkg.name + '.greasyfork.user.js',
+                fileName: pkg.name + '.user.js',
                 externalGlobals: {
                     vue: cdn.jsdelivr('Vue', 'dist/vue.global.prod.js'),
                 },

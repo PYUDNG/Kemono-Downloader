@@ -48,7 +48,7 @@ function copy(markup: string) {
         <div class="font-bold flex flex-row items-center justify-center py-2 border-r-3 border-b-3 border-solid border-surface-200 dark:border-surface-800">{{ t(tPrefix + 'help.markup') }}</div>
         <div class="font-bold flex flex-row items-center justify-start py-2 px-3 border-b-3 border-solid border-surface-200 dark:border-surface-800">{{ t(tPrefix + 'help.desc') }}</div>
         <template v-for="markup of markups">
-            <div class="border-r-3 border-b-1 border-solid border-surface-200 dark:border-surface-800">
+            <div class="border-r-3 border-b border-solid border-surface-200 dark:border-surface-800">
                 <Button
                     variant="text"
                     :label="'{' + markup + '}'"
@@ -56,7 +56,7 @@ function copy(markup: string) {
                     pt:root:class="w-full"
                 />
             </div>
-            <span class="px-3 flex flex-row items-center border-b-1 border-solid border-surface-200 dark:border-surface-800" v-html="t(tPrefix + 'help.templates.' + markup)"></span>
+            <span class="px-3 flex flex-row items-center border-b border-solid border-surface-200 dark:border-surface-800" v-html="t(tPrefix + 'help.templates.' + markup)"></span>
         </template>
     </div>
 
