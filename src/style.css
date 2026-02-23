@@ -202,7 +202,8 @@
 }
 
 .p-ripple-brand [data-p-ink="true"] {
-    --p-ripple-background: rgba(234, 113, 47, 0.3); /* Kemono 主色 */
+    --p-ripple-background: rgba(234, 113, 47, 0.3);
+    /* Kemono 主色 */
 }
 
 /* 禁用状态的 Ripple 效果 */
@@ -248,4 +249,25 @@
 
 .no-ripple [data-p-ink="true"] {
     display: none;
+}
+
+:root,
+:host {
+    /* animate-fade-in */
+    --animate-fade-in: fade-in 0.2s ease-in-out;
+
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+}
+
+:root,
+:host {
+    interpolate-size: allow-keywords;
 }

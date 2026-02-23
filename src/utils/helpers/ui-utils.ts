@@ -4,6 +4,7 @@ import PrimeVue from 'primevue/config';
 import { $CrE, CreateElementOptions } from "./dom-utils";
 import i18n from '@/i18n/main.js';
 import Ripple from 'primevue/ripple';
+import ToastService from 'primevue/toastservice';
 import ConfirmationService from "primevue/confirmationservice";
 import { Nullable } from "../main";
 
@@ -37,6 +38,13 @@ interface ShadowAppCreationOptions<
      * 内部元素创建附加选项
      */
     options?: Partial<Record<'host' | 'app', CreateElementOptions>>,
+
+    /**
+     * 阻止ShadowDOM内部事件冒泡到主文档  
+     * 可以传入布尔值，也可以传入一个自定义的事件名称列表
+     * @default true
+     */
+    stopPropagation?: boolean | string[],
 }
 const defaultOptions: Required<ShadowAppCreationOptions<Component>> = {
     host: null,
@@ -44,6 +52,7 @@ const defaultOptions: Required<ShadowAppCreationOptions<Component>> = {
     props: {},
     options: {},
     provides: {},
+    stopPropagation: true,
 };
 
 // 异步导入styling，防止循环导入初始化死锁
@@ -61,7 +70,7 @@ export function createShadowApp<
     options: ShadowAppCreationOptions<T> = defaultOptions,
 ) {
     // 创建挂载Shadown DOM的宿主元素
-    const { host, init, props, provides } = Object.assign({}, defaultOptions, options);
+    const { host, init, props, provides, stopPropagation } = Object.assign({}, defaultOptions, options);
     const hostElm: HTMLElement =
         host instanceof HTMLElement ? host : document.body.appendChild($CrE('div', options.options?.host ?? {}));
     typeof host === 'string' && hostElm.setAttribute('id', host);
@@ -73,6 +82,24 @@ export function createShadowApp<
     // 在Shadow DOM中创建vue挂载元素
     const appElm = $CrE('div', options.options?.app ?? {});
     shadow.append(appElm);
+
+    // 使用自定义的rem单位大小
+    appElm.classList.add('text-base');
+
+    // 屏蔽Shadown DOM内常见事件冒泡，预防性阻止Shadow DOM和页面互相干扰
+    // 例如：在Dialog的InputText内按下左右箭头时，不触发页面翻页
+    // 已知缺陷：当Dialog打开但未focus在任一输入元素上时，按下左右键依然会触发翻页
+    const events = Array.isArray(stopPropagation) ? stopPropagation : [
+        'click', 'dblclick', 'auxclick',
+        'mousedown', 'mouseup', 'mousewheel', 'wheel',
+        'touchstart', 'touchend',
+        'pointerdown', 'pointerup', 'pointerenter', 'pointerleave', 'pointermove', 'pointerout', 'pointerover',
+        'contextmenu', 'scroll', 'scrollend',
+        'keydown', 'keyup', 'keypress',
+        'input', 'copy', 'paste', 'cut', 'compositionstart', 'compositionupdate', 'compositionend',
+        'drag', 'dragstart', 'dragend', 'dragenter', 'dragleave', 'dragover', 'drop',
+    ];
+    stopPropagation && events.forEach(name => appElm.addEventListener(name, e => e.stopPropagation()));
 
     // 创建应用实例
     // 为了保持根组件props的响应性，采用以下workaround，参考此issue：
@@ -88,6 +115,7 @@ export function createShadowApp<
             ripple: true,
         })
         .use(ConfirmationService)
+        .use(ToastService)
         .directive('ripple', Ripple);
     Reflect.ownKeys(provides).forEach(key => appInstance.provide(key, provides[key]));
 

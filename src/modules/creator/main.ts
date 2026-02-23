@@ -1,16 +1,14 @@
 // https://kemono.cr/fanbox/user/8062849
 
-import { $CrE, createShadowApp, detectDom, logger as globalLogger, Nullable, Optional } from '@/utils/main.js';
+import { $CrE, createShadowApp, detectDom, Nullable, Optional } from '@/utils/main.js';
 import { defineModule } from '../types.js';
 import { downloadPosts } from '../downloader/main.js';
 import App from '@/components/PostsSelector/PostsDialog.vue';
 import { posts, profile } from '../api/main.js';
 import { KemonoService, PostInfo } from '../api/types/common.js';
-import { PostsApiItem } from '../api/types/posts.js';
-import { reactive, toRefs, watch } from 'vue';
+import { reactive } from 'vue';
 import { ComponentProps } from 'vue-component-type-helpers';
 
-const logger = globalLogger.withPath('creator');
 const regPath = /^\/(boosty|dlsite|fanbox|fantia|gumroad|patreon|subscribestar)\/user\/([^\/]+)$/;
 
 /**
@@ -41,7 +39,6 @@ export default defineModule({
             listeners: [['click', async _e => {
                 if (loading) return;
                 loading = true;
-                logger.simple('Important', 'Start downloading');
 
                 const match = location.pathname.match(regPath)!;
                 const [creator, allPosts] = await Promise.all([

@@ -93,8 +93,12 @@ class BrowserFileDownloadTask extends BaseFileDownloadTask implements IFileDownl
                 }, currentRunSignal);
 
                 // 如果任务没有被取消，那就意味着任务成功完成了
-                if (this.progress.status !== 'aborted')
+                if (this.progress.status !== 'aborted') {
+                    // 设置任务完成状态
                     this.progress.status = 'complete';
+                    // onprogress未必能保证任务完成时一定会以一个100%进度的回调结尾，因此这里需要手动设置任务进度
+                    this.progress.finished = this.progress.total;
+                }
             } catch (err) {
                 console.log('err', err);
                 // 下载出错，设置任务状态

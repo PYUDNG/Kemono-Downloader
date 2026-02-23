@@ -1,7 +1,4 @@
-import { GM_xmlhttpRequest, GmXmlhttpRequestOption, GmResponseTypeMap, GM_download, GmDownloadOptions, GM_info } from "$";
-import { logger as globalLogger } from "./js-utils";
-
-const logger = globalLogger.withPath('network-utils');
+import { GM_xmlhttpRequest, GmXmlhttpRequestOption, GmResponseTypeMap, GM_download, GmDownloadOptions } from "$";
 
 /**
  * 以Promise或async/await语法调用的GM_xmlhttpRequest

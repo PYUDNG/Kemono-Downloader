@@ -14,6 +14,7 @@
 </template>
 
 <script setup lang="ts">
+// @ts-nocheck
 import CheckIcon from '@primevue/icons/check';
 import MinusIcon from '@primevue/icons/minus';
 import Checkbox, { type CheckboxPassThroughOptions, type CheckboxProps } from 'primevue/checkbox';

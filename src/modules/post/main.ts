@@ -1,11 +1,10 @@
 // https://kemono.cr/fanbox/user/8062849/post/9998726
 
-import { $CrE, detectDom, logger as globalLogger, Optional } from '@/utils/main.js';
+import { $CrE, detectDom, Optional } from '@/utils/main.js';
 import { defineModule } from '../types.js';
 import { downloadPost } from '../downloader/main.js';
 import { KemonoService } from '../api/types/common.js';
 
-const logger = globalLogger.withPath('post');
 const regPath = /^\/(boosty|dlsite|fanbox|fantia|gumroad|patreon|subscribestar)\/user\/([^\/]+)\/post\/([^\/]+)$/;
 
 export default defineModule({
@@ -30,7 +29,6 @@ export default defineModule({
             },
             classes: 'button',
             listeners: [['click', _e => {
-                logger.simple('Important', 'Start downloading');
                 const match = location.pathname.match(regPath)!;
                 downloadPost({
                     service: match[1] as KemonoService,

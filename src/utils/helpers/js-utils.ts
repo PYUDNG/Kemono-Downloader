@@ -1,3 +1,4 @@
+import { console } from "@/hooks.js";
 import { GM_info } from "$";
 import { Ref, toRaw, watch } from "vue";
 

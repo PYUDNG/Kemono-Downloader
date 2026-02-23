@@ -4,10 +4,9 @@ import { SettingItem } from '../types';
 import ListItem, { ExtraCaption } from '@/components/ListItem.vue';
 import { deepEqual, Nullable } from '@/utils/main';
 import { useI18n } from 'vue-i18n';
-import Popover from '@/volt/Popover.vue';
 import SettingInput from './SettingInput/SettingInput.vue';
-import ToggleSwitch from '@/volt/ToggleSwitch.vue';
 import { globalStorage } from '@/storage';
+import Dialog from '@/volt/Dialog.vue';
 
 const { t } = useI18n();
 const storage = globalStorage.withKeys('settings');
@@ -48,40 +47,11 @@ const status = reactive<SettingStatus>((() => {
 const icon = useTemplateRef('icon');
 const overlayParent = computed(() => icon.value?.closest('[data-v-app]') as Nullable<HTMLElement>);
 
-// help text切换逻辑
-// 鼠标进入图标和popover区域时展示popover，离开时隐藏popover
-// 带短时防抖：离开区域后防抖时间内再次进入区域就保持显示，调用显示后防抖时间内忽略隐藏调用
-const popover = useTemplateRef('popover');
-const DEBOUNCE_TIME = 200;
-let hideTimer: Nullable<ReturnType<typeof setTimeout>> = null;
-let lastShow: number = 0;
-const toggleHelpText = (e: Event, target?: any) => {
-    console.trace('toggle', e, target);
-    e.stopPropagation();
-    popover.value?.toggle(e, target);
-}
-const showHelpText = (e: Event, target?: any) => {
-    hideTimer && clearTimeout(hideTimer);
-    console.trace('show', e, target);
-    popover.value?.show(e, target);
-    lastShow = performance.now();
-}
-const hideHelpText = () => {
-    console.trace('try hide');
-    if (performance.now() - lastShow <= DEBOUNCE_TIME) return;
-    hideTimer && clearTimeout(hideTimer);
-    console.trace('hide');
-    hideTimer = setTimeout(
-        () => {
-            if (performance.now() - lastShow > DEBOUNCE_TIME) {
-                console.trace('actual hide');
-                popover.value?.hide();
-            }
-        },
-        DEBOUNCE_TIME
-    );
-}
-
+// help text展示逻辑
+const helpVisible = ref(false);
+const toggleHelpText = () => helpVisible.value ? hideHelpText() : showHelpText();
+const showHelpText = () => helpVisible.value = true;
+const hideHelpText = () => helpVisible.value = false;
 const helpOnInput = ref(storage.get('helpOnInput'));
 watch(helpOnInput, val => storage.set('helpOnInput', val));
 </script>
@@ -103,8 +73,6 @@ watch(helpOnInput, val => storage.set('helpOnInput', val));
                 v-model="item.value"
                 :type="item.type"
                 :props="item.props"
-                @focus="e => helpOnInput && showHelpText(e, icon ?? undefined)"
-                @blur="helpOnInput && hideHelpText()"
             />
         </template>
 
@@ -113,29 +81,21 @@ watch(helpOnInput, val => storage.set('helpOnInput', val));
             <i
                 ref="icon"
                 class="pi pi-question-circle cursor-pointer"
-                @click="(e: PointerEvent) => toggleHelpText(e)"
+                @click="toggleHelpText"
             />
-            <Popover
+            <Dialog
                 v-if="overlayParent"
-                ref="popover"
+                v-model:visible="helpVisible"
                 :append-to="overlayParent"
-                pt:root:class="dark:bg-surface-800 bg-surface-100 border-1 border-solid border-surface-200 dark:border-surface-700"
+                :header="t('settings.gui.help-header', { name: item.label })"
+                position="left"
+                pt:root:class="border-solid border-1 border-surface-100 dark:border-surface-800"
             >
-                <div
-                    class="flex flex-col dark:bg-surface-800 bg-surface-100"
-                    @mousedown="showHelpText"
-                >
-                    <div class="px-3 py-2" v-html="item.help" />
-                    <div class="px-3 py-2 flex flex-row items-center">
-                        <span>
-                            {{ t('settings.gui.help-on-input') }}
-                        </span>
-                        <div class="flex flex-row items-center py-2 px-3">
-                            <ToggleSwitch v-model="helpOnInput" />
-                        </div>
-                    </div>
-                </div>
-            </Popover>
+                <template #default>
+                    <div v-if="typeof item.help === 'string'" v-html="item.help" />
+                    <Component v-else :is="item.help" />
+                </template>
+            </Dialog>
         </template>
     </ListItem>
 </template>

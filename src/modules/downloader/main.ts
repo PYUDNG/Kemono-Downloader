@@ -7,9 +7,10 @@ import i18n from "@/i18n/main.js";
 import { globalStorage, makeStorageRef } from '@/storage.js';
 import App from './gui/app.vue';
 import AppTaskDetail from './gui/app-taskdetail.vue';
-import { reactive } from "vue";
+import { markRaw, reactive } from "vue";
 import { PostInfo } from "../api/types/common.js";
 import { rootTaskDetailInjectionKey } from "./gui/utils.js";
+import FilenameHelpComp from "./gui/FilenameHelpComp.vue";
 export { default as gui } from './gui/app.vue';
 
 const t = i18n.global.t;
@@ -44,7 +45,7 @@ registerModule({
         id: 'filename',
         type: 'text',
         label: t('downloader.settings.filename.label'),
-        help: t('downloader.settings.filename.help'),
+        help: markRaw(FilenameHelpComp),
         value: makeStorageRef('filename', storage),
     }],
 });

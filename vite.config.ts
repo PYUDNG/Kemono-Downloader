@@ -7,6 +7,7 @@ import tailwindcss from '@tailwindcss/vite';
 import postcssUrl from 'postcss-url';
 import cssnano from 'cssnano';
 import stringCssTransformer from './build-utils/stringCssTransformer.js';
+import rem2px from 'postcss-rem-to-responsive-pixel';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -17,9 +18,24 @@ export default defineConfig({
         monkey({
             entry: 'src/main.ts',
             userscript: {
-                icon: 'https://kemono.cr/assets/favicon-CPB6l7kH.ico',
+                name: {
+                    '': 'Kemono Downloader',
+                    'en': 'Kemono Downloader',
+                    'zh': 'Kemono下载器',
+                    'zh-CN': 'Kemono下载器',
+                    'zh-TW': 'Kemono下載器',
+                },
+                description: {
+                    '': 'A modern UI, multi-download method, customizable Kemono downloader',
+                    'en': 'A modern UI, multi-download method, customizable Kemono downloader',
+                    'zh': '一個具有現代化UI、多下載途徑、可自定義的Kemono下載器',
+                    'zh-CN': '一个具有现代化UI、多下载途径、可自定义的Kemono下载器',
+                    'zh-TW': '一個具有現代化UI、多下載途徑、可自定義的Kemono下載器',
+                },
                 version: pkg.version,
                 author: pkg.author.name,
+                license: 'GPL-3.0-or-later',
+                icon: 'https://kemono.cr/assets/favicon-CPB6l7kH.ico',
                 namespace: 'https://greasyfork.org/users/667968-pyudng',
                 match: [
                     'http*://*.kemono.party/*',
@@ -28,6 +44,7 @@ export default defineConfig({
                 ],
             },
             build: {
+                fileName: pkg.name + '.greasyfork.user.js',
                 externalGlobals: {
                     vue: cdn.jsdelivr('Vue', 'dist/vue.global.prod.js'),
                 },
@@ -43,6 +60,12 @@ export default defineConfig({
     css: {
         postcss: {
             plugins: [
+                rem2px({
+                    rootValue: 14,
+                    propList: ['*'],
+                    transformUnit: 'px',
+                    mediaQuery: true,
+                }),
                 cssnano(),
                 postcssUrl({
                     url: 'inline',
@@ -61,3 +84,4 @@ export default defineConfig({
         emptyOutDir: false,
     },
 });
+

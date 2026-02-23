@@ -1,5 +1,3 @@
-import dedent from "dedent";
-
 export default {
     components: {
         "posts-selector": {
@@ -17,7 +15,7 @@ export default {
             "tabpanel-placeholder": "选择一个模块以进入其设置",
             "no-items-placeholder": "这个模块好像还没有设置呢",
             "reload-to-apply": "修改此设置后，已打开的页面需要刷新后才能生效",
-            'help-on-input': "输入时保持显示此帮助",
+            "help-header": "帮助 - {name}",
         }
     },
     downloader: {
@@ -95,28 +93,35 @@ export default {
             filename: {
                 label: "文件命名",
                 caption: "可以使用模板进行文件命名，清空即可恢复默认文件名",
-                help: dedent`
-                    <span class="text-subtitle1" style="color: orange;">以下模板可在自定义文件名中使用，不区分大小写，使用时需保留大括号</span>
-                    
-                    {PostID}: 帖子内容ID
-                    {CreatorID}: 作者ID
-                    {Service}: 平台（如"fanbox"/"fantia"等等）
-                    {P}: 该文件在当前文件夹层级是第几个文件
-                    {Name}: kemono服务器上的文件原名
-                    {Base}: 文件原名的非扩展名部分（如"abc.jpg"中的"abc"）
-                    {Ext}: 文件原名的扩展名部分（如"abc.jpg"中的"jpg"）
-                    {Title}: 帖子内容标题
-                    {Creator}: 创作者名
-                    {Year}: 四位数年份
-                    {Month}: 两位数月份
-                    {Date}: 两位数日期
-                    {Hour}: 两位数时间
-                    {Minute}: 两位数分钟
-                    {Second}: 两位数秒
-                    {Timestamp}: 纯数字时间戳
-                    {Timetext}: 文本时间戳
-                    <span class="text-weight-bold">注: 所有时间相关模板均基于内容的发布时间</span>
-                `.replaceAll('\n', '<br>').replaceAll(/([\{\}])/g, "{'$1'}"),
+                // 注意：若修改了此处的templates，应该同时检查是否需要修改src\modules\downloader\gui\FilenameHelpComp.vue
+                help: {
+                    header: "以下模板可在自定义文件名中使用，不区分大小写，使用时需保留大括号（可直接点击复制）",
+                    markup: "模板",
+                    desc: "说明",
+                    templates: {
+                        PostID: "帖子内容ID",
+                        CreatorID: "作者ID",
+                        Service: "平台（如\"fanbox\"/\"fantia\"等等）",
+                        P: "该文件在当前文件夹层级是第几个文件",
+                        Name: "kemono服务器上的文件原名",
+                        Base: "文件原名的非扩展名部分（如\"abc.jpg\"中的\"abc\"）",
+                        Ext: "文件原名的扩展名部分（如\"abc.jpg\"中的\"jpg\"）",
+                        Title: "帖子内容标题",
+                        Creator: "创作者名",
+                        Year: "四位数年份",
+                        Month: "两位数月份",
+                        Date: "两位数日期",
+                        Hour: "两位数时间",
+                        Minute: "两位数分钟",
+                        Second: "两位数秒",
+                        Timestamp: "纯数字时间戳",
+                        Timetext: "文本时间戳",
+                    },
+                    footer: "注: 所有时间相关模板均基于内容的发布时间"
+                },
+                toast: {
+                    copied: '已复制',
+                },
             }
         }
     }

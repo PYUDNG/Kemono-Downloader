@@ -1,4 +1,4 @@
-import { Ref } from "vue";
+import { Component, Ref } from "vue";
 import { CompType } from "./components/SettingInput/SettingInput.vue";
 export type { CompType };
 
@@ -31,8 +31,9 @@ export interface SettingItem {
     /**
      * 补充描述文本  
      * 默认不展示，用户交互时在额外UI区域展示
+     * 接受html代码和自定义Vue组件两种数据
      */
-    help?: string;
+    help?: string | Component;
 
     /**
      * 图标
