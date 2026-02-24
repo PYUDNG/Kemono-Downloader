@@ -79,6 +79,13 @@ export default defineConfig({
             '@': path.resolve(__dirname, './src'),
         },
     },
+    server: {
+        host: true,
+        https: {
+            key: './server/localhost+1-key.pem',
+            cert: './server/localhost+1.pem'
+        }
+    },
     build: {
         minify: false,
         emptyOutDir: false,
