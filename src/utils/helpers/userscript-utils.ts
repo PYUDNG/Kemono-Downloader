@@ -141,7 +141,7 @@ export class UserscriptStorage<D extends Record<string, any>> {
      * @param key 存储空间所用键
      * @returns 子存储空间的{@link UserscriptStorage}实例
      */
-    withKeys<K extends string>(key: K): UserscriptStorage<
+    withKeys<K extends HintedString<string & keyof D>>(key: K): UserscriptStorage<
         K extends keyof D ?
             D[K] :
             {}

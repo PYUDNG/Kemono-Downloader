@@ -127,7 +127,8 @@ export default {
                 toast: {
                     copied: '已复制',
                 },
-            }
+            },
+            "no-cover-file": "不下载封面图文件",
         }
     },
     creator: {

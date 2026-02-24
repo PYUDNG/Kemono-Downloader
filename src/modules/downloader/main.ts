@@ -23,20 +23,22 @@ export default defineModule({
 });
 
 // 设置项
+const tSettingsPrefix = 'downloader.settings.';
 registerModule({
     id: 'downloader',
-    name: t('downloader.settings.label'),
+    name: t(tSettingsPrefix + 'label'),
     items: [{
         id: 'provider',
         type: 'select',
-        label: t('downloader.settings.provider.label'),
-        caption: t('downloader.settings.provider.caption'),
+        icon: 'pi pi-download',
+        label: t(tSettingsPrefix + 'provider.label'),
+        caption: t(tSettingsPrefix + 'provider.caption'),
         value: makeStorageRef('provider', storage),
         props: {
             optionLabel: 'label',
             optionValue: 'value',
             options: Object.keys(providers).map(name => ({
-                label: t('downloader.settings.provider.options.' + name),
+                label: t(tSettingsPrefix + 'provider.options.' + name),
                 value: name,
             })),
         },
@@ -44,9 +46,16 @@ registerModule({
     }, {
         id: 'filename',
         type: 'text',
-        label: t('downloader.settings.filename.label'),
+        icon: 'pi pi-file',
+        label: t(tSettingsPrefix + 'filename.label'),
         help: markRaw(FilenameHelpComp),
         value: makeStorageRef('filename', storage),
+    }, {
+        id: 'noCoverFile',
+        type: 'switch',
+        icon: 'pi pi-image',
+        label: t(tSettingsPrefix + 'no-cover-file'),
+        value: makeStorageRef('noCoverFile', storage),
     }],
 });
 

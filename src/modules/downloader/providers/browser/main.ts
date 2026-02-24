@@ -10,8 +10,10 @@ import { post, profile } from "@/modules/api/main.js";
 import { BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/post.js";
 import { Reactive, reactive, watch } from "vue";
 import { constructFilename } from "../../utils/main.js";
+import { globalStorage } from "@/storage.js";
 
 const logger = globalLogger.withPath('downloader', 'provider', 'browser');
+const storage = globalStorage.withKeys('downloader');
 
 /**
  * BrowserProvider 全局共享API访问队列
@@ -157,6 +159,7 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
 
             // 为每个文件创建下载任务
             const files = [this.data!.post.file, ...this.data!.post.attachments];
+            storage.get('noCoverFile') && files.shift();
             await Promise.allSettled(files.map(async (file, i) => {
                 const creator = await profile({
                     service: this.info.service,

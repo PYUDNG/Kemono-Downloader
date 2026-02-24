@@ -26,6 +26,11 @@ export const globalStorage = new UserscriptStorage(
             filename: '{Name}' as string,
 
             /**
+             * 是否不下载封面图文件
+             */
+            noCoverFile: false as boolean,
+
+            /**
              * 不同provider自己的设置空间
              */
             providerSettings: {} as Record<string, unknown>,

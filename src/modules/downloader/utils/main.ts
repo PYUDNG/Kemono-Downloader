@@ -43,7 +43,7 @@ export function constructFilename(
     const date = data.post?.post.published ? new Date(data.post?.post.published) : null;
 
     // 合成模板数据
-    const templateData = {
+    const templateData: Record<string, undefined | null | string | number> = {
         PostID: data.post?.post.id,
         CreatorID: data.post?.post.user,
         Service: data.post?.post.service,
@@ -62,6 +62,19 @@ export function constructFilename(
         Timestamp: date?.getTime(),
         TimeText: date?.toLocaleString(),
     };
+    // 模板数据转字符串，并将自带的路径分隔符转全角
+    const replacements: Record<string, string> = {
+        '/': '／',
+        '\\': '＼',
+    };
+    Object.entries(templateData).forEach(([key, val]) => {
+        if (val !== undefined && val !== null) {
+            for (const [char, repl] of Object.entries(replacements)) {
+                val = val.toString().replaceAll(char, repl);
+            }
+            templateData[key] = val
+        }
+    });
 
     // 合成文件名字符串
     const markups = Object.keys(templateData).filter(markup => 
