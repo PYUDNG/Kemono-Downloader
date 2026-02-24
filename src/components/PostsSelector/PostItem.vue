@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Checkbox from '@/volt/Checkbox.vue';
-import { computed, ref, useTemplateRef } from 'vue';
+import { computed, useTemplateRef } from 'vue';
 import { v4 as uuid } from 'uuid';
 import { PostsApiItem } from '@/modules/api/types/posts.js';
 import { PostApiResponse } from '@/modules/api/types/post.js';
@@ -9,6 +9,9 @@ import Button from '@/volt/Button.vue';
 import { PostInfo } from '@/modules/api/types/common';
 import { getPostContent, getPostFilePath, getPostTitle, isPostsApiItem } from './utils.js';
 import Popover from '@/volt/Popover.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n()
 
 const { data, id } = defineProps<{
     /**
@@ -42,9 +45,10 @@ const info = computed<PostInfo>(() => {
 /**
  * 封面图url
  */
-const coverUrl = computed(() =>
-    `https://img.${ location.host }/thumbnail/data${ getPostFilePath(data) }`
-);
+const coverUrl = computed(() => {
+    const path = getPostFilePath(data);
+    return path ? `https://img.${ location.host }/thumbnail/data${ path }` : null;
+});
 
 /**
  * post页面url
@@ -95,23 +99,27 @@ const hideCoverPop = () =>
 
         <!-- 缩略图 -->
         <div class="grow-0 shrink-0 flex flex-row items-center px-3 py-2">
-            <img
-                ref="img"
-                :src="coverUrl"
-                class="object-cover object-center w-10 h-10"
-                @mouseenter="showCoverPop"
-                @mouseleave="hideCoverPop"
-            >
+            <div class="relative overflow-hidden w-10 h-10">
+                <img
+                    v-if="coverUrl"
+                    ref="img"
+                    :src="coverUrl"
+                    class="object-cover object-center w-full h-full relative z-1"
+                    @mouseenter="showCoverPop"
+                    @mouseleave="hideCoverPop"
+                    loading="lazy"
+                >
+                <i class="pi pi-image max-h-full max-w-full absolute left-1/2 top-1/2 -translate-1/2 z-0 text-[2rem] flex justify-center items-center"></i>
+            </div>
             <Popover
-                v-if="overlayParent"
+                v-if="overlayParent && coverUrl"
                 ref="cover-pop"
                 :appendTo="overlayParent"
+                class="pointer-events-none"
             >
                 <img
                     :src="coverUrl"
                     :class="[...coverSizingClasses]"
-                    @mouseenter="showCoverPop"
-                    @mouseleave="hideCoverPop"
                 >
             </Popover>
         </div>
@@ -128,13 +136,13 @@ const hideCoverPop = () =>
             -->
             <div
                 class="text-sm text-surface-500 dark:text-surface-400 flex flex-row items-center w-full truncate"
-            >{{ extractText(getPostContent(data)) }}</div>
+            >{{ extractText(getPostContent(data) ?? '') }}</div>
         </div>
 
         <!-- 按钮 -->
         <div class="flex flex-row items-center px-3 py-2">
             <a :href="postUrl" target="_blank">
-                <Button icon="pi pi-external-link" variant="text" />
+                <Button icon="pi pi-external-link" variant="text" :pt:root:title="t('components.posts-selector.buttons.open-post')" />
             </a>
         </div>
     </label>

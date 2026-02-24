@@ -79,10 +79,14 @@ export function post({
 /**
  * 获取创作者posts
  */
-export function posts({ service, creatorId, index }: { service: KemonoService, creatorId: string, index?: number }, options?: ApiOptions): Promise<PostsApiResponse> {
+export function posts({ service, creatorId, index, query }: { service: KemonoService, creatorId: string, index?: number, query?: string }, options?: ApiOptions): Promise<PostsApiResponse> {
+    const url = new URL(`https://${ location.host }/api/v1/${ service }/user/${ creatorId }/posts`);
+    typeof index === 'number' && url.searchParams.set('o', index.toString());
+    typeof query === 'string' && url.searchParams.set('q', query);
+    
     return api({
         method: 'GET',
-        url: `https://${ location.host }/api/v1/${ service }/user/${ creatorId }/posts${ typeof index === 'number' ? '?o=' + index : ''}`
+        url: url.href
     }, options);
 }
 

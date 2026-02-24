@@ -8,7 +8,7 @@ export interface PostsApiItem {
     /**
      * 封面图文件，不包含在`attachments`属性所指向的附件列表中
      */
-    file: FileItem;
+    file: Partial<FileItem>;
     /**
      * 帖子ID
      */
@@ -24,7 +24,7 @@ export interface PostsApiItem {
     /**
      * 帖子描述开头一段文本
      */
-    substring: string;
+    substring?: string;
     /**
      * 帖子标题
      */

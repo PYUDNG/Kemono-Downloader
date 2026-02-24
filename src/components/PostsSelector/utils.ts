@@ -41,13 +41,13 @@ export function getPostTitle(data: PostsApiItem | PostApiResponse): string {
 /**
  * 获取帖子内容（用于提取文本）
  */
-export function getPostContent(data: PostsApiItem | PostApiResponse): string {
+export function getPostContent(data: PostsApiItem | PostApiResponse): string | undefined {
     return isPostApiResponse(data) ? data.post.content : data.substring;
 }
 
 /**
  * 获取帖子文件路径
  */
-export function getPostFilePath(data: PostsApiItem | PostApiResponse): string {
+export function getPostFilePath(data: PostsApiItem | PostApiResponse): string | undefined {
     return isPostsApiItem(data) ? data.file.path : data.post.file.path;
 }

@@ -8,7 +8,9 @@ import { posts, profile } from '../api/main.js';
 import { KemonoService, PostInfo } from '../api/types/common.js';
 import { reactive } from 'vue';
 import { ComponentProps } from 'vue-component-type-helpers';
+import i18n from '@/i18n/main.js';
 
+const t = i18n.global.t;
 const regPath = /^\/(boosty|dlsite|fanbox|fantia|gumroad|patreon|subscribestar)\/user\/([^\/]+)$/;
 
 /**
@@ -51,6 +53,7 @@ export default defineModule({
                         creatorId: match[2]
                     }),
                 ])
+                props.header = t('creator.gui.posts-selector.header');
                 props.posts = allPosts;
                 props.total = creator.post_count;
                 props.selectedPosts = [];
@@ -78,6 +81,13 @@ export default defineModule({
 });
 
 /**
+ * 存储当前用户输入的筛选文本  
+ * 以方便在翻页时使用同样的筛选文本访问api
+ */
+let search: string | undefined = undefined;
+// 注：页码不需要存，因为筛选文本改变时页码会自动复原到第一页（PostList内部实现如此）
+
+/**
  * 传入PostsDialog根组件的属性
  */
 const props: ComponentProps<typeof App> = reactive({
@@ -85,15 +95,27 @@ const props: ComponentProps<typeof App> = reactive({
     posts: [],
     rows: 50,
     total: 0,
+    mode: 'remote',
     async onPageUpdate(page) {
         const match = location.pathname.match(regPath)!;
         const allPosts = await posts({
             service: match[1] as KemonoService,
             creatorId: match[2],
-            index: page.first
+            index: page.first,
+            query: search,
         });
         props.posts.splice(0, props.posts.length, ...allPosts);
-    }
+    },
+    async onFilter(keyword) {
+        search = keyword;
+        const match = location.pathname.match(regPath)!;
+        const allPosts = await posts({
+            service: match[1] as KemonoService,
+            creatorId: match[2],
+            query: keyword,
+        });
+        props.posts.splice(0, props.posts.length, ...allPosts);
+    },
 })
 const { root } = createShadowApp(App, {
     options: {

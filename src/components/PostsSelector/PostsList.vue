@@ -3,19 +3,19 @@ import { PostApiResponse } from '@/modules/api/types/post.js';
 import { PostsApiItem } from '@/modules/api/types/posts.js';
 import PostItem from './PostItem.vue';
 import InputText from '@/volt/InputText.vue';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { isPostsApiItem } from './utils';
 import { useI18n } from 'vue-i18n';
 import Paginator from '@/volt/Paginator.vue';
 import { PageState } from 'primevue';
 import { PostInfo } from '@/modules/api/types/common';
+import { debounce } from '@/utils/main';
 
 const { t } = useI18n();
 
 const props = defineProps<{
     /**
-     * Posts列表  
-     * 如需懒加载，可结合`total`,`rows`属性，仅加载当前页面所展示的帖子，并随翻页逐渐填充数组
+     * Posts列表
      */
     posts: T[];
 
@@ -30,16 +30,30 @@ const props = defineProps<{
      * @default posts.length
      */
     total?: number;
+
+    /**
+     * 本地模式还是远程模式
+     * - `'local'`: 本地模式，在组件内处理翻页和筛选逻辑
+     * - `'remote'`: 远程模式，组件内不处理翻页和筛选逻辑，当翻页和筛选时触发`page`和`filter`事件，交由外部处理
+     */
+    mode?: 'local' | 'remote';
 }>();
 
+const posts = computed(() => props.posts);
 const rows = computed(() => props.rows ?? 50);
-const total = computed(() => props.total ?? props.posts.length);
+const total = computed(() => props.total ?? posts.value.length);
+const mode = computed(() => props.mode ?? 'local');
 
 const emit = defineEmits<{
     /**
      * 当用户翻页时触发此事件
      */
-    page: [page: PageState]
+    page: [page: PageState];
+
+    /**
+     * 当用户改变过滤文本时触发此事件
+     */
+    filter: [keyword: string];
 }>();
 
 //#region 选中
@@ -92,16 +106,28 @@ function handlePostSelectionChange(post: T, checked: boolean) {
 //#region 筛选
 // 根据用户输入的搜索文本筛选展示的posts
 
-// 筛选逻辑：
+// 本地模式筛选逻辑：
 // 1. 将用户输入的搜索文本以空白字符分隔为关键词数组
 // 2. 凡是标题中包含一个或多个数组元素的，均展示在筛选结果中
 // 3. 包含元素数量更多的排序更靠前，元素数量一样多的按照原顺序排序
-/** 用户输入的搜索文本 */
+/** 用户输入的筛选文本 */
 const search = ref('');
+
+// 筛选事件
+watch(search, debounce(newVal => {
+    // 本地模式下不触发筛选事件
+    if (mode.value === 'local') return;
+
+    // 触发筛选事件
+    emit('filter', newVal);
+}, 500));
 
 /** 筛选后的展示的posts */
 const filteredPosts = computed(() => {
-    if (!search.value.trim()) return props.posts;
+    // 远程模式下传入即展示，不进行内部筛选。筛选逻辑应该由外部调用者实现
+    if (mode.value === 'remote') return posts.value;
+    // 当输入的筛选文本内容为空时，不进行筛选
+    if (!search.value.trim()) return posts.value;
 
     /** 关键词数组 */
     const keywords = search.value.split(/\s/g);
@@ -110,7 +136,7 @@ const filteredPosts = computed(() => {
     // 至少命中一个关键词以保留在筛选结果中
     /** 每个post命中几个关键词 */
     const map = new Map<T, number>();
-    const filteredPosts = props.posts.filter(post => {
+    const filteredPosts = posts.value.filter(post => {
         const title = isPostsApiItem(post) ? post.title : post.post.title;
         let count = 0;
         keywords.forEach(k => title.includes(k) && count++);
@@ -124,7 +150,7 @@ const filteredPosts = computed(() => {
         // 关键词数量降序 
         map.get(p2)! - map.get(p1)! ||
         // 关键词数量相等时，index升序
-        props.posts.indexOf(p1) - props.posts.indexOf(p2)
+        posts.value.indexOf(p1) - posts.value.indexOf(p2)
     );
 
     return filteredPosts;
@@ -135,22 +161,34 @@ const filteredPosts = computed(() => {
 /**
  * 翻页逻辑中，存储当前页面信息
  */
-let page: PageState = {
+const page = ref<PageState>({
     first: 0,
     page: 0,
     rows: Math.min(rows.value, total.value),
     pageCount: total.value
-};
+});
+// 当传入posts数组改变时，重置当前展示页面到第一页
+watch(posts, () => page.value.first = 0);
 /**
- * 翻页逻辑中，处于当前展示页面中的props.posts
+ * 翻页逻辑中，处于当前展示页面中的posts
  */
-const pagePosts = computed(() => props.posts.filter((_post, i) => {
-    const start = page.first;
-    const end = start + page.rows;
+const pagePosts = computed(() => posts.value.filter((_post, i) => {
+    // 远程模式下，不进行内部分页，分页逻辑应在外部调用者处实现
+    if (mode.value === 'remote') return true;
+
+    const start = page.value.first;
+    const end = start + page.value.rows;
     return start <= i && i <= end;
 }));
 function onPageChange(p: PageState) {
+    // 本地模式下不触发翻页事件
+    if (mode.value === 'local') return;
+
+    // 触发翻页事件
     emit('page', p);
+
+    // 更新存储的页面数据
+    page.value = p;
 }
 //#endregion
 
@@ -165,7 +203,7 @@ const displayPosts = computed(() => {
     const filteredSet = new Set(filteredPosts.value);
     const pageSet = new Set(pagePosts.value);
     
-    return props.posts.filter(post => 
+    return posts.value.filter(post => 
         filteredSet.has(post) && pageSet.has(post)
     );
 });
@@ -182,7 +220,7 @@ const displayPostItems = computed(() =>
 </script>
 
 <template>
-    <div class="flex flex-col">
+    <div ref="div" class="flex flex-col">
         <!-- 搜索框 -->
         <div class="px-3 py-2 flex flex-row items-center">
             <span class="w-fit px-3 py-2">{{ t('components.posts-selector.list.search') }}</span>
@@ -203,6 +241,7 @@ const displayPostItems = computed(() =>
         <!-- 分页 -->
         <div>
             <Paginator
+                :first="page.first"
                 :rows="rows"
                 :total-records="total"
                 @page="onPageChange"

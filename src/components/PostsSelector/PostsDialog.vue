@@ -7,6 +7,10 @@ import { PostApiResponse } from '@/modules/api/types/post.js';
 import { PostsApiItem } from '@/modules/api/types/posts.js';
 import { PageState } from 'primevue';
 import { PostInfo } from '@/modules/api/types/common';
+import { useI18n } from 'vue-i18n';
+import SecondaryButton from '@/volt/SecondaryButton.vue';
+
+const { t } = useI18n();
 
 // props
 const props = defineProps<{
@@ -34,11 +38,25 @@ const props = defineProps<{
     total?: number;
 
     /**
+     * 本地模式还是远程模式
+     * - `'local'`: 本地模式，在组件内处理翻页和筛选逻辑
+     * - `'remote'`: 远程模式，组件内不处理翻页和筛选逻辑，当翻页和筛选时触发`page`和`filter`事件，交由外部处理
+     */
+    mode?: 'local' | 'remote';
+
+    /**
      * 当用户触发翻页时的回调函数  
-     * 结合`posts`、`rows`和`total`，可以实现翻页懒加载
+     * 仅在远程模式下有效
      * @param page 翻页信息
      */
     onPageUpdate?: (page: PageState) => any;
+
+    /**
+     * 当用户改变筛选文本时的回调函数  
+     * 仅在远程模式下有效
+     * @param keyword 筛选文本
+     */
+    onFilter?: (keyword: string) => any;
 }>();
 
 // 用于向外传递selection数据的promise
@@ -103,16 +121,19 @@ function submit(_e: PointerEvent) {
     >
         <!-- Posts列表 -->
         <PostsList
-            :posts="props.posts"
-            :rows="props.rows"
-            :total="props.total"
+            :posts="posts"
+            :rows="rows"
+            :total="total"
             v-model="selectedPosts"
             class="h-full"
+            :mode="mode"
             @page="p => onPageUpdate?.(p)"
+            @filter="keyword => onFilter?.(keyword)"
         />
 
         <template #footer>
-            <Button icon="pi pi-check" @click="submit" />
+            <SecondaryButton icon="pi pi-times" :label="t('components.posts-selector.buttons.cancel')" @click="hide" />
+            <Button :disabled="!selectedPosts.length" icon="pi pi-download" :label="t('components.posts-selector.buttons.ok')" @click="submit" />
         </template>
     </Dialog>
 </template>

@@ -1,6 +1,7 @@
 import { console } from "@/hooks.js";
 import { GM_info } from "$";
 import { Ref, toRaw, watch } from "vue";
+import { Nullable } from "../main";
 
 /** @satisfies {Record<string, (...args: any[]) => boolean>} */
 const checkers = {
@@ -565,4 +566,36 @@ export function safeBatchReplace(input: string, rules: ReplaceRule[]): string {
 
     // 最后将所有块合并
     return chunks.map((c) => c.text).join("");
+}
+
+/**
+ * 创建防抖函数
+ * @param func 需要防抖的原始函数
+ * @param wait 最小执行器间隔（单位：毫秒），默认为250
+ * @param immediate 当在防抖时间内多次被调用时，执行第一次调用而不是最后一次调用，默认为false
+ * @returns 防抖的函数，在给定wait内无论被调用多少次，最多被实际执行一次；
+ */
+export function debounce<T extends (...args: any[]) => any>(
+    func: T,
+    wait: number = 250,
+    immediate: boolean = false
+): (...args: Parameters<T>) => void {
+    let timeout: Nullable<ReturnType<typeof setTimeout>> = null;
+
+    return function(this: any, ...args: Parameters<T>): void {
+        if (immediate && timeout === null) {
+            // 在接下来的防抖时间内timeout有值，阻止重复执行
+            timeout = setTimeout(() => timeout = null, wait);
+            // 立即执行原始函数
+            func.apply(this, args);
+        } else {
+            // 清除之前规划的执行任务
+            timeout !== null && clearTimeout(timeout);
+            // 重新规划防抖时段后执行
+            timeout = setTimeout(() => {
+                func.apply(this, args);
+                timeout = null;
+            }, wait);
+        }
+    };
 }

@@ -3,7 +3,12 @@ export default {
         "posts-selector": {
             list: {
                 search: "搜索"
-            }
+            },
+            buttons: {
+                "open-post": '打开帖子页面',
+                ok: '下载',
+                cancel: '取消',
+            },
         }
     },
     settings: {
@@ -124,5 +129,12 @@ export default {
                 },
             }
         }
-    }
+    },
+    creator: {
+        gui: {
+            "posts-selector": {
+                header: "选择要下载的帖子",
+            },
+        },
+    },
 };
