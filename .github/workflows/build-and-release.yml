@@ -1,0 +1,121 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # 获取所有历史记录以便生成版本号
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build project
+      run: npm run build
+    
+    - name: Get version from package.json
+      id: get_version
+      run: |
+        VERSION=$(node -p "require('./package.json').version")
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION"
+    
+    - name: Generate build number
+      id: build_number
+      run: |
+        # 使用当前时间戳作为构建号
+        BUILD_NUMBER=$(date +%Y%m%d%H%M%S)
+        echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+        echo "Build number: $BUILD_NUMBER"
+    
+    - name: List build artifacts
+      run: ls -la dist/
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: dist/
+        retention-days: 7
+    
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        name: Release v${{ steps.get_version.outputs.version }} (Build ${{ steps.build_number.outputs.build_number }})
+        tag_name: ${{ github.ref_name }}
+        body: |
+          ## 构建信息
+          - **版本**: v${{ steps.get_version.outputs.version }}
+          - **构建号**: ${{ steps.build_number.outputs.build_number }}
+          - **构建时间**: ${{ steps.build_number.outputs.build_number }}
+          - **触发事件**: ${{ github.event_name }}
+          
+          ## 构建产物说明
+          1. **kemono-downloader.user.js** - 原始构建版本
+          2. **kemono-downloader.greasyfork.user.js** - 美化版本（用于GreasyFork代码审查）
+          3. **kemono-downloader.min.user.js** - 压缩版本（推荐使用）
+          
+          ## 使用说明
+          1. 下载任意一个用户脚本文件
+          2. 安装到Tampermonkey、Violentmonkey或Greasemonkey等用户脚本管理器
+          3. 访问Kemono网站即可使用
+          
+          ## 变更日志
+          请查看提交历史或GitHub Releases页面获取详细变更信息。
+        draft: false
+        prerelease: false
+        files: |
+          dist/kemono-downloader.user.js
+          dist/kemono-downloader.greasyfork.user.js
+          dist/kemono-downloader.min.user.js
+    
+    - name: Create Manual Release
+      id: create_manual_release
+      uses: softprops/action-gh-release@v1
+      if: github.event_name == 'workflow_dispatch'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        name: Manual Build v${{ steps.get_version.outputs.version }} (Build ${{ steps.build_number.outputs.build_number }})
+        tag_name: manual-${{ steps.build_number.outputs.build_number }}
+        body: |
+          ## 手动构建信息
+          - **版本**: v${{ steps.get_version.outputs.version }}
+          - **构建号**: ${{ steps.build_number.outputs.build_number }}
+          - **构建时间**: ${{ steps.build_number.outputs.build_number }}
+          - **触发方式**: 手动触发
+          
+          ## 构建产物说明
+          1. **kemono-downloader.user.js** - 原始构建版本
+          2. **kemono-downloader.greasyfork.user.js** - 美化版本（用于GreasyFork代码审查）
+          3. **kemono-downloader.min.user.js** - 压缩版本（推荐使用）
+          
+          ## 使用说明
+          1. 下载任意一个用户脚本文件
+          2. 安装到Tampermonkey、Violentmonkey或Greasemonkey等用户脚本管理器
+          3. 访问Kemono网站即可使用
+        draft: false
+        prerelease: false
+        files: |
+          dist/kemono-downloader.user.js
+          dist/kemono-downloader.greasyfork.user.js
+          dist/kemono-downloader.min.user.js
