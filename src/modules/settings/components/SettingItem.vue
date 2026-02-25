@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, Ref, UnwrapNestedRefs, useTemplateRef, watch } from 'vue';
-import { SettingItem } from '../types';
+import { DisabledGUI, SettingItem } from '../types';
 import ListItem, { ExtraCaption } from '@/components/ListItem.vue';
 import { deepEqual, Nullable } from '@/utils/main';
 import { useI18n } from 'vue-i18n';
@@ -23,6 +23,8 @@ type SettingStatus = {
     modified: Ref<boolean>;
     /** 需要额外显示的文本 */
     extras: Ref<ExtraCaption[]>;
+    /** 覆盖显示模型值的UI值 */
+    display: Ref<ExtraCaption[]>;
 };
 
 const status = reactive<SettingStatus>((() => {
@@ -30,7 +32,7 @@ const status = reactive<SettingStatus>((() => {
     const modified = computed(() => !deepEqual(item.value, initVal));
     const extras = computed(() => {
         const extras: ExtraCaption[] = [];
-        typeof item.disabled === 'string' && extras.push(item.disabled);
+        isDisabledGUI(item.disabled) && extras.push(dgui2ecpt(item.disabled));
         item.reload && modified.value && extras.push({
             text: t('settings.gui.reload-to-apply'),
             props: {
@@ -39,7 +41,23 @@ const status = reactive<SettingStatus>((() => {
         });
         return extras;
     });
-    return { initVal, modified, extras };
+    const display = isDisabledGUI(item.disabled) ? item.disabled.value : undefined;
+    return { initVal, modified, extras, display };
+
+    /**
+     * 判断传入值是不是DisabledGUI
+     */
+    function isDisabledGUI(val: boolean | DisabledGUI | undefined): val is DisabledGUI {
+        return typeof val === 'string' ||
+            (typeof val === 'object' && val !== null && Object.hasOwn(val, 'text'));
+    }
+
+    /**
+     * 将DisabledGUI转换为ExtraCaption
+     */
+    function dgui2ecpt(ui: DisabledGUI): ExtraCaption {
+        return ui;
+    }
 }) ());
 
 // help overlay元素位置
@@ -73,6 +91,7 @@ watch(helpOnInput, val => storage.set('helpOnInput', val));
                 v-model="item.value"
                 :type="item.type"
                 :props="item.props"
+                :display-value="status.display"
             />
         </template>
 

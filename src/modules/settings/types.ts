@@ -1,6 +1,25 @@
 import { Component, Ref } from "vue";
 import { CompType } from "./components/SettingInput/SettingInput.vue";
+import { ExtraCaption } from "@/components/ListItem.vue";
 export type { CompType };
+
+export interface DisabledGUI {
+    /**
+     * 作为额外副标题向用户展示的、有关设置项被禁用的原因
+     */
+    text: string;
+
+    /**
+     * 该副标题元素v-bind绑定属性
+     */
+    props?: Record<string, any>;
+
+    /**
+     * 当被禁用时设置项应展示的占位值  
+     * 此内容仅在被禁用项的UI展示，不会影响存储中的值
+     */
+    value?: any;
+}
 
 /**
  * 设置项
@@ -56,12 +75,12 @@ export interface SettingItem {
 
     /**
      * 响应式设置项禁用状态  
-     * 可以为布尔值表示是否禁用，禁用时也可以为一个表达被禁用原因的字符串（将在设置项UI旁边展示给用户）
+     * 可以为布尔值表示是否禁用，禁用时也可以为一个表达被禁用原因的额外显示的设置副标题对象
      * 设置模块提供了一个`settings`计算属性变量用于获取和监听所有设置项值及其变化  
      * 可以依赖settings创建计算属性值作为disabled属性，以实现根据其他设置判断是否禁用当前设置  
      * 也可以通过监听settings变化实现自定义禁用逻辑
      */
-    disabled?: Ref<boolean | string>;
+    disabled?: Ref<boolean | DisabledGUI>;
 
     /**
      * 响应式设置项隐藏状态  

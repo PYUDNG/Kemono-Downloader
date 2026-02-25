@@ -24,6 +24,7 @@ export default {
         }
     },
     downloader: {
+        "show-ui": "下载管理器",
         gui: {
             title: "下载器",
             "title-detail": "任务详情 - {name}",
@@ -86,6 +87,7 @@ export default {
         },
         settings: {
             label: "下载器",
+            "feature-not-supported": "当前下载方式（{provider}）不支持此功能",
             provider: {
                 label: "下载方式",
                 caption: "默认使用浏览器内置下载；其它下载方式有其独特优势，但需要自行测试和您的浏览器的兼容性",
@@ -129,7 +131,16 @@ export default {
                 },
             },
             "no-cover-file": "不下载封面图文件",
-        }
+            "abort-files": {
+                label: "终止任务时，如何处理已下载文件",
+                caption: "部分下载方式可能不支持此功能",
+                options: {
+                    prompt: "每次都询问",
+                    delete: "删除",
+                    preserve: "保留",
+                },
+            },
+        },
     },
     creator: {
         gui: {

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { IPostDownloadTask } from '../../types/interface/main.js';
 import { inject, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { providerInjectionKey } from '../utils.js';
 import BaseTaskItem from './BaseTaskItem.vue';
 import AppTaskDetail from '../app-taskdetail.vue';
 import { createShadowApp } from '@/utils/main.js';
+import { BasePostDownloadTask } from '../../types/base/post.js';
 
 const { t } = useI18n();
 const tsCommonPrefix = 'downloader.gui.task-component.common.';
@@ -16,7 +16,7 @@ const { task, isSubtask = false } = defineProps<{
     /**
      * Post下载任务实例
      */
-    task: IPostDownloadTask;
+    task: BasePostDownloadTask;
 
     /**
      * 当前task是否从属于某父级task
@@ -43,7 +43,7 @@ const toProgressString = (num: number) => num > -1 ? num.toString() : t(tsCommon
  * 用户停止下载任务
  * @param task 任务实例，和props传入的task应当相同
  */
-async function abort(task: IPostDownloadTask) {
+async function abort(task: BasePostDownloadTask) {
     loading.value = true;
     await task.abort();
     loading.value = false;
@@ -53,7 +53,7 @@ async function abort(task: IPostDownloadTask) {
  * 用户移除下载任务
  * @param task 任务实例，和props传入的task应当相同
  */
-async function remove(task: IPostDownloadTask) {
+async function remove(task: BasePostDownloadTask) {
     loading.value = true;
     await task.abort();
     provider.removeTask(task.id);
@@ -64,7 +64,7 @@ async function remove(task: IPostDownloadTask) {
  * 用户重新开始下载任务
  * @param task 任务实例，和props传入的task应当相同
  */
-async function restart(task: IPostDownloadTask) {
+async function restart(task: BasePostDownloadTask) {
     loading.value = true;
     await task.abort();
     task.run();
@@ -76,7 +76,7 @@ async function restart(task: IPostDownloadTask) {
  * @param _e 点击事件
  * @param task 任务实例，和props传入的task应当相同
  */
-function detail(_e: PointerEvent, task: IPostDownloadTask) {
+function detail(_e: PointerEvent, task: BasePostDownloadTask) {
     // 创建并展示子任务窗口
     const { host, app, root } = createShadowApp(AppTaskDetail, {
         props: { provider, tasks: [], name: task.name },

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { IFileDownloadTask } from '../../types/interface/main.js';
 import { inject, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { providerInjectionKey } from '../utils';
 import BaseTaskItem from './BaseTaskItem.vue';
 import { stringifyBytes } from '@/utils/main.js';
+import { BaseFileDownloadTask } from '../../types/base/task.js';
 
 const { t } = useI18n();
 const tsCommonPrefix = 'downloader.gui.task-component.common.';
@@ -15,7 +15,7 @@ const { task, isSubtask = false } = defineProps<{
     /**
      * 文件下载任务实例
      */
-    task: IFileDownloadTask;
+    task: BaseFileDownloadTask;
 
     /**
      * 当前task是否从属于某父级task
@@ -46,7 +46,7 @@ const toProgressString = (num: number, formatter?: (num: number) => string) =>
  * 用户停止下载任务
  * @param task 任务实例，和props传入的task应当相同
  */
-async function abort(task: IFileDownloadTask) {
+async function abort(task: BaseFileDownloadTask) {
     loading.value = true;
     await task.abort();
     loading.value = false;
@@ -56,7 +56,7 @@ async function abort(task: IFileDownloadTask) {
  * 用户移除下载任务
  * @param task 任务实例，和props传入的task应当相同
  */
-async function remove(task: IFileDownloadTask) {
+async function remove(task: BaseFileDownloadTask) {
     loading.value = true;
     await task.abort();
     provider.removeTask(task.id);
@@ -67,7 +67,7 @@ async function remove(task: IFileDownloadTask) {
  * 用户重新开始下载任务
  * @param task 任务实例，和props传入的task应当相同
  */
-async function restart(task: IFileDownloadTask) {
+async function restart(task: BaseFileDownloadTask) {
     loading.value = true;
     await task.abort();
     task.run();

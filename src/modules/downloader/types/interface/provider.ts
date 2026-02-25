@@ -33,3 +33,11 @@ export interface IDownloadProvider {
      */
     downloadPosts(name: string, infos: PostInfo[]): string;
 }
+
+// 静态属性扩展
+export namespace IDownloadProvider {
+    /**
+     * 下载器支持的features列表（静态属性）
+     */
+    export const features: string[] = [];
+}

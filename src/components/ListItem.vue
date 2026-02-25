@@ -1,7 +1,7 @@
 <script setup lang="ts">
 export type ExtraCaption = string | {
     text: string;
-    props?: Record<string, any>
+    props?: Record<string, any>;
 }
 
 // props
@@ -68,9 +68,9 @@ const {
         <!-- 文字区域（总是显示） -->
         <div :class="['flex flex-row items-center min-w-0 grow shrink', centerClass]">
             <!-- 左侧主要区域：文字 -->
-            <div class="flex flex-col px-3 py-2 justify-center grow">
-                <div :title="label" class="text-base truncate" :class="{ 'brightness-80': disabled, 'grayscale': disabled }">{{ label }}</div>
-                <div v-if="caption" :title="caption" class="text-sm text-surface-500 dark:text-surface-400 line-clamp-2" :class="{ 'brightness-80': disabled, 'grayscale': disabled }">
+            <div class="flex flex-col px-3 py-2 justify-center grow" :class="{ 'brightness-80': disabled, 'grayscale-50': disabled }">
+                <div :title="label" class="text-base truncate">{{ label }}</div>
+                <div v-if="caption" :title="caption" class="text-sm text-surface-500 dark:text-surface-400 line-clamp-2">
                     {{ caption }}
                 </div>
                 <div v-for="ex of extras"

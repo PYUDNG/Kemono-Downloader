@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { IDownloadTask, IFileDownloadTask } from '../../types/interface/task';
-import { IPostDownloadTask, IPostsDownloadTask } from '../../types/interface/post.js';
 import PostTaskItem from './PostTaskItem.vue';
 import FileTaskItem from './FileTaskItem.vue';
 import PostsTaskItem from './PostsTaskItem.vue';
+import { BaseDownloadTask, BaseFileDownloadTask } from '../../types/base/task';
+import { BasePostDownloadTask, BasePostsDownloadTask } from '../../types/base/post';
 
 // 类型守卫函数
-function isFileTask(task: IDownloadTask): task is IFileDownloadTask {
+function isFileTask(task: BaseDownloadTask): task is BaseFileDownloadTask {
     return task.type === 'file';
 }
-function isPostTask(task: IDownloadTask): task is IPostDownloadTask {
+function isPostTask(task: BaseDownloadTask): task is BasePostDownloadTask {
     return task.type === 'post';
 }
-function isPostsTask(task: IDownloadTask): task is IPostsDownloadTask {
+function isPostsTask(task: BaseDownloadTask): task is BasePostsDownloadTask {
     return task.type === 'posts';
 }
 
@@ -21,7 +21,7 @@ const { task, isSubtask = false } = defineProps<{
     /**
      * 任务实例
      */
-    task: IDownloadTask;
+    task: BaseDownloadTask;
 
     /**
      * 当前task是否从属于某父级task

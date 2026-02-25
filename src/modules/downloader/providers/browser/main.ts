@@ -1,6 +1,6 @@
 import { PostInfo } from "@/modules/api/types/common.js";
-import { BaseDownloadProvider } from "../../types/base/provider.js";
-import { BaseDownloadTask, BaseFileDownloadTask } from "../../types/base/task.js";
+import { BaseDownloadProvider, Feature } from "../../types/base/provider.js";
+import { BaseDownloadTask, BaseFileDownloadTask, ProviderType } from "../../types/base/task.js";
 import { IPostDownloadTask, IPostsDownloadTask } from "../../types/interface/post.js";
 import { IDownloadProvider } from "../../types/interface/provider.js";
 import { DownloadFile, IFileDownloadTask, Status } from "../../types/interface/task.js";
@@ -11,6 +11,7 @@ import { BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/po
 import { Reactive, reactive, watch } from "vue";
 import { constructFilename } from "../../utils/main.js";
 import { globalStorage } from "@/storage.js";
+import { FeatureNotSupportedError } from "../../types/base/error.js";
 
 const logger = globalLogger.withPath('downloader', 'provider', 'browser');
 const storage = globalStorage.withKeys('downloader');
@@ -39,6 +40,7 @@ logger.log('Debug', 'raw', 'log', queueFile);
  */
 class BrowserFileDownloadTask extends BaseFileDownloadTask implements IFileDownloadTask {
     public init: Promise<void> = Promise.resolve();
+    public provider: ProviderType = 'browser';
 
     /**
      * 用于终止任务的信号控制器
@@ -113,6 +115,20 @@ class BrowserFileDownloadTask extends BaseFileDownloadTask implements IFileDownl
         resolve();
     }
 
+    /**
+     * browser下载方式不支持暂停功能
+     */
+    pause(): unknown {
+        throw new FeatureNotSupportedError('Unsupported feature: pause', BrowserFileDownloadTask.provider);
+    }
+    
+    /**
+     * browser下载方式不支持暂停功能
+     */
+    unpause(): unknown {
+        throw new FeatureNotSupportedError('Unsupported feature: pause', BrowserFileDownloadTask.provider);
+    }
+
     async abort(): Promise<void> {
         if (this.progress.status !== 'queue' && this.progress.status !== 'ongoing') return;
         // 首先设置为aborted状态
@@ -125,6 +141,7 @@ class BrowserFileDownloadTask extends BaseFileDownloadTask implements IFileDownl
 }
 
 export class PostDownloadTask extends BasePostDownloadTask implements IPostDownloadTask {
+    public provider: ProviderType = 'browser';
     public name: Nullable<string> = null;
     public data: Nullable<PostApiResponse> = null;
     public subTasks: Reactive<BaseFileDownloadTask[]> = reactive([]);
@@ -237,6 +254,20 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
         resolve();
     }
 
+    /**
+     * browser下载方式不支持暂停功能
+     */
+    pause(): unknown {
+        throw new FeatureNotSupportedError('Unsupported feature: pause', PostDownloadTask.provider);
+    }
+    
+    /**
+     * browser下载方式不支持暂停功能
+     */
+    unpause(): unknown {
+        throw new FeatureNotSupportedError('Unsupported feature: pause', PostDownloadTask.provider);
+    }
+
     async abort(): Promise<void> {
         if (this.progress.status !== 'queue' && this.progress.status !== 'ongoing') return;
         // 首先设置为aborted状态
@@ -256,6 +287,7 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
 }
 
 export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDownloadTask {
+    public provider: ProviderType = 'browser';
     public subTasks: Reactive<PostDownloadTask[]>;
     public name: string;
     public init: Promise<void>;
@@ -306,6 +338,20 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
                 'complete';
     }
 
+    /**
+     * browser下载方式不支持暂停功能
+     */
+    pause(): unknown {
+        throw new FeatureNotSupportedError('Unsupported feature: pause', PostsDownloadTask.provider);
+    }
+    
+    /**
+     * browser下载方式不支持暂停功能
+     */
+    unpause(): unknown {
+        throw new FeatureNotSupportedError('Unsupported feature: pause', PostsDownloadTask.provider);
+    }
+
     async abort(): Promise<void> {
         if (this.progress.status !== 'queue' && this.progress.status !== 'ongoing') return;
         // 设置abort状态
@@ -324,6 +370,9 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
 }
 
 export default class BrowserDownloadProvider extends BaseDownloadProvider implements IDownloadProvider {
+    public name: string = 'browser';
+    static features: Feature[] = [];
+
     /**
      * 下载单Post
      * @param info 下载任务信息

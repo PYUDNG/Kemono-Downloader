@@ -8,9 +8,16 @@ import Select from './components/Select.vue';
 // props
 const { type, props } = defineProps<{
     /** 设置项类型 */
-    type: CompType,
+    type: CompType;
     /** 需要向设置项编辑组件额外传递的props */
-    props?: Record<string, any>
+    props?: Record<string, any>;
+    /** 
+     * 在UI上覆盖展示的模型值  
+     * 提供时，此值仅在UI上展示，不影响存储中的实际值  
+     * 同时提供此值和模型值时，此值将具备更高优先级从而在UI上优先展示此值  
+     * 注意：提供此值时，用户将无法通过UI交互修改实际的模型值（因为UI值已经被固定了）
+     */
+    displayValue?: any;
 }>();
 
 // emits
@@ -39,6 +46,7 @@ const component = computed(() => {
 <template>
     <component
         v-model="model"
+        :display-value="displayValue"
         :is="component"
         v-bind="props ?? {}"
         @focus="e => $emit('focus', e)"

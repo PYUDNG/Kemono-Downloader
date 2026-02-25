@@ -3,15 +3,20 @@ import { v4 as uuid } from "uuid";
 import { Reactive, reactive } from "vue";
 import { Nullable } from "@/utils/main.js";
 
+// 注意：这里使用 typeof import() 但不实际导入，以避免循环引用
+export type ProviderType = keyof typeof import('../../providers/main.js');
+
 export abstract class BaseTask implements ITask {
     public id: string = uuid();
     public readonly type: string = 'task';
+    static provider: ProviderType;
     public progress: Reactive<Progress> = reactive({
         total: -1,
         finished: -1,
         status: 'queue'
     });
     abstract init: Promise<void>;
+    abstract provider: ProviderType;
     public parent: Nullable<BaseTask> = null;
     public subTasks: BaseTask[] = [];
 
@@ -25,6 +30,10 @@ export abstract class BaseTask implements ITask {
      * 如果是异步任务，应当返回一个在任务完成时resolve的Promise
      */
     abstract run(): unknown;
+
+    abstract pause(): unknown;
+
+    abstract unpause(): unknown;
 
     /**
      * 终止任务

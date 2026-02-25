@@ -1,6 +1,6 @@
-<script setup lang="ts" generic="T extends IDownloadTask = IDownloadTask">
+<script setup lang="ts" generic="T extends BaseDownloadTask = BaseDownloadTask">
 import ProgressBar from '@/volt/ProgressBar.vue';
-import type { IDownloadTask, Status } from '../../types/interface/main.js';
+import type { Status } from '../../types/interface/main.js';
 import { useI18n } from 'vue-i18n';
 import { computed, ref } from 'vue';
 import Button from '@/volt/Button.vue';
@@ -8,6 +8,8 @@ import ConfirmDialog from '@/volt/ConfirmDialog.vue';
 import { useConfirm } from 'primevue/useconfirm';
 import { globalStorage } from '@/storage';
 import { v4 as uuid } from 'uuid';
+import { supports } from './utils.js';
+import { BaseDownloadTask } from '../../types/base/task.js';
 
 const { t } = useI18n();
 const storage = globalStorage.withKeys('downloader');
@@ -85,6 +87,7 @@ const toProgressString = (num: number) => num > -1 ? num.toString() : t(tsCommon
 const progress = computed(() => Object.assign({
     color: {
         init: 'bg-grey-700',
+        paused: 'bg-grey-700',
         queue: 'bg-primary',
         ongoing: 'bg-primary',
         complete: 'bg-green-600',
@@ -96,6 +99,7 @@ const progress = computed(() => Object.assign({
 }, task.progress));
 const progreebarMode = computed(() => ({
     init: 'indeterminate',
+    paused: 'determinate',
     queue: 'indeterminate',
     ongoing: progress.value.hasPercentage ? 'determinate' : 'indeterminate',
     complete: 'determinate',
@@ -117,6 +121,11 @@ const confirmDialogGroup = `remove-task:${ uuid() }`;
  * @param acceptedStatusList 接受的任务状态列表
  */
 const isStatus = (...acceptedStatusList: Status[]) => computed(() => acceptedStatusList.includes(task.progress.status));
+
+/**
+ * 任务是否可以用户主动暂停/解除暂停
+ */
+const pausable = supports(task, 'pause') && isStatus('paused', 'ongoing');
 
 /**
  * 任务是否可以用户主动终止
@@ -279,6 +288,17 @@ const confirmRemove = function(e?: PointerEvent | KeyboardEvent) {
             <div class="flex items-center">
                 <!-- 额外操作按钮插槽 -->
                 <slot name="extraActions" :task="task" />
+
+                <!-- 重新下载任务按钮 -->
+                <Button
+                    v-show="pausable"
+                    :icon="task.progress.status === 'paused' ? 'pi pi-play' : 'pi pi-pause'"
+                    variant="text"
+                    :loading="loading"
+                    @click="task.progress.status === 'paused' ? task.unpause() : task.pause()"
+                    :title="t(tsCommonPrefix + task.progress.status === 'paused' ? 'unpause' : 'pasue')"
+                    pt:root:class="p-2"
+                />
 
                 <!-- 重新下载任务按钮 -->
                 <Button

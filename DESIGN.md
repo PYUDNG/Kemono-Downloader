@@ -1,0 +1,18 @@
+- 不同provider功能兼容性设计
+  - 需求
+    - 需要能统筹管理/展示兼容性
+    - 每个功能是否对每个provider兼容要清楚
+    - 要对用户有统一展示，方便用户选择适合自己的provider，最好还要有自动化检测/建议（基于用户的运行环境）
+    - 不兼容的功能，要在UI上明确展示，比如禁用状态的设置项等等
+  - 设计
+    - 定义一个全局的features列表，string[]
+    - 每个provider定义一个支持的features列表，string[]
+    - 统筹管理/展示兼容性：直接对比上面两个列表就可以了
+    - 定义一个辅助函数直接对比可以知道任意一对(feature, provider)是否支持
+    - 设置项：在downloader模块统一注册，注册时根据选择的provider是否支持为逻辑生成响应式变量disabled/hidden
+  - features设计
+    - 所有provider都支持的不作为feature记录
+    - 所有provider都不支持/尚未实现的不作为feature记录
+  - features
+    - pause: 暂停/继续下载功能
+    - abortFiles: 取消下载任务时，如何处理该任务中已下载的文件

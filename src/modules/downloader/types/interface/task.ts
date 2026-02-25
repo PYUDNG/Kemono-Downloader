@@ -1,16 +1,17 @@
 import { HintedString, Nullable } from '@/utils/main.js';
 import { Reactive } from 'vue';
 
-// 注意：这里使用 typeof import() 但不实际导入，以避免循环引用
-export type ProviderType = keyof typeof import('../../providers/main.js');
-
 /**
  * 任务状态  
- * - `'queue'`: 任务创建完毕，在队列中随时可以开始执行
+ * - `'init'`: 任务创建完毕，正在初始化，目前尚未准备好执行
+ * - `'queue'`: 任务创建完毕且初始化完毕，在队列中随时可以开始执行
  * - `'ongoing'`: 任务执行中
+ * - `'paused'`: 任务被暂停
  * - `'complete'`: 任务已执行完毕
+ * - `'aborted'`: 任务被取消/终止
+ * - `'error'`: 任务出现错误
  */
-export type Status = 'init' | 'queue' | 'ongoing' | 'complete' | 'aborted' | 'error';
+export type Status = 'init' | 'queue' | 'ongoing' | 'paused' | 'complete' | 'aborted' | 'error';
 
 /**
  * 进度
@@ -52,6 +53,11 @@ export interface ITask {
     type: HintedString<'task'>;
 
     /**
+     * 当前实现隶属于哪个provider实现
+     */
+    provider: string;
+
+    /**
      * 任务进度  
      * 响应式对象
      */
@@ -69,6 +75,20 @@ export interface ITask {
      * 如果任务过程中出现错误，应当捕获错误并将任务状态设置为`'error'`
      */
     run: Function;
+
+    /**
+     * 暂停任务  
+     * 如果暂停操作是一个耗时操作，则应返回一个暂停成功时resolve的Promise  
+     * 如果不支持暂停功能则应抛出IFeatureNotSupportedError
+     */
+    pause: Function;
+
+    /**
+     * 取消暂停任务  
+     * 如果取消暂停操作是一个耗时操作，则应返回一个暂停成功时resolve的Promise  
+     * 如果不支持暂停功能则应抛出错误IFeatureNotSupportedError
+     */
+    unpause: Function;
 
     /**
      * 终止任务  

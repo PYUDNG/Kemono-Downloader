@@ -1,7 +1,7 @@
 import { GM_getValue, GM_setValue, GM_deleteValue, GM_listValues, GM_addValueChangeListener } from "$";
 import { deepEqual, HintedString, UserscriptStorage } from "@/utils/main.js";
 import { ref, watch } from "vue";
-import { ProviderType } from "./modules/downloader/types/interface/main.js";
+import { ProviderType } from "./modules/downloader/types/base/task";
 
 /**
  * 全局作用域的用户存储管理器
@@ -29,6 +29,11 @@ export const globalStorage = new UserscriptStorage(
              * 是否不下载封面图文件
              */
             noCoverFile: false as boolean,
+
+            /**
+             * 取消下载任务时，如何处理该任务中已下载的文件
+             */
+            abortFiles: 'prompt' as 'prompt' | 'delete' | 'preserve',
 
             /**
              * 不同provider自己的设置空间

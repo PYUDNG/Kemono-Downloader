@@ -1,7 +1,19 @@
 <script setup lang="ts">
 import Select from '@/volt/Select.vue';
+import { computed } from 'vue';
+import { eggExpectedModification } from './utils';
 
 const value = defineModel<string>();
+
+const props = defineProps<{
+    displayValue?: any;
+}>();
+const noDisplayValue = typeof props.displayValue === 'undefined';
+const displayValue = computed({
+    get: () => noDisplayValue ? value.value : props.displayValue,
+    set: val => noDisplayValue ? (value.value = val) : eggExpectedModification(),
+});
+
 
 defineEmits<{
     focus: [e: Event];
@@ -12,7 +24,7 @@ defineEmits<{
 <template>
     <Select
         :appendTo="'self'"
-        v-model="value"
+        v-model="displayValue"
         v-bind="$attrs"
         @mouseenter="(e: Event) => $emit('focus', e)"
         @mouseleave="(e: Event) => $emit('blur', e)"

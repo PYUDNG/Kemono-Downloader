@@ -3,8 +3,14 @@ import { IDownloadProvider } from "../interface/provider.js";
 import { BaseDownloadTask } from "./task.js";
 import { reactive } from "vue";
 
+export const features = [
+    'pause',
+    'abortFiles',
+] as const;
+export type Feature = typeof features[number];
+
 export abstract class BaseDownloadProvider implements IDownloadProvider {
-    public name: string = 'Base download provider';
+    abstract name: string;
     public tasks: BaseDownloadTask[] = reactive([]);
 
     removeTask(taskId: string): boolean {
