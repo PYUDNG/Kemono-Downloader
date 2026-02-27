@@ -164,6 +164,7 @@ npm run build
 
 ## 🙏 致谢
 
+- [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey) - 用于构建用户脚本的Vite插件
 - [Vue.js](https://vuejs.org/) - 渐进式JavaScript框架
 - [PrimeVue](https://primevue.org/) - 下一代Vue UI组件库
 - [Tailwind CSS](https://tailwindcss.com/) - 实用优先的CSS框架
@@ -171,13 +172,14 @@ npm run build
 - [Tampermonkey](https://www.tampermonkey.net/) - 流行的用户脚本管理器
 - [Violentmonkey](https://violentmonkey.github.io/) - 开源的用户脚本管理器
 
-## 📞 支持与反馈
 
-如有问题或建议，请通过以下方式联系：
+## ✉️ 问题与反馈
+
+欢迎通过以下方式：
 
 - 提交 [GitHub Issue](https://github.com/Kemono-Downloader/issues)
-- 提交 [Greasyfork Discussion](#)（建设中）
-- 参与社区讨论
+- 提交 [Pull Request](https://github.com/PYUDNG/Kemono-Downloader/pulls)
+- 提交<del> [Greasyfork Discussion](#)</del>（Greasyfork版本尚未上传）
 
 ---
 
