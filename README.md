@@ -165,6 +165,7 @@ npm run build
 ## 🙏 致谢
 
 - [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey) - 用于构建用户脚本的Vite插件
+- [Pixiv Downloader](https://github.com/drunkg00se/Pixiv-Downloader/) - 适用于包括Pixiv在内的多站点的下载器
 - [Vue.js](https://vuejs.org/) - 渐进式JavaScript框架
 - [PrimeVue](https://primevue.org/) - 下一代Vue UI组件库
 - [Tailwind CSS](https://tailwindcss.com/) - 实用优先的CSS框架
