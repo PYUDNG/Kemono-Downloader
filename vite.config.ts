@@ -42,6 +42,13 @@ export default defineConfig({
                     'http*://*.kemono.su/*',
                     'http*://*.kemono.cr/*',
                 ],
+                connect: [
+                    'kemono.party',
+                    'kemono.su',
+                    'kemono.cr',
+                    // Kemono swiches between domains frequently, so we add '*' to accept all domains
+                    '*',
+                ],
             },
             build: {
                 fileName: pkg.name + '.user.js',

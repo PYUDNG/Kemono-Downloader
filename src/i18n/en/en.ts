@@ -156,6 +156,7 @@ export default {
                     directory: {
                         label: 'Download folder',
                         caption: 'Click to change download file save location',
+                        "not-selected": 'Folder not selected yet',
                     },
                 },
             },

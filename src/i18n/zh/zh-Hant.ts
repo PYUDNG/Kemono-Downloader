@@ -156,6 +156,7 @@ export default {
                     directory: {
                         label: '下載資料夾',
                         caption: '點擊更改下載檔案儲存位置',
+                        "not-selected": '尚未選擇資料夾',
                     },
                 },
             },

@@ -38,7 +38,7 @@ onModuleRegistered('downloader', () => {
         type: 'button',
         value: (() => {
             // buttons类型的value是按钮的label，且不会从组件内不改变（数据单向流动）
-            const label = ref('');
+            const label = ref(t(tSettingsPrefix + 'directory.not-selected'));
             // 当保存的目录改变时，更新按钮的label
             watchDirChange((newHandle) => newHandle && (label.value = newHandle.name), true);
             return label;
