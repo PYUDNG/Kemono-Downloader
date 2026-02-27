@@ -10,6 +10,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     
+    # 添加权限配置
+    permissions:
+      contents: write  # 允许创建release和上传文件
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -57,8 +61,6 @@ jobs:
       id: create_release
       uses: softprops/action-gh-release@v1
       if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         name: Release v${{ steps.get_version.outputs.version }} (Build ${{ steps.build_number.outputs.build_number }})
         tag_name: ${{ github.ref_name }}
@@ -92,8 +94,6 @@ jobs:
       id: create_manual_release
       uses: softprops/action-gh-release@v1
       if: github.event_name == 'workflow_dispatch'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         name: Manual Build v${{ steps.get_version.outputs.version }} (Build ${{ steps.build_number.outputs.build_number }})
         tag_name: manual-${{ steps.build_number.outputs.build_number }}
@@ -116,6 +116,9 @@ jobs:
         draft: false
         prerelease: false
         files: |
+          dist/kemono-downloader.user.js
+          dist/kemono-downloader.greasyfork.user.js
+          dist/kemono-downloader.min.user.js
           dist/kemono-downloader.user.js
           dist/kemono-downloader.greasyfork.user.js
           dist/kemono-downloader.min.user.js
