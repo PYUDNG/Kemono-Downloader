@@ -4,6 +4,7 @@ import Text from './components/Text.vue';
 import Number from './components/Number.vue';
 import Switch from './components/Switch.vue';
 import Select from './components/Select.vue';
+import Button from './components/Button.vue';
 
 // props
 const { type, props } = defineProps<{
@@ -35,6 +36,7 @@ const componentsMap = {
     number: Number,
     switch: Switch,
     select: Select,
+    button: Button,
 };
 /** 可用的组件类型 */
 export type CompType = keyof typeof componentsMap;

@@ -1,6 +1,5 @@
 import { Component, Ref } from "vue";
 import { CompType } from "./components/SettingInput/SettingInput.vue";
-import { ExtraCaption } from "@/components/ListItem.vue";
 export type { CompType };
 
 export interface DisabledGUI {
@@ -64,7 +63,7 @@ export interface SettingItem {
      * 设置项提供者（调用方）应：
      * - [注册设置时] 读取存储以提供初始值
      * - [当存储变化时] 监听存储变化并更新此值
-     * - [当用于与设置UI交互并修改此设置时] 监听此值变化、验证是否合法并更新到存储（或不合法时回退到旧值）
+     * - [当用于与设置UI交互并修改此设置时] 监听此值变化、验证是否合法并更新到存储（或其他副作用）（或不合法时回退到旧值）
      */
     value: Ref<any>;
 
@@ -96,6 +95,31 @@ export interface SettingItem {
      * @default false
      */
     reload?: boolean;
+
+    /**
+     * 设置项所属组id  
+     * 如果提供，所有具有相同组id的设置项将在UI中被合并显示在同一区域  
+     * 如果部分设置项提供了组id、另一些没有提供，没有提供组名的将被显示在设置项列表最上方，且不以分组UI包含显示
+     */
+    group?: string;
+};
+
+export interface SettingGroup {
+    /**
+     * 全局唯一组ID
+     */
+    id: string;
+    
+    /**
+     * 组名，显示在UI中
+     */
+    name: string;
+
+    /**
+     * 设置项组的排序位置，数值越小越靠前  
+     * 此值应该是一个整数，且建议大于0
+     */
+    index: number;
 };
 
 /**
@@ -105,15 +129,23 @@ export interface SettingModule {
     /**
      * 模块全局唯一ID
      */
-    id: string,
+    id: string;
     
     /**
      * 模块名 / 描述文本
      */
-    name: string,
+    name: string;
 
     /**
      * 模块的设置项
      */
-    items: SettingItem[],
+    items: SettingItem[];
+
+    /**
+     * 分组配置  
+     * - 必须包含所有设置项所使用的组
+     * - 如果某组没有设置项将在UI中创建空组
+     * - 没有设置项使用分组功能时可以省略
+     */
+    groups?: SettingGroup[];
 }

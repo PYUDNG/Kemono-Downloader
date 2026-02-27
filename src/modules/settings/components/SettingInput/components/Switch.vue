@@ -8,10 +8,10 @@ const status = defineModel<boolean>();
 const props = defineProps<{
     displayValue?: any;
 }>();
-const noDisplayValue = typeof props.displayValue === 'undefined';
+const noDisplayValue = computed(() => typeof props.displayValue === 'undefined');
 const displayValue = computed({
-    get: () => noDisplayValue ? status.value : props.displayValue,
-    set: val => noDisplayValue ? (status.value = val) : eggExpectedModification(),
+    get: () => noDisplayValue.value ? status.value : props.displayValue,
+    set: val => noDisplayValue.value ? (status.value = val) : eggExpectedModification(),
 });
 
 defineEmits<{

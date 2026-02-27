@@ -9,7 +9,6 @@ export type ProviderType = keyof typeof import('../../providers/main.js');
 export abstract class BaseTask implements ITask {
     public id: string = uuid();
     public readonly type: string = 'task';
-    static provider: ProviderType;
     public progress: Reactive<Progress> = reactive({
         total: -1,
         finished: -1,
@@ -29,7 +28,7 @@ export abstract class BaseTask implements ITask {
      * 如果是同步任务，应在任务完成后返回
      * 如果是异步任务，应当返回一个在任务完成时resolve的Promise
      */
-    abstract run(): unknown;
+    abstract run(...args: any[]): unknown;
 
     abstract pause(): unknown;
 
@@ -39,17 +38,17 @@ export abstract class BaseTask implements ITask {
      * 终止任务
      * 仅当任务处于`'queue'`或`'ongoing'`状态时有效
      */
-    abstract abort(): unknown;
+    abstract abort(...args: any[]): unknown;
 }
 export abstract class BaseDownloadTask extends BaseTask implements IDownloadTask {
     public readonly type: string = 'download';
     abstract name: string | null;
 
     /**
-     * 开始下载
+     * 开始下载  
      * 返回一个下载完成时resolve的Promise
      */
-    abstract run(): Promise<unknown>;
+    abstract run(...args: any[]): Promise<unknown>;
 }
 export abstract class BaseFileDownloadTask extends BaseDownloadTask implements IFileDownloadTask {
     public readonly type: string = 'file';

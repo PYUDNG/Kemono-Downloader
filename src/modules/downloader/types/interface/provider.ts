@@ -1,5 +1,6 @@
 import { PostInfo } from "@/modules/api/types/common.js";
 import { IDownloadTask } from "./task.js";
+import { PromiseOrRaw } from "@/utils/main.js";
 
 export interface IDownloadProvider {
     /**
@@ -24,14 +25,15 @@ export interface IDownloadProvider {
      * @param info Post信息
      * @returns 为此次下载创建的任务ID
      */
-    downloadPost(info: PostInfo): string;
+    downloadPost(info: PostInfo): PromiseOrRaw<string>;
 
     /**
      * 下载指定的一组Post
      * @param name 下载任务名称
      * @param infos 需要下载的posts信息列表
+     * @returns 为此次下载创建的任务ID
      */
-    downloadPosts(name: string, infos: PostInfo[]): string;
+    downloadPosts(name: string, infos: PostInfo[]): PromiseOrRaw<string>;
 }
 
 // 静态属性扩展

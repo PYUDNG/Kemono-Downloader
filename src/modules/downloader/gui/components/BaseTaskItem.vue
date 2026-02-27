@@ -6,10 +6,12 @@ import { computed, ref } from 'vue';
 import Button from '@/volt/Button.vue';
 import ConfirmDialog from '@/volt/ConfirmDialog.vue';
 import { useConfirm } from 'primevue/useconfirm';
-import { globalStorage } from '@/storage';
+import { globalStorage, makeStorageRef } from '@/storage';
 import { v4 as uuid } from 'uuid';
 import { supports } from './utils.js';
 import { BaseDownloadTask } from '../../types/base/task.js';
+import Checkbox from '@/volt/Checkbox.vue';
+import ExclamationTriangleIcon from '@primevue/icons/exclamationtriangle';
 
 const { t } = useI18n();
 const storage = globalStorage.withKeys('downloader');
@@ -37,9 +39,9 @@ const { task, isSubtask = false, loading = false } = defineProps<{
 
 // emits
 const emit = defineEmits<{
-    restart: [task: T];
-    abort: [task: T];
-    remove: [task: T];
+    restart: [task: T, deleteFiles: boolean];
+    abort: [task: T, deleteFiles: boolean];
+    remove: [task: T, deleteFiles: boolean];
     click: [event: PointerEvent, task: T];
 }>();
 
@@ -94,13 +96,14 @@ const progress = computed(() => Object.assign({
         aborted: 'bg-grey-700',
         error: 'bg-red-600'
     } [task.progress.status],
-    percentage: task.progress.finished / task.progress.total * 100,
+    percentage: task.progress.total > -1 && task.progress.finished > -1 ?
+        task.progress.finished / task.progress.total * 100 : 0,
     hasPercentage: task.progress.total > -1 && task.progress.finished > -1,
 }, task.progress));
 const progreebarMode = computed(() => ({
     init: 'indeterminate',
     paused: 'determinate',
-    queue: 'indeterminate',
+    queue: 'determinate',
     ongoing: progress.value.hasPercentage ? 'determinate' : 'indeterminate',
     complete: 'determinate',
     aborted: 'determinate',
@@ -108,7 +111,24 @@ const progreebarMode = computed(() => ({
 })[task.progress.status] as 'determinate' | 'indeterminate');
 
 const confirm = useConfirm();
-const removeFiles = ref(storage.get('removeFiles')); // 控制是否删除文件的勾选状态
+/** 当前provider是否支持abortFiles功能 */
+const abortFilesSupported = computed(() => supports(task, 'abortFiles'));
+/** 用户设定的如何处理已下载文件设置 */
+const abortFiles = makeStorageRef('abortFiles', storage);
+/** 是否展示删除文件复选框 */
+const showCheckbox = computed(() => abortFiles.value === 'prompt' && abortFilesSupported.value);
+/** 控制是否删除已下载文件的勾选状态 */
+const deleteFilesChecked = ref(false);
+/** 复选框的id，用于和label相关联 */
+const checkboxId = 'confirm-checkbox-' + uuid();
+/** 是否真正删除已下载文件文件 */
+const deleteFiles = computed(() =>
+    abortFilesSupported.value && {
+        prompt: deleteFilesChecked.value,
+        preserve: false,
+        delete: true,
+    }[abortFiles.value]
+);
 
 /**
  * ConfirmDialog 分组名称  
@@ -141,14 +161,15 @@ const restartable = isStatus('ongoing', 'complete', 'aborted', 'error');
  * 任务是否可以用户主动移除
  */
 const removable = computed(() => !isSubtask);
+
 /**
  * 用户重新开始下载任务
  */
 const confirmRestart = function(e?: PointerEvent | KeyboardEvent) {
     e?.stopPropagation();
 
-    // 重置勾选状态
-    removeFiles.value = storage.get('removeFiles');
+    // 重置复选框选中状态
+    deleteFilesChecked.value = false;
 
     const tsConfirmPrefix = tsCommonPrefix + 'confirm-restart.';
     confirm.require({
@@ -161,8 +182,7 @@ const confirmRestart = function(e?: PointerEvent | KeyboardEvent) {
         ),
         header: t(tsConfirmPrefix + 'header'),
         accept: () => {
-            emit('restart', task);
-            storage.set('removeFiles', removeFiles.value);
+            emit('restart', task, deleteFiles.value);
         },
         acceptProps: {
             label: t(tsConfirmPrefix + 'accept'),
@@ -179,8 +199,8 @@ const confirmRestart = function(e?: PointerEvent | KeyboardEvent) {
 const confirmAbort = function(e?: PointerEvent | KeyboardEvent) {
     e?.stopPropagation();
 
-    // 重置勾选状态
-    removeFiles.value = storage.get('removeFiles');
+    // 重置复选框选中状态
+    deleteFilesChecked.value = false;
 
     const tsConfirmPrefix = tsCommonPrefix + 'confirm-abort.';
     confirm.require({
@@ -194,8 +214,7 @@ const confirmAbort = function(e?: PointerEvent | KeyboardEvent) {
         header: t(tsConfirmPrefix + 'header'),
         accept: () => {
             // 停止下载任务
-            emit('abort', task);
-            storage.set('removeFiles', removeFiles.value);
+            emit('abort', task, deleteFiles.value);
         },
         acceptProps: {
             label: t(tsConfirmPrefix + 'accept'),
@@ -212,8 +231,8 @@ const confirmAbort = function(e?: PointerEvent | KeyboardEvent) {
 const confirmRemove = function(e?: PointerEvent | KeyboardEvent) {
     e?.stopPropagation();
 
-    // 重置勾选状态
-    removeFiles.value = storage.get('removeFiles');
+    // 重置复选框选中状态
+    deleteFilesChecked.value = false;
 
     const tsConfirmPrefix = tsCommonPrefix + 'confirm-remove.';
     confirm.require({
@@ -227,8 +246,7 @@ const confirmRemove = function(e?: PointerEvent | KeyboardEvent) {
         header: t(tsConfirmPrefix + 'header'),
         accept: () => {
             // 移除下载任务
-            emit('remove', task);
-            storage.set('removeFiles', removeFiles.value);
+            emit('remove', task, deleteFiles.value);
         },
         acceptProps: {
             label: t(tsConfirmPrefix + 'accept'),
@@ -242,7 +260,23 @@ const confirmRemove = function(e?: PointerEvent | KeyboardEvent) {
 
 <template>
     <!-- 确认对话框 -->
-    <ConfirmDialog :group="confirmDialogGroup" html />
+    <ConfirmDialog :group="confirmDialogGroup" html>
+        <template #content="{ message, html }">
+            <div class="flex flex-col">
+                <!-- 上方图标/文字内容 -->
+                <div class="pt-0 px-5 pb-5 flex items-center gap-4">
+                    <ExclamationTriangleIcon class="size-6" />
+                    <span v-if="html" v-html="message.message"></span>
+                    <span v-else>{{ message.message }}</span>
+                </div>
+                <!-- 下方删除文件复选框 -->
+                <div v-if="showCheckbox" class="pt-0 px-5 pb-5 flex flex-row justify-between items-center">
+                    <label :for="checkboxId">{{ t(tsCommonPrefix + 'confirm-delete-files') }}</label>
+                    <Checkbox v-model="deleteFilesChecked" :input-id="checkboxId" />
+                </div>
+            </div>
+        </template>
+    </ConfirmDialog>
 
     <!-- 主要任务内容 -->
     <div
@@ -289,14 +323,14 @@ const confirmRemove = function(e?: PointerEvent | KeyboardEvent) {
                 <!-- 额外操作按钮插槽 -->
                 <slot name="extraActions" :task="task" />
 
-                <!-- 重新下载任务按钮 -->
+                <!-- 暂停下载任务按钮 -->
                 <Button
                     v-show="pausable"
                     :icon="task.progress.status === 'paused' ? 'pi pi-play' : 'pi pi-pause'"
                     variant="text"
                     :loading="loading"
                     @click="task.progress.status === 'paused' ? task.unpause() : task.pause()"
-                    :title="t(tsCommonPrefix + task.progress.status === 'paused' ? 'unpause' : 'pasue')"
+                    :title="t(tsCommonPrefix + (task.progress.status === 'paused' ? 'unpause' : 'pause'))"
                     pt:root:class="p-2"
                 />
 

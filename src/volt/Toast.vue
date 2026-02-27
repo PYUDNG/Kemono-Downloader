@@ -1,4 +1,5 @@
 <template>
+    <!-- This is NOT a volt component - its fully written by myself -->
     <!-- 定位用元素 -->
     <div v-if="!parent" ref="div"></div>
 

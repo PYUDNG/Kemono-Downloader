@@ -101,7 +101,7 @@ const hideCoverPop = () => {
 const appContainer = computed(() => img.value?.closest('[data-v-app]'));
 const appWatchHandle = watch(appContainer, val => {
     if (val) {
-        val.addEventListener('touchstart', () => hideCoverPop());
+        val.addEventListener('touchstart', () => hideCoverPop(), { passive: true });
         appWatchHandle.stop();
     }
 }, { immediate: true });

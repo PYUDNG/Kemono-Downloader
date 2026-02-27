@@ -41,7 +41,7 @@ const status = reactive<SettingStatus>((() => {
         });
         return extras;
     });
-    const display = isDisabledGUI(item.disabled) ? item.disabled.value : undefined;
+    const display = computed(() => isDisabledGUI(item.disabled) ? item.disabled.value : undefined);
     return { initVal, modified, extras, display };
 
     /**

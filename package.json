@@ -16,6 +16,7 @@
         "@tailwindcss/vite": "^4.1.18",
         "@types/postcss-url": "^10.0.4",
         "dedent": "^1.7.1",
+        "idb": "^8.0.3",
         "mitt": "^3.0.1",
         "primeicons": "^7.0.0",
         "primevue": "^4.5.4",
@@ -29,6 +30,7 @@
     },
     "devDependencies": {
         "@types/node": "^25.0.3",
+        "@types/wicg-file-system-access": "^2023.10.7",
         "@vitejs/plugin-vue": "^6.0.1",
         "cssnano": "^7.1.2",
         "postcss": "^8.5.6",

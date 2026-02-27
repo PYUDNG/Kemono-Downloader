@@ -62,10 +62,21 @@ export function constructFilename(
         Timestamp: date?.getTime(),
         TimeText: date?.toLocaleString(),
     };
-    // 模板数据转字符串，并将自带的路径分隔符转全角
-    const replacements: Record<string, string> = {
+    // 模板数据转字符串，并将文件名非法字符转全角
+    /**
+     * 文件名非法字符与对应的全角字符映射表  
+     * 目前只有windows版本，MacOS和Linux待补充
+     */
+    const replacements: Readonly<Record<string, string>> = {
+        '<': '＜',
+        '>': '＞',
+        ':': '：',
+        '"': '＂',
         '/': '／',
         '\\': '＼',
+        '|': '｜',
+        '?': '？',
+        '*': '＊',
     };
     Object.entries(templateData).forEach(([key, val]) => {
         if (val !== undefined && val !== null) {
@@ -77,7 +88,7 @@ export function constructFilename(
     });
 
     // 合成文件名字符串
-    const markups = Object.keys(templateData).filter(markup => 
+    const markups = Object.keys(templateData).filter(markup =>
         template!.toLowerCase().includes(markup.toLowerCase()));
     const rules: ReplaceRule[] = markups.map(markup => {
         const [key, val] = Object.entries(templateData)

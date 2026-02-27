@@ -55,6 +55,10 @@ const queueTasks = filterTask('queue');
  */
 const ongoingTasks = filterTask('ongoing');
 /**
+ * 已暂停的下载任务
+ */
+const pausedTasks = filterTask('paused');
+/**
  * 已完成的下载任务
  */
 const completedTasks = filterTask('complete');
@@ -106,6 +110,14 @@ defineExpose({ visible, tab });
             <TabPanel name="ongoing">
                 <TaskItem
                     v-for="task of ongoingTasks"
+                    :task="task"
+                />
+            </TabPanel>
+
+            <!-- 已暂停 -->
+            <TabPanel name="paused">
+                <TaskItem
+                    v-for="task of pausedTasks"
                     :task="task"
                 />
             </TabPanel>

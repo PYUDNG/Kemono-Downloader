@@ -71,6 +71,40 @@ export async function requestDocument<
 }
 
 /**
+ * 用于获取Blob响应的、以Promise或async/await语法调用的GM_xmlhttpRequest
+ * @param options {@link GM_xmlhttpRequest}的options参数
+ * @param signal 一个{@link AbortSignal}，当被abort时abort请求
+ * @returns Promise<Blob>形式的返回值
+ */
+export async function requestBlob<
+    C = undefined
+>(
+    options: GmXmlhttpRequestOption<'blob', C>,
+    signal?: AbortSignal
+): Promise<Blob> {
+    options.responseType = 'blob';
+    const blob = await request(options, signal);
+    return blob;
+}
+
+/**
+ * 用于获取ArrayBuffer响应的、以Promise或async/await语法调用的GM_xmlhttpRequest
+ * @param options {@link GM_xmlhttpRequest}的options参数
+ * @param signal 一个{@link AbortSignal}，当被abort时abort请求
+ * @returns Promise<ArrayBuffer>形式的返回值
+ */
+export async function requestBuffer<
+    C = undefined
+>(
+    options: GmXmlhttpRequestOption<'arraybuffer', C>,
+    signal?: AbortSignal
+): Promise<ArrayBuffer> {
+    options.responseType = 'arraybuffer';
+    const blob = await request(options, signal);
+    return blob;
+}
+
+/**
  * 使用{@link GM_download}下载文件，并返回一个在onload时resolve的Promise
  * @param options {@link GM_download}选项
  * @param signal 一个{@link AbortSignal}，当被abort时abort下载任务

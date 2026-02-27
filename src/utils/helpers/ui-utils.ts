@@ -89,9 +89,10 @@ export function createShadowApp<
     // 屏蔽Shadown DOM内常见事件冒泡，预防性阻止Shadow DOM和页面互相干扰
     // 例如：在Dialog的InputText内按下左右箭头时，不触发页面翻页
     // 已知缺陷：当Dialog打开但未focus在任一输入元素上时，按下左右键依然会触发翻页
+    // 例外：mouseup需要向上冒泡，以供Dialog监听拖动-释放事件，用于拖动窗口标题栏
     const events = Array.isArray(stopPropagation) ? stopPropagation : [
         'click', 'dblclick', 'auxclick',
-        'mousedown', 'mouseup', 'mousewheel', 'wheel',
+        'mousedown', 'mousewheel', 'wheel',
         'touchstart', 'touchend',
         'pointerdown', 'pointerup', 'pointerenter', 'pointerleave', 'pointermove', 'pointerout', 'pointerover',
         'contextmenu', 'scroll', 'scrollend',
@@ -99,7 +100,7 @@ export function createShadowApp<
         'input', 'copy', 'paste', 'cut', 'compositionstart', 'compositionupdate', 'compositionend',
         'drag', 'dragstart', 'dragend', 'dragenter', 'dragleave', 'dragover', 'drop',
     ];
-    stopPropagation && events.forEach(name => appElm.addEventListener(name, e => e.stopPropagation()));
+    stopPropagation && events.forEach(name => appElm.addEventListener(name, e => e.stopPropagation(), { passive: true }));
 
     // 创建应用实例
     // 为了保持根组件props的响应性，采用以下workaround，参考此issue：

@@ -145,7 +145,7 @@ export interface IDownloadTask extends ITask {
      * 开始下载  
      * 返回一个下载完成时resolve的Promise
      */
-    run: () => Promise<unknown>;
+    run: (...args: any[]) => Promise<unknown>;
 }
 
 /**
@@ -182,5 +182,5 @@ export interface IMultiFileDownloadTask extends IDownloadTask {
      * 开始下载  
      * 返回一个下载完成时resolve的Promise
      */
-    run: () => Promise<unknown>;
+    run: (...args: any[]) => Promise<unknown>;
 }

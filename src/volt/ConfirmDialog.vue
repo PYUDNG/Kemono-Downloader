@@ -1,4 +1,5 @@
 <template>
+    <!-- This is a MODIFIED volt component - so it's not exactly same as that volt provided one -->
     <ConfirmDialog
         unstyled
         :pt="theme"
@@ -7,22 +8,37 @@
         }"
     >
         <template #container="{ message, acceptCallback, rejectCallback }">
-            <div class="flex items-center justify-between shrink-0 p-5">
-                <span class="font-semibold text-xl">{{ message.header }}</span>
-                <SecondaryButton variant="text" rounded @click="rejectCallback" autofocus>
-                    <template #icon>
-                        <TimesIcon />
-                    </template>
-                </SecondaryButton>
+            <!-- Header -->
+            <div>
+                <slot name="header" v-bind="{ message }">
+                    <div class="flex items-center justify-between shrink-0 p-5">
+                        <span class="font-semibold text-xl">{{ message.header }}</span>
+                        <SecondaryButton variant="text" rounded @click="rejectCallback" autofocus>
+                            <template #icon>
+                                <TimesIcon />
+                            </template>
+                        </SecondaryButton>
+                    </div>
+                </slot>
             </div>
-            <div class="overflow-y-auto pt-0 px-5 pb-5 flex items-center gap-4">
-                <ExclamationTriangeIcon class="size-6" />
-                <span v-if="html" v-html="message.message"></span>
-                <span v-else>{{ message.message }}</span>
+            <!-- Content -->
+            <div class="overflow-y-auto">
+                <slot name="content" v-bind="{ message, html }">
+                    <div class="pt-0 px-5 pb-5 flex items-center gap-4">
+                        <ExclamationTriangeIcon class="size-6" />
+                        <span v-if="html" v-html="message.message"></span>
+                        <span v-else>{{ message.message }}</span>
+                    </div>
+                </slot>
             </div>
-            <div class="pt-0 px-5 pb-5 flex justify-end gap-2">
-                <SecondaryButton @click="rejectCallback" :label="message.rejectProps.label" size="small" />
-                <Button @click="acceptCallback" :label="message.acceptProps.label" size="small" />
+            <!-- Footer -->
+            <div>
+                <slot name="footer" v-bind="{ acceptCallback, rejectCallback }">
+                    <div class="pt-0 px-5 pb-5 flex justify-end gap-2">
+                        <SecondaryButton @click="rejectCallback" :label="message.rejectProps.label" size="small" />
+                        <Button @click="acceptCallback" :label="message.acceptProps.label" size="small" />
+                    </div>
+                </slot>
             </div>
         </template>
     </ConfirmDialog>

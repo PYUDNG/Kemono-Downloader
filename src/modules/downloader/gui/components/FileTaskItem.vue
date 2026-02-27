@@ -45,20 +45,22 @@ const toProgressString = (num: number, formatter?: (num: number) => string) =>
 /**
  * 用户停止下载任务
  * @param task 任务实例，和props传入的task应当相同
+ * @param deleteFiles 是否删除已下载的文件
  */
-async function abort(task: BaseFileDownloadTask) {
+async function abort(task: BaseFileDownloadTask, deleteFiles: boolean) {
     loading.value = true;
-    await task.abort();
+    await task.abort(deleteFiles);
     loading.value = false;
 }
 
 /**
  * 用户移除下载任务
  * @param task 任务实例，和props传入的task应当相同
+ * @param deleteFiles 是否删除已下载的文件
  */
-async function remove(task: BaseFileDownloadTask) {
+async function remove(task: BaseFileDownloadTask, deleteFiles: boolean) {
     loading.value = true;
-    await task.abort();
+    await task.abort(deleteFiles);
     provider.removeTask(task.id);
     loading.value = false;
 }
@@ -66,10 +68,11 @@ async function remove(task: BaseFileDownloadTask) {
 /**
  * 用户重新开始下载任务
  * @param task 任务实例，和props传入的task应当相同
+ * @param deleteFiles 是否删除已下载的文件
  */
-async function restart(task: BaseFileDownloadTask) {
+async function restart(task: BaseFileDownloadTask, deleteFiles: boolean) {
     loading.value = true;
-    await task.abort();
+    await task.abort(deleteFiles);
     task.run();
     loading.value = false;
 }

@@ -1,26 +1,67 @@
-import { PostInfo } from "@/modules/api/types/common.js";
-import { BaseDownloadProvider, Feature } from "../../types/base/provider.js";
-import { BaseDownloadTask, BaseFileDownloadTask, ProviderType } from "../../types/base/task.js";
-import { IPostDownloadTask, IPostsDownloadTask } from "../../types/interface/post.js";
-import { IDownloadProvider } from "../../types/interface/provider.js";
-import { DownloadFile, IFileDownloadTask, Status } from "../../types/interface/task.js";
-import { PostApiResponse } from "@/modules/api/types/post.js";
-import { download, logger as globalLogger, Nullable, Queue } from "@/utils/main.js";
-import { post, profile } from "@/modules/api/main.js";
-import { BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/post.js";
-import { Reactive, reactive, watch } from "vue";
-import { constructFilename } from "../../utils/main.js";
-import { globalStorage } from "@/storage.js";
-import { FeatureNotSupportedError } from "../../types/base/error.js";
-import { onModuleRegistered, registerGroup } from "@/modules/settings/main.js";
+import { Nullable, Queue, requestBuffer } from "@/utils/main.js";
+import { BaseDownloadTask, BaseFileDownloadTask, ProviderType } from "../../types/base/task";
+import { DownloadFile, IFileDownloadTask, Status } from "../../types/interface/task";
+import { logger as globalLogger } from "@/utils/main.js";
+import { globalStorage } from "@/storage";
+import { FeatureNotSupportedError } from "../../types/base/error";
+import { getDirectoryHandleRecursive, getDownloadDirectoryHandle, getFileHandleRecursive, requestNewHandle, watchDirChange } from "./utils";
+import { BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/post";
+import { IPostDownloadTask, IPostsDownloadTask } from "../../types/interface/post";
+import { Reactive, reactive, ref, watch } from "vue";
+import { PostApiResponse } from "@/modules/api/types/post";
+import { PostInfo } from "@/modules/api/types/common";
+import { post, profile } from "@/modules/api/main";
+import { constructFilename } from "../../utils/main";
+import { BaseDownloadProvider, Feature } from "../../types/base/provider";
+import { IDownloadProvider } from "../../types/interface/provider";
+import { onModuleRegistered, registerGroup, registerItem } from "@/modules/settings/main.js";
 import i18n from "@/i18n/main.js";
 
 const t = i18n.global.t;
 const logger = globalLogger.withPath('downloader', 'provider', 'browser');
 const storage = globalStorage.withKeys('downloader');
 
+// 设置
+const tSettingsPrefix = 'downloader.provider.fsa.settings.';
+
+onModuleRegistered('downloader', () => {
+    registerGroup('downloader', {
+        id: 'fsa',
+        index: 2,
+        name: t(tSettingsPrefix + 'label'),
+    });
+    registerItem('downloader', [{
+        id: 'directory',
+        label: t(tSettingsPrefix + 'directory.label'),
+        caption: t(tSettingsPrefix + 'directory.caption'),
+        icon: 'pi pi-folder',
+        type: 'button',
+        value: (() => {
+            // buttons类型的value是按钮的label，且不会从组件内不改变（数据单向流动）
+            const label = ref('');
+            // 当保存的目录改变时，更新按钮的label
+            watchDirChange((newHandle) => newHandle && (label.value = newHandle.name), true);
+            return label;
+        }) (),
+        props: {
+            // 按钮onClick回调
+            onClick: () => requestNewHandle().catch(err => {
+                if (err instanceof DOMException && err.name === 'AbortError') {
+                    // 用户没有选择文件夹就关闭了选择器窗口，会抛出AbortError，属正常现象
+                    logger.simple('Detail', 'User cancelled dirctory picking');
+                } else {
+                    // 抛出了其他未知错误
+                    logger.simple('Error', 'Something unexpected happened during requestNewHandle');
+                    logger.log('Error', 'raw', 'error', err);
+                }
+            }),
+        },
+        group: 'fsa',
+    }]);
+});
+
 /**
- * BrowserProvider 全局共享API访问队列
+ * FSAProvider 全局共享API访问队列
  */
 const queueApi = new Queue({
     max: 3,
@@ -28,36 +69,31 @@ const queueApi = new Queue({
 });
 
 /**
- * BrowserProvider 全局共享文件下载队列
+ * FSAProvider 全局共享文件下载队列
  */
 const queueFile = new Queue({
     max: 5,
     sleep: 0,
 });
 
-// 设置
-const tSettingsPrefix = 'downloader.provider.browser.settings.';
-
-onModuleRegistered('downloader', () => {
-    registerGroup('downloader', {
-        id: 'browser',
-        index: 2,
-        name: t(tSettingsPrefix + 'label'),
-    });
-});
-
 /**
  * 单文件下载任务  
  * 浏览器内置下载器实现
  */
-class BrowserFileDownloadTask extends BaseFileDownloadTask implements IFileDownloadTask {
-    public provider: ProviderType = 'browser';
+class FSAFileDownloadTask extends BaseFileDownloadTask implements IFileDownloadTask {
+    public provider: ProviderType = 'fsa';
     public init: Promise<void> = Promise.resolve();
 
     /**
      * 用于终止任务的信号控制器
      */
     private controller: AbortController = new AbortController();
+
+    /**
+     * 终止任务时是否删除已下载的文件  
+     * 这是一个传参属性，在`abort`方法调用后一次性使用
+     */
+    private deleteFiles: boolean = false;
 
     /**
      * 一个run过程中pending、run完毕后resolve的Promise  
@@ -99,26 +135,61 @@ class BrowserFileDownloadTask extends BaseFileDownloadTask implements IFileDownl
 
             // 带错误处理地下载文件
             try {
-                // 下载文件
-                await download({
+                // 获取文件可写流
+                const filepath = this.file.path;
+                const dlDirHandle = await getDownloadDirectoryHandle();
+                const fileHandle = await getFileHandleRecursive(dlDirHandle, filepath);
+                const writable = await fileHandle.createWritable({
+                    keepExistingData: false,
+                    // @ts-ignore `mode`参数存在，但项目使用的ts类型库'@types/wicg-file-system-access'尚未实现此类型
+                    mode: 'exclusive',
+                });
+
+                // 边下载边写入
+                let lastBytesLoaded = 0;
+                const writeChunk = async (buffer: ArrayBuffer) => {
+                    const chunk = buffer.slice(lastBytesLoaded);
+                    if (chunk.byteLength > 0) {
+                        await writable.write(chunk);
+                        lastBytesLoaded += chunk.byteLength;
+                    }
+                };
+                await requestBuffer({
                     url: this.file.url,
-                    name: this.file.path,
-                    onprogress: e => {
+                    onprogress: async e => {
+                        // 写入文件
+                        if (e.response) await writeChunk(e.response);
+                        // 更新进度
                         this.progress.total = (e.total ?? e.totalSize ?? -1) || -1;
                         this.progress.finished = (e.done ?? e.loaded ?? -1) || -1;
+                    },
+                    onload: async e => {
+                        // 写入文件
+                        await writeChunk(e.response);
+                        // 更新进度
+                        this.progress.finished = this.progress.total;
                     }
                 }, currentRunSignal);
+                await writable.close();
 
-                // 如果任务没有被取消，那就意味着任务成功完成了
-                if (this.progress.status !== 'aborted') {
-                    // 设置任务完成状态
+                // 
+                if (this.progress.status as Status !== 'aborted') {
+                    // 如果任务没有被取消，那就意味着任务成功完成了
                     this.progress.status = 'complete';
-                    // onprogress未必能保证任务完成时一定会以一个100%进度的回调结尾，因此这里需要手动设置任务进度
-                    this.progress.finished = this.progress.total;
+                } else {
+                    // 坏了，下载任务被取消了
+                    // 根据传参属性决定是否删除已下载的文件
+                    if (this.deleteFiles) {
+                        const dirPath = (await dlDirHandle.resolve(fileHandle))!.join('/');
+                        const dirHandle = await getDirectoryHandleRecursive(dlDirHandle, dirPath);
+                        await dirHandle.removeEntry(fileHandle.name);
+                    }
                 }
             } catch (err) {
-                console.log('err', err);
-                // 下载出错，设置任务状态
+                // 下载出错
+                // 控制台报错
+                logger.log('Error', 'raw', 'error', 'download error', err);
+                // 设置任务状态
                 if (this.progress.status !== 'aborted')
                     this.progress.status = 'error';
             }
@@ -129,24 +200,29 @@ class BrowserFileDownloadTask extends BaseFileDownloadTask implements IFileDownl
     }
 
     /**
-     * browser下载方式不支持暂停功能
+     * fsa下载方式暂时不支持暂停功能（后续添加）
      */
     pause(): unknown {
         throw new FeatureNotSupportedError('Unsupported feature: pause', this.provider);
     }
     
     /**
-     * browser下载方式不支持暂停功能
+     * fsa下载方式暂时不支持暂停功能（后续添加）
      */
     unpause(): unknown {
         throw new FeatureNotSupportedError('Unsupported feature: pause', this.provider);
     }
 
-    async abort(): Promise<void> {
+    /**
+     * 终止下载任务
+     * @param deleteFiles 是否删除已下载的文件
+     */
+    async abort(deleteFiles: boolean): Promise<void> {
         if (this.progress.status !== 'queue' && this.progress.status !== 'ongoing') return;
         // 首先设置为aborted状态
         this.progress.status = 'aborted';
         // 然后立即发送abort信号
+        this.deleteFiles = deleteFiles;
         this.controller?.abort();
         // 等待本次run执行完毕后返回
         await this.runPromise;
@@ -154,7 +230,7 @@ class BrowserFileDownloadTask extends BaseFileDownloadTask implements IFileDownl
 }
 
 export class PostDownloadTask extends BasePostDownloadTask implements IPostDownloadTask {
-    public provider: ProviderType = 'browser';
+    public provider: ProviderType = 'fsa';
     public name: Nullable<string> = null;
     public data: Nullable<PostApiResponse> = null;
     public subTasks: Reactive<BaseFileDownloadTask[]> = reactive([]);
@@ -203,7 +279,7 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
                     },
                     p: i + 1,
                 });
-                const fileTask = new BrowserFileDownloadTask(
+                const fileTask = new FSAFileDownloadTask(
                     this,
                     {
                         url: `https://n1.${location.hostname}/data` + file.path,
@@ -268,25 +344,29 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
     }
 
     /**
-     * browser下载方式不支持暂停功能
+     * fsa下载方式暂不支持暂停功能（后续添加）
      */
     pause(): unknown {
         throw new FeatureNotSupportedError('Unsupported feature: pause', this.provider);
     }
     
     /**
-     * browser下载方式不支持暂停功能
+     * fsa下载方式暂不支持暂停功能（后续添加）
      */
     unpause(): unknown {
         throw new FeatureNotSupportedError('Unsupported feature: pause', this.provider);
     }
 
-    async abort(): Promise<void> {
+    /**
+     * 终止下载任务
+     * @param deleteFiles 是否删除已下载的文件
+     */
+    async abort(deleteFiles: boolean): Promise<void> {
         if (this.progress.status !== 'queue' && this.progress.status !== 'ongoing') return;
         // 首先设置为aborted状态
         this.progress.status = 'aborted';
         // 然后停止所有子任务
-        await Promise.allSettled(this.subTasks.map(task => task.abort()));
+        await Promise.allSettled(this.subTasks.map(task => task.abort(deleteFiles)));
         // 等待本次run执行完毕后返回
         await this.runPromise;
     }
@@ -300,7 +380,7 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
 }
 
 export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDownloadTask {
-    public provider: ProviderType = 'browser';
+    public provider: ProviderType = 'fsa';
     public subTasks: Reactive<PostDownloadTask[]>;
     public name: string;
     public init: Promise<void>;
@@ -352,25 +432,29 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
     }
 
     /**
-     * browser下载方式不支持暂停功能
+     * fsa下载方式暂不支持暂停功能（后续添加）
      */
     pause(): unknown {
         throw new FeatureNotSupportedError('Unsupported feature: pause', this.provider);
     }
     
     /**
-     * browser下载方式不支持暂停功能
+     * fsa下载方式暂不支持暂停功能（后续添加）
      */
     unpause(): unknown {
         throw new FeatureNotSupportedError('Unsupported feature: pause', this.provider);
     }
 
-    async abort(): Promise<void> {
+    /**
+     * 终止下载任务
+     * @param deleteFiles 是否删除已下载的文件
+     */
+    async abort(deleteFiles: boolean): Promise<void> {
         if (this.progress.status !== 'queue' && this.progress.status !== 'ongoing') return;
         // 设置abort状态
         this.progress.status = 'aborted';
         // 终止每一个子任务
-        await Promise.allSettled(this.subTasks.map(task => task.abort()));
+        await Promise.allSettled(this.subTasks.map(task => task.abort(deleteFiles)));
         // 等待本次run完成后返回：由于此时每个子任务都已完成（终止），run自然就已经完成，因此无需额外等待
     }
 
@@ -383,15 +467,19 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
 }
 
 export default class BrowserDownloadProvider extends BaseDownloadProvider implements IDownloadProvider {
-    public name: ProviderType = 'browser';
-    static features: Feature[] = [];
+    public name: ProviderType = 'fsa';
+    static features: Feature[] = ['abortFiles'];
 
     /**
      * 下载单Post
      * @param info 下载任务信息
      * @returns 
      */
-    downloadPost(info: PostInfo): string {
+    async downloadPost(info: PostInfo): Promise<string> {
+        // 初始化下载文件夹，确保任务创建时有一个可读写的下载目录
+        await getDownloadDirectoryHandle();
+
+        // 创建任务并开始执行
         const task = new PostDownloadTask(null, info);
         this.tasks.push(task);
         task.init.then(() => task.run());
@@ -403,10 +491,16 @@ export default class BrowserDownloadProvider extends BaseDownloadProvider implem
      * @param name 下载任务名称
      * @param infos 需要下载的posts信息列表
      */
-    downloadPosts(name: string, infos: PostInfo[]): string {
+    async downloadPosts(name: string, infos: PostInfo[]): Promise<string> {
+        // 初始化下载文件夹，确保任务创建时有一个可读写的下载目录
+        await getDownloadDirectoryHandle();
+
+        // 创建任务并开始执行
         const task = new PostsDownloadTask(null, name, infos);
         this.tasks.push(task);
         task.init.then(() => task.run());
         return task.id;
     }
 }
+
+export { checkCompatibility } from './utils.js';

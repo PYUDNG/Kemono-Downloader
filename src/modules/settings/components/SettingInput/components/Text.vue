@@ -11,10 +11,10 @@ defineEmits<{
 const props = defineProps<{
     displayValue?: any;
 }>();
-const noDisplayValue = typeof props.displayValue === 'undefined';
+const noDisplayValue = computed(() => typeof props.displayValue === 'undefined');
 const displayValue = computed({
-    get: () => noDisplayValue ? text.value : props.displayValue,
-    set: val => noDisplayValue ? (text.value = val) : eggExpectedModification(),
+    get: () => noDisplayValue.value ? text.value : props.displayValue,
+    set: val => noDisplayValue.value ? (text.value = val) : eggExpectedModification(),
 });
 
 const text = defineModel<string>();

@@ -50,6 +50,7 @@ registerModule({
             })),
         },
         reload: true,
+        group: 'regular',
     }, {
         id: 'filename',
         type: 'text',
@@ -57,12 +58,14 @@ registerModule({
         label: t(tSettingsPrefix + 'filename.label'),
         help: markRaw(FilenameHelpComp),
         value: makeStorageRef('filename', storage),
+        group: 'regular',
     }, {
         id: 'noCoverFile',
         type: 'switch',
         icon: 'pi pi-image',
         label: t(tSettingsPrefix + 'no-cover-file'),
         value: makeStorageRef('noCoverFile', storage),
+        group: 'regular',
     }, {
         id: 'abortFiles',
         type: 'select',
@@ -94,6 +97,12 @@ registerModule({
                     } satisfies DisabledGUI)
             );
         }) (),
+        group: 'regular',
+    }],
+    groups: [{
+        id: 'regular',
+        name: t(tSettingsPrefix + 'group'),
+        index: 1,
     }],
 });
 
@@ -126,15 +135,15 @@ const { root } = createShadowApp(App, {
 
 GM_registerMenuCommand(t(tDownloaderPrefix + 'show-ui'), _e => showUI('ongoing'))
 
-export function downloadPost(info: PostInfo) {
-    const taskId = provider.downloadPost(info);
+export async function downloadPost(info: PostInfo) {
+    const taskId = await Promise.resolve(provider.downloadPost(info));
     const status = provider.tasks.find(t => t.id === taskId)!.progress.status;
     root.tab = status;
     root.visible = true;
 }
 
-export function downloadPosts(name: string, infos: PostInfo[]) {
-    const taskId = provider.downloadPosts(name, infos);
+export async function downloadPosts(name: string, infos: PostInfo[]) {
+    const taskId = await Promise.resolve(provider.downloadPosts(name, infos));
     const status = provider.tasks.find(t => t.id === taskId)!.progress.status;
     root.tab = status;
     root.visible = true;

@@ -6,7 +6,7 @@ import TabPanel from '@/components/TabLayout/TabPanel.vue';
 import TabLayout from '@/components/TabLayout/TabLayout.vue';
 import { getLayoutRef } from '@/utils/main';
 import { useI18n } from 'vue-i18n';
-import SettingItem from './components/SettingItem.vue';
+import SettingModuleComp from './components/SettingModule.vue';
 
 const { t } = useI18n();
 
@@ -57,19 +57,7 @@ defineExpose({ visible });
                 :name="module.id" 
                 class="w-full h-full"
             >
-                <div class="flex flex-col w-full h-full p-2">
-                    <!-- 模块设置项 -->
-                    <SettingItem
-                        v-for="(item, i) of module.items"
-                        :item="item"
-                        :key="i"
-                    />
-                    
-                    <!-- 当某模块没有设置时展示占位内容 -->
-                    <div v-if="module.items.length === 0" class="flex justify-center items-center w-full h-full">
-                        {{ t('settings.gui.no-items-placeholder') }}
-                    </div>
-                </div>
+                <SettingModuleComp :module="module"></SettingModuleComp>
             </TabPanel>
 
             <template #placeholder>

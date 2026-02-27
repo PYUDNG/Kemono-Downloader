@@ -1,7 +1,8 @@
 import { PostInfo } from "@/modules/api/types/common.js";
 import { IDownloadProvider } from "../interface/provider.js";
-import { BaseDownloadTask } from "./task.js";
+import { BaseDownloadTask, ProviderType } from "./task.js";
 import { reactive } from "vue";
+import { PromiseOrRaw } from "@/utils/main.js";
 
 export const features = [
     'pause',
@@ -10,7 +11,7 @@ export const features = [
 export type Feature = typeof features[number];
 
 export abstract class BaseDownloadProvider implements IDownloadProvider {
-    abstract name: string;
+    abstract name: ProviderType;
     public tasks: BaseDownloadTask[] = reactive([]);
 
     removeTask(taskId: string): boolean {
@@ -26,7 +27,7 @@ export abstract class BaseDownloadProvider implements IDownloadProvider {
         return true;
     }
     
-    abstract downloadPost(info: PostInfo): string;
-    abstract downloadPosts(name: string, infos: PostInfo[]): string;
+    abstract downloadPost(info: PostInfo): PromiseOrRaw<string>;
+    abstract downloadPosts(name: string, infos: PostInfo[]): PromiseOrRaw<string>;
 }
 
