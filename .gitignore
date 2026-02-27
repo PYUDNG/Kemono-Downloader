@@ -23,5 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
+# vite server certs
+/server/
+
 # OS files
 desktop.ini

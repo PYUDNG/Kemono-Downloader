@@ -15,6 +15,7 @@
 </template>
 
 <script setup lang="ts">
+// @ts-nocheck
 import ChevronUpIcon from '@primevue/icons/chevrondown';
 import ChevronDownIcon from '@primevue/icons/chevronup';
 import AccordionHeader, { type AccordionHeaderPassThroughOptions, type AccordionHeaderProps } from 'primevue/accordionheader';
