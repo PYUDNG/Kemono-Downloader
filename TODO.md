@@ -25,6 +25,7 @@ TODO
   - [ ] 暂停下载功能
   - [ ] 通过使用原生xmlhttpRequest实现边下边存
   - [x] fsa自己的模块设置
+- [x] Github Actions自动构建
 - [ ] api缓存完善
   - [ ] 持久化的缓存
     - [ ] 持久化存储
