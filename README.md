@@ -1,11 +1,13 @@
 # Kemono Downloader
 
-一个现代化的Kemono下载器用户脚本，提供美观的UI界面、多种下载方式和高度自定义功能。
+一个现代化的Kemono下载器用户脚本，提供美观的UI界面、多种下载器和高度自定义功能。
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Vue 3](https://img.shields.io/badge/Vue-3-42b883?logo=vue.js)](https://vuejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-7.1-646cff?logo=vite)](https://vitejs.dev/)
+
+> 目前项目依然处于积极开发阶段，包括但不限于 *bug满天飞*、*时灵时不灵* 等等都是预期现象，遇到错误请 [提出issue](https://github.com/PYUDNG/Kemono-Downloader/issues) 共同讨论解决
 
 ## ✨ 功能特性
 
@@ -17,13 +19,13 @@
 
 ### 📥 下载功能
 - 批量下载支持
-- 多种下载方式选择
+- 多种下载器选择
 - 智能文件名处理
 - 下载进度显示
 - 下载任务管理
 
 ### ⚙️ 自定义设置
-- 不同的下载方式自定义
+- 不同的下载器自定义
 - 自定义文件名（支持创建目录结构）
 
 ### 🔧 技术特性
@@ -37,11 +39,12 @@
 
 ### 直接安装使用（适合大多数用户）
 您可以选择以下任一方式安装
-- [Github Release](https://github.com/PYUDNG/kemono-downloader/releases)
-- [Greasyfork](https://www.greasyfork.orrg/script/123456)
+- [Github Release](https://github.com/PYUDNG/Kemono-Downloader/releases)
+- <del>[Greasyfork](#)</del> Greasyfork版尚未上传
 
 ### 自行构建
 #### 环境要求
+> 本项目使用npm作为包管理器开发，其他包管理器请自行尝试
 - Node.js 18+ 
 - npm 或 yarn
 
@@ -49,7 +52,7 @@
 
 1. **克隆项目**
 ```bash
-git clone <repository-url>
+git clone https://github.com/PYUDNG/Kemono-Downloader.git
 cd kemono-downloader
 ```
 
@@ -76,17 +79,11 @@ yarn build
 
 ### 安装用户脚本
 
-构建完成后，会在项目根目录生成 `kemono-downloader.user.js` 文件，可以通过以下方式安装：
-
-1. **Greasy Fork**（推荐）
-   - 访问 [Greasy Fork](https://greasyfork.org/)
-   - 搜索 "Kemono Downloader"
-   - 点击安装按钮
-
-2. **本地安装**
-   - 安装Tampermonkey或Violentmonkey浏览器扩展
-   - 在扩展管理器中点击"添加新脚本"
-   - 粘贴构建生成的用户脚本内容
+构建完成后，会在项目`/dist/`目录生成 `kemono-downloader.(min|greasyfork)?.user.js` 文件，可以通过以下步骤安装：
+- 打开任一构建产物，复制其中全部代码内容
+- 安装Tampermonkey或Violentmonkey浏览器扩展
+- 在扩展管理器中点击"添加新脚本"
+- 粘贴构建生成的用户脚本内容
 
 ## 📁 项目结构
 
@@ -178,8 +175,8 @@ npm run build
 
 如有问题或建议，请通过以下方式联系：
 
-- 提交 [GitHub Issue](https://github.com/your-repo/issues)
-- 查看 [FAQ](#)（建设中）
+- 提交 [GitHub Issue](https://github.com/Kemono-Downloader/issues)
+- 提交 [Greasyfork Discussion](#)（建设中）
 - 参与社区讨论
 
 ---
