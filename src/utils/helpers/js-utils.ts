@@ -189,6 +189,21 @@ class Logger {
     }
 
     /**
+     * 简化调用：写raw类型日志，并根据传入的level自动选择日志函数
+     */
+    asLevel(level: LogLevel, content: any): ReturnType<typeof this.log> {
+        const map: Record<LogLevel, ConsoleMethods> = {
+            Debug: 'log',
+            Detail: 'log',
+            Info: 'log',
+            Warning: 'warn',
+            Error: 'error',
+            Important: 'log',
+        };
+        return this.log(level, 'raw', map[level], content);
+    }
+
+    /**
      * 从当前logger衍生一个新的、拥有更深一层作用域路径的logger实例
      * @param name 新增作用域层名称
      */

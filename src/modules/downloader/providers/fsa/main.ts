@@ -4,14 +4,14 @@ import { DownloadFile, IFileDownloadTask, Status } from "../../types/interface/t
 import { logger as globalLogger } from "@/utils/main.js";
 import { globalStorage } from "@/storage";
 import { FeatureNotSupportedError } from "../../types/base/error";
-import { getDirectoryHandleRecursive, getDownloadDirectoryHandle, getFileHandleRecursive, requestNewHandle, watchDirChange } from "./utils";
+import { getDirectoryHandleRecursive, getDownloadDirectoryHandle, getFileHandleRecursive, requestNewHandle, streamDownloadToFileHandle, watchDirChange } from "./utils";
 import { BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/post";
 import { IPostDownloadTask, IPostsDownloadTask } from "../../types/interface/post";
 import { Reactive, reactive, ref, watch } from "vue";
 import { PostApiResponse } from "@/modules/api/types/post";
 import { PostInfo } from "@/modules/api/types/common";
 import { post, profile } from "@/modules/api/main";
-import { constructFilename } from "../../utils/main";
+import { constructFilename, getFullUrl } from "../../utils/main";
 import { BaseDownloadProvider, Feature } from "../../types/base/provider";
 import { IDownloadProvider } from "../../types/interface/provider";
 import { onModuleRegistered, registerGroup, registerItem } from "@/modules/settings/main.js";
@@ -52,7 +52,7 @@ onModuleRegistered('downloader', () => {
                 } else {
                     // 抛出了其他未知错误
                     logger.simple('Error', 'Something unexpected happened during requestNewHandle');
-                    logger.log('Error', 'raw', 'error', err);
+                    logger.asLevel('Error', err);
                 }
             }),
         },
@@ -139,38 +139,50 @@ class FSAFileDownloadTask extends BaseFileDownloadTask implements IFileDownloadT
                 const filepath = this.file.path;
                 const dlDirHandle = await getDownloadDirectoryHandle();
                 const fileHandle = await getFileHandleRecursive(dlDirHandle, filepath);
-                const writable = await fileHandle.createWritable({
-                    keepExistingData: false,
-                    // @ts-ignore `mode`参数存在，但项目使用的ts类型库'@types/wicg-file-system-access'尚未实现此类型
-                    mode: 'exclusive',
-                });
 
                 // 边下载边写入
-                let lastBytesLoaded = 0;
-                const writeChunk = async (buffer: ArrayBuffer) => {
-                    const chunk = buffer.slice(lastBytesLoaded);
-                    if (chunk.byteLength > 0) {
-                        await writable.write(chunk);
-                        lastBytesLoaded += chunk.byteLength;
-                    }
-                };
-                await requestBuffer({
-                    url: this.file.url,
-                    onprogress: async e => {
-                        // 写入文件
-                        if (e.response) await writeChunk(e.response);
-                        // 更新进度
-                        this.progress.total = (e.total ?? e.totalSize ?? -1) || -1;
-                        this.progress.finished = (e.done ?? e.loaded ?? -1) || -1;
-                    },
-                    onload: async e => {
-                        // 写入文件
-                        await writeChunk(e.response);
-                        // 更新进度
-                        this.progress.finished = this.progress.total;
-                    }
-                }, currentRunSignal);
-                await writable.close();
+                try {
+                    // 优先使用原生xhr下载，GM_xhr的progress事件不包含数据
+                    await streamDownloadToFileHandle(this.file.url, fileHandle, progress => {
+                        this.progress.total = progress.total;
+                        this.progress.finished = progress.received;
+                    });
+                } catch(err) {
+                    // 原生fetch报错（预计为cors权限问题），改用GM_xhr兜底
+                    logger.simple('Warning', 'native fetch error while downloading, using GM_xmlhttpRequest as fallback')
+                    logger.asLevel('Warning', err);
+
+                    const writable = await fileHandle.createWritable({
+                        keepExistingData: false,
+                        // @ts-ignore `mode`参数存在，但项目使用的ts类型库'@types/wicg-file-system-access'尚未实现此类型
+                        mode: 'exclusive',
+                    })
+                    let lastBytesLoaded = 0;
+                    const writeChunk = async (buffer: ArrayBuffer) => {
+                        const chunk = buffer.slice(lastBytesLoaded);
+                        if (chunk.byteLength > 0) {
+                            await writable.write(chunk);
+                            lastBytesLoaded += chunk.byteLength;
+                        }
+                    };
+                    await requestBuffer({
+                        url: this.file.url,
+                        onprogress: async e => {
+                            // 写入文件
+                            if (e.response) await writeChunk(e.response);
+                            // 更新进度
+                            this.progress.total = (e.total ?? e.totalSize ?? -1) || -1;
+                            this.progress.finished = (e.done ?? e.loaded ?? -1) || -1;
+                        },
+                        onload: async e => {
+                            // 写入文件
+                            await writeChunk(e.response);
+                            // 更新进度
+                            this.progress.finished = this.progress.total;
+                        }
+                    }, currentRunSignal);
+                    await writable.close();
+                }
 
                 // 
                 if (this.progress.status as Status !== 'aborted') {
@@ -188,7 +200,8 @@ class FSAFileDownloadTask extends BaseFileDownloadTask implements IFileDownloadT
             } catch (err) {
                 // 下载出错
                 // 控制台报错
-                logger.log('Error', 'raw', 'error', 'download error', err);
+                logger.simple('Error', 'download error');
+                logger.asLevel('Error', err);
                 // 设置任务状态
                 if (this.progress.status !== 'aborted')
                     this.progress.status = 'error';
@@ -279,10 +292,11 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
                     },
                     p: i + 1,
                 });
+                const downloadUrl = getFullUrl(file, this.data!);
                 const fileTask = new FSAFileDownloadTask(
                     this,
                     {
-                        url: `https://n1.${location.hostname}/data` + file.path,
+                        url: downloadUrl,
                         path: filename,
                     }
                 );

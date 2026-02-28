@@ -101,17 +101,17 @@ export async function ensurePermission(
         let permission = await handle.queryPermission({ mode });
 
         // 循环检查权限，最多检查3次（防止无限循环；虽然里理论上连续三次prompt权限缺失不太可能发生）
-        for (let i = 0;i < 3; i++) {
+        for (let i = 0; i < 3; i++) {
             switch (permission) {
                 // 权限已获得，直接返回handle
                 case 'granted':
                     return true;
-                    
+
                 // 权限需要向用户申请
                 case 'prompt':
                     permission = await handle.requestPermission({ mode });
                     break;
-                
+
                 // 权限已被拒绝，则请求并返回新的handle
                 case 'denied':
                     return false;
@@ -221,4 +221,67 @@ export async function getFileHandleRecursive(
 
     // 获取文件句柄
     return await dirHandle.getFileHandle(fileName, { create });
+}
+
+/**
+ * 极简进度信息接口
+ */
+export interface DownloadProgress {
+    received: number; // 当前已接收字节数
+    total: number;    // 文件总字节数 (若无法获取则为 0)
+}
+
+/**
+ * 流式下载Kemono资源文件并写入已有的文件句柄
+ * @param url 下载地址
+ * @param fileHandle 已获取的 FileSystemFileHandle 实例
+ * @param onProgress 进度回调函数
+ */
+export async function streamDownloadToFileHandle(
+    url: string,
+    fileHandle: FileSystemFileHandle,
+    onProgress?: (progress: DownloadProgress) => void
+): Promise<void> {
+    // 发起请求
+    const response = await fetch(url, { mode: 'cors' });
+
+    if (!response.ok)
+        throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
+
+    // 准备流读取器与文件写入流
+    const total = Number(response.headers.get('Content-Length')) || 0;
+    const reader = response.body?.getReader();
+
+    if (!reader)
+        throw new Error('ReadableStream not supported on this response.');
+
+    // 创建可写流
+    const writable = await fileHandle.createWritable({
+        keepExistingData: false,
+        // @ts-ignore `mode`参数存在，但项目使用的ts类型库'@types/wicg-file-system-access'尚未实现此类型
+        mode: 'exclusive',
+    });
+
+    let received = 0;
+
+    try {
+        // 线性流式处理：读取 -> 写入 -> 回调
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            await writable.write(value);
+            received += value.length;
+
+            // 进度回调
+            onProgress && onProgress({ received, total });
+        }
+    } catch (error) {
+        // 可以在此处处理写入中断逻辑
+        throw error;
+    } finally {
+        // 关闭文件可写流
+        await writable.close();
+        reader.releaseLock();
+    }
 }
