@@ -1,4 +1,4 @@
-import { requestJson } from "@/utils/main.js";
+import { PromiseOrRaw, requestJson } from "@/utils/main.js";
 import { PostApiResponse } from "./types/post.js";
 import { defineModule } from "../types.js";
 import { KemonoService, PostInfo } from "./types/common.js";
@@ -19,12 +19,26 @@ const defaultOptions: ApiOptions = {
 };
 
 /** API缓存 */
-const cache = new Map<string, string>();
+const cache = new Map<string, PromiseOrRaw<string>>();
+
+/**
+ * 根据请求体，生成请求缓存key
+ * @param request 请求体
+ * @returns 
+ */
 const getCacheKey = <C = undefined>(request: GmXmlhttpRequestOption<'text', C>) => {
     // Kemono应用场景下，均为GET请求且url一致即为相同请求
     return request.url;
 };
-const saveCache = <C = undefined>(request: GmXmlhttpRequestOption<'text', C>, data: string) => {
+
+/**
+ * 将请求写入缓存  
+ * 此方法不仅允许缓存response，还允许缓存运行中的请求
+ * @param request 请求体
+ * @param data response或最终会resolve为response的Promise
+ * @returns 
+ */
+const saveCache = <C = undefined>(request: GmXmlhttpRequestOption<'text', C>, data: PromiseOrRaw<string>) => {
     // 检查是否为GET请求
     const method = request.method?.toUpperCase();
     if (method && method !== 'GET') return;
@@ -35,32 +49,65 @@ const saveCache = <C = undefined>(request: GmXmlhttpRequestOption<'text', C>, da
     // 存入缓存
     cache.set(cacheKey, data);
 };
-const getCache = <C = undefined>(request: GmXmlhttpRequestOption<'text', C>): Nullable<string> => {
+
+/**
+ * 根据请求体，取出先前进行的相同请求
+ * @param request 请求体
+ * @param completed 是否要求请求已完成，默认为false；如果此项为true且缓存中的请求尚未完成，就返回null
+ * @returns 相同请求的response或者正在进行的Promise（最终会resolve为response）
+ */
+const getCache = <C = undefined>(
+    request: GmXmlhttpRequestOption<'text', C>,
+    completed: boolean = false,
+): Nullable<PromiseOrRaw<string>> => {
     const cacheKey = getCacheKey(request);
-    return cache.get(cacheKey) ?? null;
+    const result = cache.get(cacheKey);
+    return completed && result instanceof Promise ?
+        null :
+        result ?? null;
 };
-const hasCache = <C = undefined>(request: GmXmlhttpRequestOption<'text', C>) => {
+
+/**
+ * 检查某一请求体是否已有缓存
+ * @param request 请求体
+ * @param completed 是否要求请求已完成，默认为false；如果此项为true且缓存中的请求尚未完成，就返回false
+ * @returns 是否有符合要求的缓存
+ */
+const hasCache = <C = undefined>(
+    request: GmXmlhttpRequestOption<'text', C>,
+    completed: boolean = false,
+) => {
     const cacheKey = getCacheKey(request);
-    return cache.has(cacheKey);
+    const result = cache.get(cacheKey);
+    return completed && result instanceof Promise ?
+        false : !!result;
 }
 
 /**
  * 发送api请求到Kemono服务器
+ * @returns response的Promise
  */
 export async function api<
     C = undefined
 >(request: GmXmlhttpRequestOption<'text', C>, options: ApiOptions = defaultOptions) {
     // 检查是否可以使用缓存
-    if (options.cache && hasCache(request)) return JSON.parse(getCache(request)!);
+    if (options.cache && hasCache(request))
+        return JSON.parse(await Promise.resolve(getCache(request)!));
 
     // Kemono的API要求headers标明Accept:text/css
     const headers = { Accept: 'text/css' };
     request.headers = typeof request.headers === 'object' ?
         Object.assign(headers, request.headers) : headers;
-    const response = await requestJson(request);
+    
+    // 发送请求，并将请求缓存
+    const promise = requestJson(request);
+    saveCache(request, promise);
 
-    // 无论是否开启了缓存，都写入缓存
+    // 取得response，并更新缓存
+    const response = await promise;
     saveCache(request, JSON.stringify(response));
+
+    // 返回response
     return response;
 }
 

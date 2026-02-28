@@ -1,6 +1,6 @@
 // https://kemono.cr/fanbox/user/8062849
 
-import { $CrE, createShadowApp, detectDom, Nullable, Optional } from '@/utils/main.js';
+import { $CrE, createShadowApp, detectDom, logger as globalLogger, Nullable, Optional } from '@/utils/main.js';
 import { defineModule } from '../types.js';
 import { downloadPosts } from '../downloader/main.js';
 import App from '@/components/PostsSelector/PostsDialog.vue';
@@ -11,6 +11,7 @@ import { ComponentProps } from 'vue-component-type-helpers';
 import i18n from '@/i18n/main.js';
 
 const t = i18n.global.t;
+const logger = globalLogger.withPath('creator');
 const regPath = /^\/(boosty|dlsite|fanbox|fantia|gumroad|patreon|subscribestar)\/user\/([^\/]+)$/;
 
 /**
@@ -42,33 +43,40 @@ export default defineModule({
                 if (loading) return;
                 loading = true;
 
-                const match = location.pathname.match(regPath)!;
-                const [creator, allPosts] = await Promise.all([
-                    await profile({
-                        service: match[1] as KemonoService,
-                        creatorId: match[2]
-                    }),
-                    await posts({
-                        service: match[1] as KemonoService,
-                        creatorId: match[2]
-                    }),
-                ])
-                props.header = t('creator.gui.posts-selector.header');
-                props.posts = allPosts;
-                props.total = creator.post_count;
-                props.selectedPosts = [];
+                try {
+                    const match = location.pathname.match(regPath)!;
+                    const [creator, allPosts] = await Promise.all([
+                        await profile({
+                            service: match[1] as KemonoService,
+                            creatorId: match[2]
+                        }),
+                        await posts({
+                            service: match[1] as KemonoService,
+                            creatorId: match[2]
+                        }),
+                    ])
+                    props.header = t('creator.gui.posts-selector.header');
+                    props.posts = allPosts;
+                    props.total = creator.post_count;
+                    props.selectedPosts = [];
 
-                const infos = await root.show().catch(() => null) as Nullable<PostInfo[]>;
+                    const infos = await root.show().catch(() => null) as Nullable<PostInfo[]>;
 
-                if (infos) {
-                    // 用户选择了需要下载的Posts
-                    downloadPosts(creator.name, infos);
-                } else {
-                    // 用户直接关闭了选择窗口
-                    // 什么都不做
+                    if (infos) {
+                        // 用户选择了需要下载的Posts
+                        downloadPosts(creator.name, infos);
+                    } else {
+                        // 用户直接关闭了选择窗口
+                        // 什么都不做
+                    }
+                } catch(err) {
+                    // 出现错误，测试中多半为API网络错误
+                    logger.simple('Error', 'Error in downloadButton.onclick');
+                    logger.asLevel('Error', err);
+                } finally {
+                    // 即使出现错误，也保证按钮恢复成可点击状态
+                    loading = false;
                 }
-
-                loading = false;
             }]]
         }));
     },
