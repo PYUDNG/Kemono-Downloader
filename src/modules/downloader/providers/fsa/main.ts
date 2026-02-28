@@ -146,7 +146,7 @@ class FSAFileDownloadTask extends BaseFileDownloadTask implements IFileDownloadT
 
                 // 边下载边写入
                 try {
-                    // 优先使用原生xhr下载，GM_xhr的progress事件不包含数据
+                    // 优先使用原生fetch下载，GM_xhr的progress事件不包含数据
                     await streamDownloadToFileHandle(this.file.url, fileHandle, progress => {
                         this.progress.total = progress.total;
                         this.progress.finished = progress.received;

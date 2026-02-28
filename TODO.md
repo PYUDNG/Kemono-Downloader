@@ -27,7 +27,7 @@ TODO
   - [x] fsa自己的模块设置
 - [x] Github Actions自动构建
   - [x] CI build
-  - [x] Tagged Release 
+  - [x] Tagged Release
 - [ ] api缓存完善
   - [ ] 持久化的缓存
     - [ ] 持久化存储
@@ -38,3 +38,7 @@ TODO
 - [ ] 兼容性辅助表：下载器设置项的help组件
 - [x] 完善IndexedDB数据库和对象存储缺失时处理
 - [ ] 文件下载任务在下载管理器中展示图标或缩略图
+  - [x] 基础图标
+  - [ ] 文件分类图标
+  - [ ] 缩略图
+- [ ] 其他类型下载任务展示正确的图标

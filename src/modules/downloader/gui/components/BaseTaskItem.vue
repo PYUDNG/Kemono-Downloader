@@ -256,6 +256,15 @@ const confirmRemove = function(e?: PointerEvent | KeyboardEvent) {
         }
     });
 }
+/**
+ * 根据任务类型展示对应的图标
+ */
+const icon = computed(() => ({
+    download: 'pi pi-download',
+    file: 'pi pi-file',
+    post: 'pi pi-file',
+    posts: 'pi pi-folder',
+})[task.type] as string);
 </script>
 
 <template>
@@ -285,9 +294,17 @@ const confirmRemove = function(e?: PointerEvent | KeyboardEvent) {
         @click="$emit('click', $event, task)"
     >
         <!-- 上方主要空间 -->
-        <div class="flex flex-row">
-            <!-- 左侧文字区域 -->
-            <div class="flex flex-col flex-1">
+        <div class="flex flex-row relative items-center">
+            <!-- 左侧图标/缩略图 -->
+            <div class="flex flex-row justify-center items-center h-full min-w-10 min-h-10 relative px-3 py-2">
+                <!-- 如果是图片且已经下载完毕，就加载为缩略图 -->
+                <!-- 缩略图尚未实现 -->
+                <!-- 没有缩略图时，展示图标 -->
+                <i :class="[icon]" class="max-w-full max-h-full absolute left-1/2 top-1/2 -translate-1/2 text-2xl flex justify-center items-center"></i>
+            </div>
+            
+            <!-- 中间文字区域 -->
+            <div class="flex flex-col flex-1 px-3 py-2">
                 <div class="text-base">
                     <!-- 标题插槽 -->
                     <slot name="title" :task="task">
@@ -319,7 +336,7 @@ const confirmRemove = function(e?: PointerEvent | KeyboardEvent) {
             </div>
 
             <!-- 右侧操作按钮 -->
-            <div class="flex items-center">
+            <div class="flex items-center px-3 py-2">
                 <!-- 额外操作按钮插槽 -->
                 <slot name="extraActions" :task="task" />
 
