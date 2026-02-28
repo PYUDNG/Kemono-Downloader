@@ -1,4 +1,4 @@
-import { DBSchema, openDB } from "idb";
+import { DBSchema, IDBPDatabase, openDB } from "idb";
 import { FeatureNotSupportedError } from "../../types/base/error";
 import { Nullable } from "@/utils/main";
 import { ref, watch } from "vue";
@@ -81,11 +81,14 @@ export async function updateIndexedDBHandle(handle: FileSystemDirectoryHandle) {
  * 打开存储文件目录Handle的IndexedDB数据库
  */
 export async function openIndexedDB() {
-    return await openDB<StoreType>(IDB_NAME, 1, {
+    const checkObjectStore = (database: IDBPDatabase<StoreType>) => database.objectStoreNames.contains(STORE_NAME) || database.createObjectStore(STORE_NAME);
+    const database = await openDB<StoreType>(IDB_NAME, 1, {
         upgrade(database, _oldVersion, _newVersion, _transaction, _event) {
-            database.objectStoreNames.contains(STORE_NAME) || database.createObjectStore(STORE_NAME);
+            checkObjectStore(database);
         },
     });
+    checkObjectStore(database);
+    return database;
 }
 
 /**
@@ -93,7 +96,7 @@ export async function openIndexedDB() {
  * @returns 是否最终拥有权限
  */
 export async function ensurePermission(
-    handle: FileSystemDirectoryHandle,
+    handle: FileSystemHandle,
     mode: FileSystemPermissionMode = 'readwrite',
 ): Promise<boolean> {
     if ('queryPermission' in handle) {

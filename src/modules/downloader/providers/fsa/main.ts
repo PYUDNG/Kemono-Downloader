@@ -4,7 +4,7 @@ import { DownloadFile, IFileDownloadTask, Status } from "../../types/interface/t
 import { logger as globalLogger } from "@/utils/main.js";
 import { globalStorage } from "@/storage";
 import { FeatureNotSupportedError } from "../../types/base/error";
-import { getDirectoryHandleRecursive, getDownloadDirectoryHandle, getFileHandleRecursive, requestNewHandle, streamDownloadToFileHandle, watchDirChange } from "./utils";
+import { ensurePermission, getDirectoryHandleRecursive, getDownloadDirectoryHandle, getFileHandleRecursive, requestNewHandle, streamDownloadToFileHandle, watchDirChange } from "./utils";
 import { BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/post";
 import { IPostDownloadTask, IPostsDownloadTask } from "../../types/interface/post";
 import { Reactive, reactive, ref, watch } from "vue";
@@ -139,6 +139,10 @@ class FSAFileDownloadTask extends BaseFileDownloadTask implements IFileDownloadT
                 const filepath = this.file.path;
                 const dlDirHandle = await getDownloadDirectoryHandle();
                 const fileHandle = await getFileHandleRecursive(dlDirHandle, filepath);
+
+                // 写入前确保拥有读写权限
+                await ensurePermission(dlDirHandle);
+                await ensurePermission(fileHandle);
 
                 // 边下载边写入
                 try {
