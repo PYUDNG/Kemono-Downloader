@@ -72,13 +72,14 @@ jobs:
           - **触发事件**: ${{ github.event_name }}
           
           ## 构建产物说明
-          1. **kemono-downloader.user.js** - 原始构建版本
-          2. **kemono-downloader.greasyfork.user.js** - 美化版本（用于GreasyFork代码审查）
-          3. **kemono-downloader.min.user.js** - 压缩版本（推荐使用）
+          1. **kemono-downloader.user.js** - 未经修改的原始构建版本
+          2. **kemono-downloader.greasyfork.user.js** - Greasyfork版本，包含代码格式化
+          3. **kemono-downloader.min.user.js** - 压缩版本，文件体积小，安装/更新快，<u>适合大多数用户</u>
+          4. **kemono-downloader.meta.js** - 检查更新用文件，<u>此文件不支持安装</u>
           
-          ## 使用说明
-          1. 下载任意一个用户脚本文件
-          2. 安装到Tampermonkey、Violentmonkey或Greasemonkey等用户脚本管理器
+          ## 安装说明
+          1. 以上构建产物中，除`.meta.js`外均可安装使用，且功能没有任何差别
+          2. 可直接点击链接，安装到Tampermonkey、Violentmonkey或ScriptCat等用户脚本管理器
           3. 访问Kemono网站即可使用
           
           ## 变更日志
@@ -89,6 +90,7 @@ jobs:
           dist/kemono-downloader.user.js
           dist/kemono-downloader.greasyfork.user.js
           dist/kemono-downloader.min.user.js
+          dist/kemono-downloader.meta.js
     
     - name: Create Manual Release
       id: create_manual_release
@@ -105,13 +107,14 @@ jobs:
           - **触发方式**: 手动触发
           
           ## 构建产物说明
-          1. **kemono-downloader.user.js** - 原始构建版本
-          2. **kemono-downloader.greasyfork.user.js** - 美化版本（用于GreasyFork代码审查）
-          3. **kemono-downloader.min.user.js** - 压缩版本（推荐使用）
+          1. **kemono-downloader.user.js** - 未经修改的原始构建版本
+          2. **kemono-downloader.greasyfork.user.js** - Greasyfork版本，包含代码格式化
+          3. **kemono-downloader.min.user.js** - 压缩版本，文件体积小，安装/更新快，<u>适合大多数用户</u>
+          4. **kemono-downloader.meta.js** - 检查更新用文件，<u>此文件不支持安装</u>
           
-          ## 使用说明
-          1. 下载任意一个用户脚本文件
-          2. 安装到Tampermonkey、Violentmonkey或Greasemonkey等用户脚本管理器
+          ## 安装说明
+          1. 以上构建产物中，除`.meta.js`外均可安装使用，且功能没有任何差别
+          2. 可直接点击链接，安装到Tampermonkey、Violentmonkey或ScriptCat等用户脚本管理器
           3. 访问Kemono网站即可使用
         draft: false
         prerelease: false
@@ -119,6 +122,4 @@ jobs:
           dist/kemono-downloader.user.js
           dist/kemono-downloader.greasyfork.user.js
           dist/kemono-downloader.min.user.js
-          dist/kemono-downloader.user.js
-          dist/kemono-downloader.greasyfork.user.js
-          dist/kemono-downloader.min.user.js
+          dist/kemono-downloader.meta.js

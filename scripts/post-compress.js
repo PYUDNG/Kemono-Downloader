@@ -22,7 +22,7 @@ const config = {
     // 后处理生成的更新文件（仅metadata）
     metaFile: 'kemono-downloader.meta.js',
     // GitHub 仓库链接
-    githubRepo: 'https://github.com/PYUDNG/kemono-downloader',
+    githubRepo: 'https://github.com/PYUDNG/Kemono-Downloader',
     // Minified version 脚本下载/更新链接
     downloadURL: 'https://github.com/PYUDNG/Kemono-Downloader/releases/latest/download/kemono-downloader.user.js',
     updateURL: 'https://github.com/PYUDNG/Kemono-Downloader/releases/latest/download/kemono-downloader.meta.js',
@@ -171,9 +171,10 @@ async function postCompress() {
         console.log(`  节省空间: ${((originalSize - minifiedSize) / 1024).toFixed(2)} KB`);
 
         console.log('\n✅ 后压缩处理完成！');
-        console.log(`  原始构建: dist/${config.rawFile} (未处理)`);
+        console.log(`  原始构建: dist/${config.rawFile} (原始构建版本，未处理)`);
         console.log(`  美化版本: dist/${config.greasyforkFile} (已格式化，包含源代码说明)`);
         console.log(`  压缩版本: dist/${config.minifiedFile} (已压缩，保留头部注释)`);
+        console.log(`  更新文件: dist/${config.metaFile} (仅包含头部注释，用于检查更新)`);
 
     } catch (error) {
         console.error('❌ 后压缩处理失败:', error);
