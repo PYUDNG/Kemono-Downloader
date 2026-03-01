@@ -46,3 +46,7 @@ TODO
 - [ ] 持久化日志
   - [ ] 存储日志
   - [ ] 导出日志功能
+- [x] 脚本更新URL（非Greasyfork版）/主页URL/支持反馈URL
+  - [x] 主页/支持URL
+  - [x] downloadURL
+  - [x] updateURL：只有meta 

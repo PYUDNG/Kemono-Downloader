@@ -49,6 +49,8 @@ export default defineConfig({
                     // Kemono swiches between domains frequently, so we add '*' to accept all domains
                     '*',
                 ],
+                supportURL: 'https://github.com/PYUDNG/Kemono-Downloader/issues',
+                homepageURL: 'https://github.com/PYUDNG/Kemono-Downloader/',
             },
             build: {
                 fileName: pkg.name + '.user.js',
