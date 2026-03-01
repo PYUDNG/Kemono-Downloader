@@ -46,7 +46,8 @@ export default defineConfig({
                     'kemono.party',
                     'kemono.su',
                     'kemono.cr',
-                    // Kemono swiches between domains frequently, so we add '*' to accept all domains
+                    // Kemono swiches between domains frequently, so we add 'self' and '*' to accept all domains
+                    'self',
                     '*',
                 ],
                 supportURL: 'https://github.com/PYUDNG/Kemono-Downloader/issues',
