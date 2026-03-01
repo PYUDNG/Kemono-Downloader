@@ -72,10 +72,10 @@ jobs:
           - **触发事件**: ${{ github.event_name }}
           
           ## 构建产物说明
-          1. **kemono-downloader.user.js** - 未经修改的原始构建版本
-          2. **kemono-downloader.greasyfork.user.js** - Greasyfork版本，包含代码格式化
-          3. **kemono-downloader.min.user.js** - 压缩版本，文件体积小，安装/更新快，<u>适合大多数用户</u>
-          4. **kemono-downloader.meta.js** - 检查更新用文件，<u>此文件不支持安装</u>
+          1. `kemono-downloader.user.js` - 未经修改的原始构建版本，**不支持自动更新**
+          2. `kemono-downloader.greasyfork.user.js` - Greasyfork版本，包含代码格式化，**不支持自动更新**
+          3. `kemono-downloader.min.user.js` - 压缩版本，文件体积小，安装/更新快，**支持自动更新，适合大多数用户**
+          4. `kemono-downloader.meta.js` - 检查更新用文件，**此文件不支持安装**
           
           ## 安装说明
           1. 以上构建产物中，除`.meta.js`外均可安装使用，且功能没有任何差别
@@ -107,10 +107,10 @@ jobs:
           - **触发方式**: 手动触发
           
           ## 构建产物说明
-          1. **kemono-downloader.user.js** - 未经修改的原始构建版本
-          2. **kemono-downloader.greasyfork.user.js** - Greasyfork版本，包含代码格式化
-          3. **kemono-downloader.min.user.js** - 压缩版本，文件体积小，安装/更新快，<u>适合大多数用户</u>
-          4. **kemono-downloader.meta.js** - 检查更新用文件，<u>此文件不支持安装</u>
+          1. `kemono-downloader.user.js` - 未经修改的原始构建版本，**不支持自动更新**
+          2. `kemono-downloader.greasyfork.user.js` - Greasyfork版本，包含代码格式化，**不支持自动更新**
+          3. `kemono-downloader.min.user.js` - 压缩版本，文件体积小，安装/更新快，**支持自动更新，适合大多数用户**
+          4. `kemono-downloader.meta.js` - 检查更新用文件，**此文件不支持安装**
           
           ## 安装说明
           1. 以上构建产物中，除`.meta.js`外均可安装使用，且功能没有任何差别
