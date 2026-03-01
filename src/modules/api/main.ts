@@ -101,7 +101,8 @@ export async function api<
     
     // 发送请求，并将请求缓存
     const promise = requestJson(request);
-    saveCache(request, promise);
+    const jsonTextPromise = promise.then(response => JSON.stringify(response));
+    saveCache(request, jsonTextPromise);
 
     // 取得response，并更新缓存
     const response = await promise;

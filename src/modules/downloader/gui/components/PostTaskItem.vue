@@ -91,11 +91,19 @@ function detail(_e: PointerEvent, task: BasePostDownloadTask) {
     });
     root.showWithTasks(task.subTasks, task.name);
 
+    // 当tasks变化时更新到UI
+    const handleTaskUpdate = watch(task.subTasks, () => {
+        console.log('update subTasks', task, task.subTasks);
+        root.tasks = task.subTasks;
+    }, { deep: true });
+
     // 当子任务窗口隐藏（被关闭）时销毁它
-    watch(() => root.visible, (newVal, oldVal) => {
+    const handleClose = watch(() => root.visible, (newVal, oldVal) => {
         if (!newVal && oldVal) {
             app.unmount();
             host.remove();
+            handleTaskUpdate.stop();
+            handleClose.stop();
         }
     });
 }

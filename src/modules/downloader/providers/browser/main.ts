@@ -226,6 +226,8 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
                         this.progress.status = 'complete';
                     }
                 });
+
+                await fileTask.init;
             }));
             this.progress.total = files.length;
             this.progress.finished = 0;
