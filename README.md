@@ -153,10 +153,38 @@ npm run build
 4. 编写清晰的提交信息
 5. 创建Pull Request
 
-### 代码规范
+### PR规范
+#### 代码规范
 本项目没有硬性的代码规范要求，但是请您确保您的代码至少能做到：
 - 保留有合适的注释
 - 通过typescript类型检查
+
+#### Commit规范
+每条commit中可以包含多个更新内容，每个更新内容应当写成一条列表项  
+每条更新内容应当在列表项开头处标明更新类型，并用英文冒号+空格（`: `）隔开：
+| 更新类型       | 描述                                                 |
+| :------------- | :--------------------------------------------------- |
+| `feat`         | 新功能添加                                           |
+| `improvement`  | 已有功能改进                                         |
+| `code`         | 功能无变化，仅代码（包含注释）修改（代码优化等）     |
+| `bug fix`      | 修复bug                                              |
+| `maintainence` | 代码无变化的其他更新，如：TODO列表更新，依赖更新等等 |
+| `refactor`     | 功能无变化，代码整体重写（重构）                     |
+
+如果一条更新对应多个类型，以其最主要的类型书写  
+commit消息应当用英文书写
+
+commit消息示例：
+```
+- feat: new download provider `aria2`
+- improvement: debounce TextInput for settings
+- bug fix: download button no response after multiple clicks
+- maintainence: updated TODO
+- maintainence: updated README
+- refactor: build script
+```
+
+以上commit消息仅作示例。实际commit中，对于如此多的更新内容，应当尽量分多次commit提交
 
 ## 📄 许可证
 
