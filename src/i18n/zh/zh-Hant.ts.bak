@@ -21,16 +21,6 @@ export default {
             "no-items-placeholder": '設定列表為空',
             "reload-to-apply": '修改此設定後，已開啟的頁面需要重新整理後才能生效',
             "help-header": '幫助 - {name}',
-            "mobile-dialog": {
-                ok: '儲存',
-                cancel: '取消',
-            },
-            "value-string": {
-                switch: {
-                    true: '已開啟',
-                    false: '已關閉',
-                }
-            }
         }
     },
     downloader: {

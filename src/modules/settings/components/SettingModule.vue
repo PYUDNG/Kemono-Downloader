@@ -29,7 +29,6 @@ const groups = computed(() => {
         group,
     }));
     groups.sort((g1, g2) => g1.group.index - g2.group.index);
-    console.log('groups', groups);
     return groups;
 });
 

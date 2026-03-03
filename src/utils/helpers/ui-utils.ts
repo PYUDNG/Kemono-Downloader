@@ -1,4 +1,4 @@
-import { Component, createApp, h, reactive, ref, Ref } from "vue";
+import { Component, computed, createApp, h, reactive, ref, Ref } from "vue";
 import type { ComponentExposed, ComponentProps } from 'vue-component-type-helpers'
 import PrimeVue from 'primevue/config';
 import { $CrE, CreateElementOptions } from "./dom-utils";
@@ -273,4 +273,15 @@ export function getViewport() {
         viewport.value.width = window.innerWidth;
     });
     return viewport;
+}
+
+/**
+ * 根据视口宽度，是否采用移动端布局
+ * @returns 响应式变量，是否为移动端布局
+ */
+export function getIsMobile() {
+    const MIN_DISPLAY_WIDTH = 48 * 14; // TailwindCSS的md前缀，设置为48rem
+    const viewport = getViewport();
+    const useMobileLayout = computed(() => viewport.value.width < MIN_DISPLAY_WIDTH);
+    return useMobileLayout;
 }

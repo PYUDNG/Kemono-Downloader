@@ -9,6 +9,7 @@ import { PageState } from 'primevue';
 import { PostInfo } from '@/modules/api/types/common';
 import { useI18n } from 'vue-i18n';
 import SecondaryButton from '@/volt/SecondaryButton.vue';
+import { getIsMobile } from '@/utils/main';
 
 const { t } = useI18n();
 
@@ -84,6 +85,9 @@ const emit = defineEmits<{
 // expose
 defineExpose({ show, hide });
 
+// 是否采用移动端布局
+const mobile = getIsMobile();
+
 /**
  * 展示帖子选择器，并返回一个最终以选中的Posts解决的Promise
  */
@@ -132,8 +136,21 @@ function submit(_e: PointerEvent) {
         />
 
         <template #footer>
-            <SecondaryButton icon="pi pi-times" :label="t('components.posts-selector.buttons.cancel')" @click="hide" />
-            <Button :disabled="!selectedPosts.length" icon="pi pi-download" :label="t('components.posts-selector.buttons.ok')" @click="submit" />
+            <SecondaryButton
+                icon="pi pi-times"
+                :label="t('components.posts-selector.buttons.cancel')"
+                :variant="mobile ? undefined : 'text'"
+                :pt:root:class="{ grow: mobile }"
+                @click="hide"
+            />
+            <Button
+                :disabled="!selectedPosts.length"
+                icon="pi pi-download"
+                :label="t('components.posts-selector.buttons.ok')"
+                :variant="mobile ? undefined : 'text'"
+                :pt:root:class="{ grow: mobile }"
+                @click="submit"
+            />
         </template>
     </Dialog>
 </template>

@@ -1,28 +1,13 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+
 export type ExtraCaption = string | {
     text: string;
     props?: Record<string, any>;
 }
 
 // props
-const {
-    label,
-    caption,
-    icon,
-
-    /** 左侧区域默认宽度 */
-    leftClass = "w-12",
-
-    /** 中间区域默认占满剩余空间 */
-    centerClass = "flex-1",
-
-    /** 右侧区域默认宽度 */
-    rightClass = "w-32",
-
-    extras = [],
-    disabled = false,
-    hidden = false,
-} = defineProps<{
+const props = defineProps<{
     label: string;
     caption?: string;
 
@@ -30,13 +15,13 @@ const {
     icon?: string;
 
     /** 左侧区域自定义类名 */
-    leftClass?: string;
+    leftClass?: string | Record<string, boolean>;
 
     /** 中间区域自定义类名 */
-    centerClass?: string;
+    centerClass?: string | Record<string, boolean>;
 
     /** 右侧区域自定义类名 */
-    rightClass?: string;
+    rightClass?: string | Record<string, boolean>;
 
     /** 额外caption文字 */
     extras?: ExtraCaption[],
@@ -47,12 +32,30 @@ const {
     /** 隐藏状态 */
     hidden?: boolean;
 }>();
+const label = computed(() => props.label);
+const caption = computed(() => props.caption);
+const leftClass = computed(() => props.leftClass ? computeClasses(props.leftClass) : 'w-12');
+const centerClass = computed(() => props.centerClass ? computeClasses(props.centerClass) : 'grow shrink');
+const rightClass = computed(() => props.rightClass ? computeClasses(props.rightClass) : 'w-32');
+const extras = computed(() => props.extras);
+const disabled = computed(() => props.disabled);
+const hidden = computed(() => props.hidden);
+
+function computeClasses(val: string | Record<string, boolean>): string {
+    if (typeof val === 'string') return val;
+    const classList: string[] = [];
+    for (const [cls, bool] of Object.entries(val)) {
+        bool && classList.push(cls);
+    }
+    return classList.join(' ');
+}
 </script>
 
 <template>
     <label
         class="flex flex-row items-center hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors relative"
         :class="{ hidden, 'pointer-events-none': disabled }"
+        v-ripple
     >
         <!-- 左侧区域（仅在需要时显示） -->
         <div v-if="icon || $slots.left" :class="['flex items-center px-3 py-2', leftClass]">
@@ -66,9 +69,9 @@ const {
         </div>
 
         <!-- 文字区域（总是显示） -->
-        <div :class="['flex flex-row items-center min-w-0 grow shrink', centerClass]">
+        <div :class="['flex flex-row items-center min-w-8', centerClass]">
             <!-- 左侧主要区域：文字 -->
-            <div class="flex flex-col px-3 py-2 justify-center grow" :class="{ 'brightness-80': disabled, 'grayscale-50': disabled }">
+            <div class="flex flex-col px-3 py-2 justify-center grow shrink w-full" :class="{ 'brightness-80': disabled, 'grayscale-50': disabled }">
                 <div :title="label" class="text-base truncate">{{ label }}</div>
                 <div v-if="caption" :title="caption" class="text-sm text-surface-500 dark:text-surface-400 line-clamp-2">
                     {{ caption }}
@@ -80,13 +83,13 @@ const {
             </div>
 
             <!-- 右侧区域：附加插槽（仅在需要时显示） -->
-            <div v-if="$slots['text-extension']" class="flex flex-row px-3 py-2 w-fit grow-0">
+            <div v-if="$slots['text-extension']" class="flex flex-row px-3 py-2 w-fit grow-0 shrink-0">
                 <slot name="text-extension" />
             </div>
         </div>
 
         <!-- 右侧内容插槽（仅在需要时显示） -->
-        <div v-if="$slots.right" :class="['px-3 py-2 min-w-fit', rightClass]">
+        <div v-if="$slots.right" :class="['px-3 py-2', rightClass]">
             <div class="flex justify-end items-center w-full" :class="{ 'brightness-80': disabled, 'grayscale': disabled }">
                 <slot name="right" />
             </div>

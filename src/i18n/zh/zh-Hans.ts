@@ -21,6 +21,16 @@ export default {
             "no-items-placeholder": '设置列表为空',
             "reload-to-apply": '修改此设置后，已打开的页面需要刷新后才能生效',
             "help-header": '帮助 - {name}',
+            "mobile-dialog": {
+                ok: '保存',
+                cancel: '取消',
+            },
+            "value-string": {
+                switch: {
+                    true: '已开启',
+                    false: '已关闭',
+                }
+            }
         }
     },
     downloader: {

@@ -21,16 +21,6 @@ export default {
             "no-items-placeholder": 'Settings list is empty',
             "reload-to-apply": 'After modifying this setting, open pages need to be refreshed to take effect',
             "help-header": 'Help - {name}',
-            "mobile-dialog": {
-                ok: 'Save',
-                cancel: 'Cancel',
-            },
-            "value-string": {
-                switch: {
-                    true: 'Enabled',
-                    false: 'Disabled',
-                }
-            }
         }
     },
     downloader: {

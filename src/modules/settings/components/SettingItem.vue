@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import { computed, reactive, ref, Ref, UnwrapNestedRefs, useTemplateRef, watch } from 'vue';
+import { computed, getCurrentInstance, reactive, ref, Ref, UnwrapNestedRefs, useTemplateRef, watch } from 'vue';
 import { DisabledGUI, SettingItem } from '../types';
 import ListItem, { ExtraCaption } from '@/components/ListItem.vue';
-import { deepEqual, Nullable } from '@/utils/main';
+import { deepEqual, getIsMobile, Nullable } from '@/utils/main';
 import { useI18n } from 'vue-i18n';
 import SettingInput from './SettingInput/SettingInput.vue';
 import { globalStorage } from '@/storage';
 import Dialog from '@/volt/Dialog.vue';
+import SecondaryButton from '@/volt/SecondaryButton.vue';
+import Button from '@/volt/Button.vue';
 
 const { t } = useI18n();
 const storage = globalStorage.withKeys('settings');
+
+const tPrefix = 'settings.gui.';
 
 const { item } = defineProps<{
     item: UnwrapNestedRefs<SettingItem>;
@@ -72,6 +76,37 @@ const showHelpText = () => helpVisible.value = true;
 const hideHelpText = () => helpVisible.value = false;
 const helpOnInput = ref(storage.get('helpOnInput'));
 watch(helpOnInput, val => storage.set('helpOnInput', val));
+
+// 以下元素移动端界面下不使用Dialog弹出展示，直接展示在设置条目中
+const noMobilePopup = computed(() => ['switch', 'button'].includes(item.type));
+
+// 宽度较小时展示移动端界面：不直接展示输入元素，而是点击设置项条目后弹窗输入
+const useMobileLayout = getIsMobile();
+const inputVisible = ref(false);
+const dialogParent = computed(() => getCurrentInstance()?.root.vnode.el?.parentElement);
+
+// 移动端界面下，弹窗展示输入元素，并仅在用户点击确定按钮后才将修改写入存储
+const tempVal = ref<typeof item.value>(item.value);
+const submitVal = () => {
+    inputVisible.value = false;
+    item.value = tempVal.value;
+}
+const resetVal = () => {
+    inputVisible.value = false;
+    tempVal.value = item.value;
+}
+/**
+ * 展示在移动端UI的">"左侧的当前值
+ */
+const itemValStr = computed<string>(() => {
+    switch (item.type) {
+        case 'text': return item.value;
+        case 'number': return item.value.toString();
+        case 'switch': return t(tPrefix + 'value-string.switch.' + (item.value ? 'true' : 'false'));
+        case 'select': return item.props!.options.find((val: any) => val[item.props!.optionValue] === item.value)![item.props!.optionLabel];
+        case 'button': return item.value;
+    }
+});
 </script>
 
 <template>
@@ -83,20 +118,93 @@ watch(helpOnInput, val => storage.set('helpOnInput', val));
         :caption="item.caption"
         :icon="item.icon"
         :extras="status.extras"
-        right-class="w-48"
+        :right-class="{ 'min-w-fit': !useMobileLayout, 'max-w-[30%]': true, 'min-w-8': useMobileLayout }"
+        @click="inputVisible = true"
     >
-        <!-- 右侧按钮 -->
+        <!-- 右侧输入元素 -->
         <template #right>
-            <SettingInput
+            <!-- 非移动端界面，直接展示元素 -->
+            <SettingInput v-if="!useMobileLayout"
                 v-model="item.value"
                 :type="item.type"
                 :props="item.props"
                 :display-value="status.display"
+                :use-mobile-layout="useMobileLayout"
+                :item="item"
             />
+            <div v-else class="flex flex-row text-surface-500 dark:text-surface-400 shrink w-full">
+                <!-- 移动端界面 -->
+                <!-- 直接展示元素 -->
+                <SettingInput v-if="noMobilePopup"
+                    v-model="item.value"
+                    :type="item.type"
+                    :props="item.props"
+                    :display-value="status.display"
+                    :use-mobile-layout="useMobileLayout"
+                    :item="item"
+                />
+
+                <!-- 弹窗展示元素 -->
+                <template v-else>
+                    <!-- 当前值预览 -->
+                    <span class="text-sm grow shrink truncate">{{ itemValStr }}</span>
+                    <!-- 小图标: ">" -->
+                    <i class="pi pi-angle-right flex flex-row justify-center items-center shrink-0 grow-0"></i>
+
+                    <!-- 弹窗 -->
+                    <Dialog
+                        v-if="dialogParent"
+                        v-model:visible="inputVisible"
+                        :append-to="dialogParent"
+                        :header="item.label"
+                        pt:root:class="w-full h-full"
+                        pt:content:class="w-full h-full"
+                        modal dismissable-mask
+                    >
+                        <!-- 弹窗内容 -->
+                        <div class="flex flex-col gap-5">
+                            <!-- 上方展示caption（如果有） -->
+                            <div v-if="item.caption">{{ item.caption }}</div>
+                            <!-- 输入元素 -->
+                            <SettingInput
+                                v-model="tempVal"
+                                :type="item.type"
+                                :props="item.props"
+                                :display-value="status.display"
+                                :use-mobile-layout="useMobileLayout"
+                                :item="item"
+                            />
+                            <!-- 下方展示help（如果有） -->
+                            <div v-if="item.help">
+                                <div v-if="typeof item.help === 'string'" v-html="item.help" />
+                                <Component v-else :is="item.help" />
+                            </div>
+                        </div>
+
+                        <!-- 底栏按钮 -->
+                        <template #footer>
+                            <SecondaryButton
+                                :variant="useMobileLayout ? undefined : 'text'"
+                                icon="pi pi-times"
+                                :label="t(tPrefix + 'mobile-dialog.cancel')"
+                                :pt:root:class="{ grow: useMobileLayout }"
+                                @click="resetVal"
+                            />
+                            <Button
+                                :variant="useMobileLayout ? undefined : 'text'"
+                                icon="pi pi-check"
+                                :label="t(tPrefix + 'mobile-dialog.ok')"
+                                :pt:root:class="{ grow: useMobileLayout }"
+                                @click="submitVal"
+                            />
+                        </template>
+                    </Dialog>
+                </template>
+            </div>
         </template>
 
         <!-- 文字区域右侧按钮 -->
-        <template v-if="item.help" #text-extension>
+        <template v-if="item.help && !useMobileLayout" #text-extension>
             <i
                 ref="icon"
                 class="pi pi-question-circle cursor-pointer"

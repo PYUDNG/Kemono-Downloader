@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import InputNumber from '@/volt/InputNumber.vue';
-import { computed } from 'vue';
+import { computed, UnwrapNestedRefs } from 'vue';
 import { eggExpectedModification } from './utils';
+import { SettingItem } from '@/modules/settings/types';
 
 const number = defineModel<number>();
 
 const props = defineProps<{
+    item: UnwrapNestedRefs<SettingItem>;
     displayValue?: any;
+    useMobileLayout?: boolean;
 }>();
 const noDisplayValue = computed(() => typeof props.displayValue === 'undefined');
 const displayValue = computed({

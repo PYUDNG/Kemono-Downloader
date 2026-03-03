@@ -1,15 +1,22 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, UnwrapNestedRefs } from 'vue';
 import Text from './components/Text.vue';
 import Number from './components/Number.vue';
 import Switch from './components/Switch.vue';
 import Select from './components/Select.vue';
 import Button from './components/Button.vue';
+import { SettingItem } from '../../types';
 
 // props
 const { type, props } = defineProps<{
-    /** 设置项类型 */
+    /**
+     * 设置项类型
+     */
     type: CompType;
+    /**
+     * 当前的设置项对象
+     */
+    item: UnwrapNestedRefs<SettingItem>;
     /** 需要向设置项编辑组件额外传递的props */
     props?: Record<string, any>;
     /** 
@@ -19,6 +26,11 @@ const { type, props } = defineProps<{
      * 注意：提供此值时，用户将无法通过UI交互修改实际的模型值（因为UI值已经被固定了）
      */
     displayValue?: any;
+    /**
+     * 是否采用移动端布局  
+     * 采用移动端布局时，设置项输入元素并不直接展示在UI中，而是待用户点击设置项后弹窗展示，因此可以为移动端设计不同的输入元素
+     */
+    useMobileLayout?: boolean;
 }>();
 
 // emits
@@ -48,7 +60,9 @@ const component = computed(() => {
 <template>
     <component
         v-model="model"
+        :item="item"
         :display-value="displayValue"
+        :use-mobile-layout="useMobileLayout"
         :is="component"
         v-bind="props ?? {}"
         @focus="e => $emit('focus', e)"
