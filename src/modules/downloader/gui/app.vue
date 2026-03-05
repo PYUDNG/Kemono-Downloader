@@ -8,6 +8,7 @@ import TabPanel from '@/components/TabLayout/TabPanel.vue';
 import TaskItem from './components/TaskItem.vue';
 import { providerInjectionKey } from './utils';
 import { BaseDownloadProvider } from '../types/base/provider.ts';
+import { i18nKeys } from '@/i18n/utils.ts';
 
 const { t } = useI18n();
 
@@ -27,8 +28,8 @@ const visible = ref(false);
 /**
  * 选项卡列表
  */
-const options: Record<'label' | 'value', string>[] = ['init', 'queue', 'ongoing', 'complete', 'aborted', 'error'].map(name => ({
-    label: t('downloader.gui.tabs.' + name),
+const options: Record<'label' | 'value', string>[] = ['init', 'queue', 'ongoing', 'paused', 'complete', 'aborted', 'error'].map(name => ({
+    label: t(i18nKeys.$downloader.$gui.$tabs + '.' + name),
     value: name
 }));
 
@@ -78,7 +79,7 @@ defineExpose({ visible, tab });
 <template>
     <Dialog
         v-model:visible="visible"
-        :header="t('downloader.gui.title')"
+        :header="t(i18nKeys.$downloader.$gui.$title)"
         append-to="self"
         dismissable-mask
         modal

@@ -1,6 +1,7 @@
 import { createI18n } from 'vue-i18n';
 import * as zh from './zh/main.js';
 import * as en from './en/main.js';
+export * from './utils.js';
 
 const i18n = createI18n({
     legacy: false,

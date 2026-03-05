@@ -603,7 +603,7 @@ export function debounce<T extends (...args: any[]) => any>(
             timeout = setTimeout(() => timeout = null, wait);
             // 立即执行原始函数
             func.apply(this, args);
-        } else {
+        } else if (!immediate) {
             // 清除之前规划的执行任务
             timeout !== null && clearTimeout(timeout);
             // 重新规划防抖时段后执行

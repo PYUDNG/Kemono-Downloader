@@ -9,11 +9,12 @@ import { globalStorage } from '@/storage';
 import Dialog from '@/volt/Dialog.vue';
 import SecondaryButton from '@/volt/SecondaryButton.vue';
 import Button from '@/volt/Button.vue';
+import { i18nKeys } from '@/i18n/utils';
 
 const { t } = useI18n();
 const storage = globalStorage.withKeys('settings');
 
-const tPrefix = 'settings.gui.';
+const $gui = i18nKeys.$settings.$gui;
 
 const { item } = defineProps<{
     item: UnwrapNestedRefs<SettingItem>;
@@ -38,7 +39,7 @@ const status = reactive<SettingStatus>((() => {
         const extras: ExtraCaption[] = [];
         isDisabledGUI(item.disabled) && extras.push(dgui2ecpt(item.disabled));
         item.reload && modified.value && extras.push({
-            text: t('settings.gui.reload-to-apply'),
+            text: t(i18nKeys.$settings.$gui.$reloadToApply),
             props: {
                 class: 'text-primary-700 dark:text-primary-300',
             },
@@ -102,7 +103,7 @@ const itemValStr = computed<string>(() => {
     switch (item.type) {
         case 'text': return item.value;
         case 'number': return item.value.toString();
-        case 'switch': return t(tPrefix + 'value-string.switch.' + (item.value ? 'true' : 'false'));
+        case 'switch': return t($gui.$valueString.$switch[item.value ? '$true' : '$false']);
         case 'select': return item.props!.options.find((val: any) => val[item.props!.optionValue] === item.value)![item.props!.optionLabel];
         case 'button': return item.value;
     }
@@ -186,14 +187,14 @@ const itemValStr = computed<string>(() => {
                             <SecondaryButton
                                 :variant="useMobileLayout ? undefined : 'text'"
                                 icon="pi pi-times"
-                                :label="t(tPrefix + 'mobile-dialog.cancel')"
+                                :label="t($gui.$mobileDialog.$cancel)"
                                 :pt:root:class="{ grow: useMobileLayout }"
                                 @click="resetVal"
                             />
                             <Button
                                 :variant="useMobileLayout ? undefined : 'text'"
                                 icon="pi pi-check"
-                                :label="t(tPrefix + 'mobile-dialog.ok')"
+                                :label="t($gui.$mobileDialog.$ok)"
                                 :pt:root:class="{ grow: useMobileLayout }"
                                 @click="submitVal"
                             />
@@ -207,16 +208,15 @@ const itemValStr = computed<string>(() => {
         <template v-if="item.help && !useMobileLayout" #text-extension>
             <i
                 ref="icon"
-                class="pi pi-question-circle cursor-pointer"
+                class="pi pi-question-circle cursor-pointer p-2"
                 @click="toggleHelpText"
             />
             <Dialog
                 v-if="overlayParent"
                 v-model:visible="helpVisible"
                 :append-to="overlayParent"
-                :header="t('settings.gui.help-header', { name: item.label })"
-                position="left"
-                pt:root:class="border-solid border-1 border-surface-100 dark:border-surface-800"
+                :header="t(i18nKeys.$settings.$gui.$helpHeader, { name: item.label })"
+                pt:root:class="border-solid border-1 border-surface-200 dark:border-surface-700"
             >
                 <template #default>
                     <div v-if="typeof item.help === 'string'" v-html="item.help" />

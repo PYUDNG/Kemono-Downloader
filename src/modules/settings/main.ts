@@ -4,7 +4,7 @@ import App from './app.vue';
 import { SettingGroup, SettingItem, SettingModule } from "./types";
 import { computed, reactive, ref, watch } from "vue";
 import { GM_registerMenuCommand } from "$";
-import i18n from "@/i18n/main";
+import i18n, { i18nKeys } from "@/i18n/main";
 
 const t = i18n.global.t;
 
@@ -48,7 +48,7 @@ export default defineModule({
             },
         });
 
-        GM_registerMenuCommand(t('settings.menu.label'), () => root.visible = true);
+        GM_registerMenuCommand(t(i18nKeys.$settings.$menu.$label), () => root.visible = true);
     },
 });
 

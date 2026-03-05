@@ -10,6 +10,7 @@ import Paginator from '@/volt/Paginator.vue';
 import { PageState } from 'primevue';
 import { PostInfo } from '@/modules/api/types/common';
 import { debounce } from '@/utils/main';
+import { i18nKeys } from '@/i18n/utils';
 
 const { t } = useI18n();
 
@@ -223,7 +224,7 @@ const displayPostItems = computed(() =>
     <div ref="div" class="flex flex-col">
         <!-- 搜索框 -->
         <div class="px-3 py-2 flex flex-row items-center">
-            <span class="w-fit px-3 py-2">{{ t('components.posts-selector.list.search') }}</span>
+            <span class="w-fit px-3 py-2">{{ t(i18nKeys.$components.$postsSelector.$list.$search) }}</span>
             <InputText v-model="search" class="grow shrink" />
         </div>
 

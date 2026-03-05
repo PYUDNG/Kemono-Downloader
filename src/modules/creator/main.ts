@@ -8,7 +8,7 @@ import { posts, profile } from '../api/main.js';
 import { KemonoService, PostInfo } from '../api/types/common.js';
 import { reactive } from 'vue';
 import { ComponentProps } from 'vue-component-type-helpers';
-import i18n from '@/i18n/main.js';
+import i18n, { i18nKeys } from '@/i18n/main.js';
 
 const t = i18n.global.t;
 const logger = globalLogger.withPath('creator');
@@ -55,7 +55,7 @@ export default defineModule({
                             creatorId: match[2]
                         }),
                     ])
-                    props.header = t('creator.gui.posts-selector.header');
+                    props.header = t(i18nKeys.$creator.$gui.$postsSelector.$header);
                     props.posts = allPosts;
                     props.total = creator.post_count;
                     props.selectedPosts = [];

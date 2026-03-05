@@ -10,6 +10,7 @@ import { PostInfo } from '@/modules/api/types/common';
 import { getPostContent, getPostFilePath, getPostTitle, isPostsApiItem } from './utils.js';
 import Popover from '@/volt/Popover.vue';
 import { useI18n } from 'vue-i18n';
+import { i18nKeys } from '@/i18n/utils.js';
 
 const { t } = useI18n()
 
@@ -109,7 +110,7 @@ const appWatchHandle = watch(appContainer, val => {
 
 <template>
     <label
-        class="w-full flex flex-row px-3 py-2 hover:bg-surface-800 transition-colors duration-200"
+        class="w-full flex flex-row px-3 py-2 hover:bg-emphasis transition-colors duration-200"
         :for="uniqueId"
         v-ripple
         @click="$emit('click', $event)"
@@ -165,7 +166,7 @@ const appWatchHandle = watch(appContainer, val => {
         <!-- 按钮 -->
         <div class="flex flex-row items-center px-3 py-2">
             <a :href="postUrl" target="_blank">
-                <Button icon="pi pi-external-link" variant="text" :pt:root:title="t('components.posts-selector.buttons.open-post')" />
+                <Button icon="pi pi-external-link" variant="text" :pt:root:title="t(i18nKeys.$components.$postsSelector.$buttons.$openPost)" />
             </a>
         </div>
     </label>

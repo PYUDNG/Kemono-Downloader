@@ -1,7 +1,7 @@
 import { GM_getValue, GM_setValue, GM_deleteValue, GM_listValues, GM_addValueChangeListener } from "$";
 import { deepEqual, HintedString, UserscriptStorage } from "@/utils/main.js";
 import { ref, watch } from "vue";
-import { ProviderType } from "./modules/downloader/types/base/task";
+import { ProviderType } from "./modules/downloader/types/base/task.js";
 
 /**
  * 全局作用域的用户存储管理器
@@ -33,7 +33,15 @@ export const globalStorage = new UserscriptStorage(
             /**
              * 不同provider自己的设置空间
              */
-            providerSettings: {} as Record<string, unknown>,
+            providerSettings: {
+                browser: {},
+                fsa: {},
+                aria2: {
+                    endpoint: 'http://127.0.0.1:6800/jsonrpc',
+                    secret: '' as string,
+                    dir: '' as string,
+                },
+            },
         },
         settings: {
             /**

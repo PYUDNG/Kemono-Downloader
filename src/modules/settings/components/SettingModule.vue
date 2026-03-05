@@ -5,6 +5,7 @@ import SettingItem from './SettingItem.vue';
 import { computed, ref, UnwrapNestedRefs, watch } from 'vue';
 import SettingGroup from './SettingGroup.vue';
 import Accordion from '@/volt/Accordion.vue';
+import { i18nKeys } from '@/i18n/utils';
 
 const { t } = useI18n();
 
@@ -64,7 +65,7 @@ watch(groups, (groups, oldGroups) => {
         
         <!-- 当某模块没有设置时展示占位内容 -->
         <div v-if="module.items.length === 0" class="flex justify-center items-center w-full h-full">
-            {{ t('settings.gui.no-items-placeholder') }}
+            {{ t(i18nKeys.$settings.$gui.$noItemsPlaceholder) }}
         </div>
     </div>
 </template>

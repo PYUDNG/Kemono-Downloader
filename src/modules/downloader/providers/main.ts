@@ -1,2 +1,3 @@
 export { default as browser } from './browser/main.js';
 export { default as fsa } from './fsa/main.js';
+export { default as aria2 } from './aria2/main.js';

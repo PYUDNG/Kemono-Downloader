@@ -5,10 +5,11 @@ import { providerInjectionKey } from '../utils';
 import BaseTaskItem from './BaseTaskItem.vue';
 import { stringifyBytes } from '@/utils/main.js';
 import { BaseFileDownloadTask } from '../../types/base/task.js';
+import { i18nKeys } from '@/i18n/utils.js';
 
 const { t } = useI18n();
-const tsCommonPrefix = 'downloader.gui.task-component.common.';
-const tsFilePrefix = 'downloader.gui.task-component.file.';
+const $common = i18nKeys.$downloader.$gui.$taskComponent.$common;
+const $file = i18nKeys.$downloader.$gui.$taskComponent.$file;
 
 // props
 const { task, isSubtask = false } = defineProps<{
@@ -40,7 +41,7 @@ const loading = ref(false);
 const toProgressString = (num: number, formatter?: (num: number) => string) =>
     num > -1 ?
         formatter ? formatter(num) : num.toString() :
-        t(tsCommonPrefix + 'unknown');
+        t($common.$unknown);
 
 /**
  * 用户停止下载任务
@@ -91,7 +92,7 @@ async function restart(task: BaseFileDownloadTask, deleteFiles: boolean) {
         <template #progress>
             {{
                 // 根据进度状态展示副标题
-                t(tsFilePrefix + 'caption', {
+                t($file.$caption, {
                     // 仅当进度数字都大于-1（即为有意义值）、且总量大于零（可以作为除数）时
                     percentage: (task.progress.finished | (task.progress.total - 1)) > 0 ?
                         Math.floor(task.progress.finished / task.progress.total * 100 * 100) / 100 : '0',

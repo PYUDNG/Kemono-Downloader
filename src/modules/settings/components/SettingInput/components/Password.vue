@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import InputText from '@/volt/InputText.vue';
-import { computed, UnwrapNestedRefs } from 'vue';
+import Password from '@/volt/Password.vue';
+import { computed, getCurrentInstance, UnwrapNestedRefs } from 'vue';
 import { eggExpectedModification } from './utils';
 import { SettingItem } from '@/modules/settings/types';
 
@@ -21,12 +21,19 @@ const displayValue = computed({
 });
 
 const text = defineModel<string>();
+
+/**
+ * Password feedback 悬浮框元素添加的位置
+ */
+const overlayParent = computed(() => getCurrentInstance()?.root.vnode.el?.parentElement);
 </script>
 
 <template>
-    <InputText
-        v-model="displayValue" type="text"
+    <Password
+        v-model="displayValue"
         class="w-full"
+        toggle-mask
+        :append-to="overlayParent"
         @click="e => e.stopPropagation()"
         @focus="e => $emit('focus', e)"
         @blur="e => $emit('blur', e)"

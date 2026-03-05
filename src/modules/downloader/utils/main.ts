@@ -4,6 +4,7 @@ import { PostsApiResponse } from "@/modules/api/types/posts";
 import { ProfileApiResponse } from "@/modules/api/types/profile";
 import { globalStorage } from "@/storage";
 import { Nullable, ReplaceRule, safeBatchReplace } from "@/utils/main";
+import { Status } from "../types/interface/task";
 
 const storage = globalStorage.withKeys('downloader');
 

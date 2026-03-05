@@ -7,6 +7,7 @@ import TabLayout from '@/components/TabLayout/TabLayout.vue';
 import { getLayoutRef } from '@/utils/main';
 import { useI18n } from 'vue-i18n';
 import SettingModuleComp from './components/SettingModule.vue';
+import { i18nKeys } from '@/i18n/utils';
 
 const { t } = useI18n();
 
@@ -39,7 +40,7 @@ defineExpose({ visible });
 <template>
     <Dialog
         v-model:visible="visible"
-        :header="t('settings.gui.title')"
+        :header="t(i18nKeys.$settings.$gui.$title)"
         :dismissableMask="backdropDismiss"
         append-to="self"
         modal
@@ -62,7 +63,7 @@ defineExpose({ visible });
 
             <template #placeholder>
                 <div class="flex justify-center items-center w-full h-full">
-                    {{ t('settings.gui.tabpanel-placeholder') }}
+                    {{ t(i18nKeys.$settings.$gui.$tabpanelPlaceholder) }}
                 </div>
             </template>
         </TabLayout>

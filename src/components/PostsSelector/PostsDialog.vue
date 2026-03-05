@@ -10,6 +10,7 @@ import { PostInfo } from '@/modules/api/types/common';
 import { useI18n } from 'vue-i18n';
 import SecondaryButton from '@/volt/SecondaryButton.vue';
 import { getIsMobile } from '@/utils/main';
+import { i18nKeys } from '@/i18n/utils';
 
 const { t } = useI18n();
 
@@ -138,7 +139,7 @@ function submit(_e: PointerEvent) {
         <template #footer>
             <SecondaryButton
                 icon="pi pi-times"
-                :label="t('components.posts-selector.buttons.cancel')"
+                :label="t(i18nKeys.$components.$postsSelector.$buttons.$cancel)"
                 :variant="mobile ? undefined : 'text'"
                 :pt:root:class="{ grow: mobile }"
                 @click="hide"
@@ -146,7 +147,7 @@ function submit(_e: PointerEvent) {
             <Button
                 :disabled="!selectedPosts.length"
                 icon="pi pi-download"
-                :label="t('components.posts-selector.buttons.ok')"
+                :label="t(i18nKeys.$components.$postsSelector.$buttons.$ok)"
                 :variant="mobile ? undefined : 'text'"
                 :pt:root:class="{ grow: mobile }"
                 @click="submit"

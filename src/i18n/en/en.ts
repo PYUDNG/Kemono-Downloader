@@ -170,6 +170,25 @@ export default {
                     },
                 },
             },
+            aria2: {
+                settings: {
+                    label: 'Downloader: Aria2',
+                    "disabled-text": 'Aria2 is not the current downloader',
+                    endpoint: {
+                        label: 'Aria2 server',
+                        placeholder: 'http://127.0.0.1:6800/jsonrpc',
+                    },
+                    secret: {
+                        label: 'Secret',
+                        caption: 'Leave empty to not use secret',
+                    },
+                    dir: {
+                        label: 'Download location',
+                        caption: 'Folder path to store downloaded files, leave empty to not specify download location',
+                        help: `If you have configured download location on Aria2 server, this option will override your server configuration<br>If you want to use server configuration, leave this option empty<br><span class="font-bold">Please note: If you want to create folders through custom filenames, this item cannot be omitted, otherwise custom folders will be created in the aria2 running directory instead of the server-configured download directory</span>`,
+                    },
+                }
+            },
         },
     },
     creator: {

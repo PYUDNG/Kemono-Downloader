@@ -53,7 +53,7 @@ function computeClasses(val: string | Record<string, boolean>): string {
 
 <template>
     <label
-        class="flex flex-row items-center hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors relative"
+        class="flex flex-row items-center hover:bg-emphasis transition-colors relative"
         :class="{ hidden, 'pointer-events-none': disabled }"
         v-ripple
     >

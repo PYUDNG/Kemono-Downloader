@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n';
 import AccordionPanel from '@/volt/AccordionPanel.vue';
 import AccordionHeader from '@/volt/AccordionHeader.vue';
 import AccordionContent from '@/volt/AccordionContent.vue';
+import { i18nKeys } from '@/i18n/utils';
 
 const { t } = useI18n();
 
@@ -29,7 +30,7 @@ const props = defineProps<{
 
                 <!-- 当某组没有设置时展示占位内容 -->
                 <div v-if="items.length === 0" class="flex justify-center items-center w-full h-full text-base">
-                    {{ t('settings.gui.no-items-placeholder') }}
+                    {{ t(i18nKeys.$settings.$gui.$noItemsPlaceholder) }}
                 </div>
             </div>
         </AccordionContent>

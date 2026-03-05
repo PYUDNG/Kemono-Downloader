@@ -71,7 +71,7 @@ const placeholder = computed(() => ([null, undefined] as (string | null | undefi
 </script>
 
 <template>
-    <div class="flex rounded-md border border-surface-300 dark:border-surface-700" :class="layoutClasses">
+    <div class="flex rounded-md border border-surface-300 dark:border-surface-700 overflow-hidden" :class="layoutClasses">
         <!-- Tab区域 -->
         <div class="grow-0 shrink-0 border-surface-300 dark:border-surface-700" :class="tabClasses">
             <slot name="tab" :selected="selectedTab">
@@ -98,7 +98,7 @@ const placeholder = computed(() => ([null, undefined] as (string | null | undefi
         </div>
 
         <!-- 内容区域 -->
-        <div class="shrink grow">
+        <div class="shrink grow overflow-auto">
             <slot name="content" :selected="selectedTab">
                 <!-- 默认内容区域：渲染TabPanel和placeholder -->
                 <div class="w-full h-full">

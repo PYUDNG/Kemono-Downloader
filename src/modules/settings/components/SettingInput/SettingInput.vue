@@ -6,6 +6,8 @@ import Switch from './components/Switch.vue';
 import Select from './components/Select.vue';
 import Button from './components/Button.vue';
 import { SettingItem } from '../../types';
+import { ComponentProps } from 'vue-component-type-helpers';
+import Password from './components/Password.vue';
 
 // props
 const { type, props } = defineProps<{
@@ -49,9 +51,14 @@ const componentsMap = {
     switch: Switch,
     select: Select,
     button: Button,
+    password: Password,
 };
 /** 可用的组件类型 */
 export type CompType = keyof typeof componentsMap;
+/** 组件类型-Props类型对照表 */
+export type CompProps = {
+    [K in CompType]: ComponentProps<typeof componentsMap[K]>
+}
 const component = computed(() => {
     return componentsMap[type as CompType];
 });

@@ -12,10 +12,11 @@ import { supports } from './utils.js';
 import { BaseDownloadTask } from '../../types/base/task.js';
 import Checkbox from '@/volt/Checkbox.vue';
 import ExclamationTriangleIcon from '@primevue/icons/exclamationtriangle';
+import { i18nKeys } from '@/i18n/utils.js';
 
 const { t } = useI18n();
 const storage = globalStorage.withKeys('downloader');
-const tsCommonPrefix = 'downloader.gui.task-component.common.';
+const $common = i18nKeys.$downloader.$gui.$taskComponent.$common;
 
 // props
 const { task, isSubtask = false, loading = false } = defineProps<{
@@ -85,15 +86,15 @@ defineSlots<{
  * 适配Progress类型的数值转字符串：当数值为-1时，展示“未知”；其余数值展示原值的字符串表示
  * @param num 进度数值
  */
-const toProgressString = (num: number) => num > -1 ? num.toString() : t(tsCommonPrefix + 'unknown');
+const toProgressString = (num: number) => num > -1 ? num.toString() : t($common.$unknown);
 const progress = computed(() => Object.assign({
     color: {
         init: 'bg-grey-700',
-        paused: 'bg-grey-700',
+        paused: 'bg-gray-400 dark:bg-gray-500',
         queue: 'bg-primary',
         ongoing: 'bg-primary',
         complete: 'bg-green-600',
-        aborted: 'bg-grey-700',
+        aborted: 'bg-gray-400 dark:bg-gray-500',
         error: 'bg-red-600'
     } [task.progress.status],
     percentage: task.progress.total > -1 && task.progress.finished > -1 ?
@@ -108,7 +109,7 @@ const progreebarMode = computed(() => ({
     complete: 'determinate',
     aborted: 'determinate',
     error: 'determinate'
-})[task.progress.status] as 'determinate' | 'indeterminate');
+} satisfies Record<Status, 'determinate' | 'indeterminate'>)[task.progress.status]);
 
 const confirm = useConfirm();
 /** 当前provider是否支持abortFiles功能 */
@@ -171,24 +172,24 @@ const confirmRestart = function(e?: PointerEvent | KeyboardEvent) {
     // 重置复选框选中状态
     deleteFilesChecked.value = false;
 
-    const tsConfirmPrefix = tsCommonPrefix + 'confirm-restart.';
+    const $confirmRestart = $common.$confirmRestart;
     confirm.require({
         group: confirmDialogGroup,
         appendTo: 'self',
         message: t(
-            tsConfirmPrefix + 'message',
+            $confirmRestart.$message,
             { name: task.name },
             { escapeParameter: true }
         ),
-        header: t(tsConfirmPrefix + 'header'),
+        header: t($confirmRestart.$header),
         accept: () => {
             emit('restart', task, deleteFiles.value);
         },
         acceptProps: {
-            label: t(tsConfirmPrefix + 'accept'),
+            label: t($confirmRestart.$accept),
         },
         rejectProps: {
-            label: t(tsConfirmPrefix + 'reject'),
+            label: t($confirmRestart.$reject),
         }
     });
 }
@@ -202,25 +203,25 @@ const confirmAbort = function(e?: PointerEvent | KeyboardEvent) {
     // 重置复选框选中状态
     deleteFilesChecked.value = false;
 
-    const tsConfirmPrefix = tsCommonPrefix + 'confirm-abort.';
+    const $confirmAbort = $common.$confirmAbort;
     confirm.require({
         group: confirmDialogGroup,
         appendTo: 'self',
         message: t(
-            tsConfirmPrefix + 'message',
+            $confirmAbort.$message,
             { name: task.name },
             { escapeParameter: true }
         ),
-        header: t(tsConfirmPrefix + 'header'),
+        header: t($confirmAbort.$header),
         accept: () => {
             // 停止下载任务
             emit('abort', task, deleteFiles.value);
         },
         acceptProps: {
-            label: t(tsConfirmPrefix + 'accept'),
+            label: t($confirmAbort.$accept),
         },
         rejectProps: {
-            label: t(tsConfirmPrefix + 'reject'),
+            label: t($confirmAbort.$reject),
         }
     });
 }
@@ -234,25 +235,25 @@ const confirmRemove = function(e?: PointerEvent | KeyboardEvent) {
     // 重置复选框选中状态
     deleteFilesChecked.value = false;
 
-    const tsConfirmPrefix = tsCommonPrefix + 'confirm-remove.';
+    const $confirmRemove = $common.$confirmRemove;
     confirm.require({
         group: confirmDialogGroup,
         appendTo: 'self',
         message: t(
-            tsConfirmPrefix + 'message',
+            $confirmRemove.$message,
             { name: task.name },
             { escapeParameter: true }
         ),
-        header: t(tsConfirmPrefix + 'header'),
+        header: t($confirmRemove.$header),
         accept: () => {
             // 移除下载任务
             emit('remove', task, deleteFiles.value);
         },
         acceptProps: {
-            label: t(tsConfirmPrefix + 'accept'),
+            label: t($confirmRemove.$accept),
         },
         rejectProps: {
-            label: t(tsConfirmPrefix + 'reject'),
+            label: t($confirmRemove.$reject),
         }
     });
 }
@@ -280,7 +281,7 @@ const icon = computed(() => ({
                 </div>
                 <!-- 下方删除文件复选框 -->
                 <div v-if="showCheckbox" class="pt-0 px-5 pb-5 flex flex-row justify-between items-center">
-                    <label :for="checkboxId">{{ t(tsCommonPrefix + 'confirm-delete-files') }}</label>
+                    <label :for="checkboxId">{{ t($common.$confirmDeleteFiles) }}</label>
                     <Checkbox v-model="deleteFilesChecked" :input-id="checkboxId" />
                 </div>
             </div>
@@ -289,7 +290,7 @@ const icon = computed(() => ({
 
     <!-- 主要任务内容 -->
     <div
-        class="w-full flex flex-col px-3 py-2 hover:bg-surface-800 transition-colors duration-200"
+        class="w-full flex flex-col px-3 py-2 hover:bg-emphasis transition-colors duration-200"
         v-ripple
         @click="$emit('click', $event, task)"
     >
@@ -317,14 +318,14 @@ const icon = computed(() => ({
                         <span class="mr-3">
                             <!-- 副标题-状态文本插槽 -->
                             <slot name="status" :task="task">
-                                {{ t(tsCommonPrefix + task.progress.status) }}
+                                {{ t($common + '.' + task.progress.status) }}
                             </slot>
                         </span>
                         <span>
                             <!-- 副标题-进度文本插槽 -->
                             <slot name="progress" :task="task">
                                 {{
-                                    t(tsCommonPrefix + 'caption', {
+                                    t($common.$caption, {
                                         total: toProgressString(task.progress.total),
                                         finished: toProgressString(task.progress.finished),
                                     })
@@ -347,7 +348,7 @@ const icon = computed(() => ({
                     variant="text"
                     :loading="loading"
                     @click="task.progress.status === 'paused' ? task.unpause() : task.pause()"
-                    :title="t(tsCommonPrefix + (task.progress.status === 'paused' ? 'unpause' : 'pause'))"
+                    :title="t($common + '.' + (task.progress.status === 'paused' ? 'unpause' : 'pause'))"
                     pt:root:class="p-2"
                 />
 
@@ -358,7 +359,7 @@ const icon = computed(() => ({
                     variant="text"
                     :loading="loading"
                     @click="confirmRestart"
-                    :title="t(tsCommonPrefix + 'confirm-restart.label')"
+                    :title="t($common.$confirmRemove.$label)"
                     pt:root:class="p-2"
                 />
 
@@ -369,7 +370,7 @@ const icon = computed(() => ({
                     variant="text"
                     :loading="loading"
                     @click="confirmAbort"
-                    :title="t(tsCommonPrefix + 'confirm-abort.label')"
+                    :title="t($common.$confirmAbort.$label)"
                     pt:root:class="p-2"
                 />
 
@@ -380,7 +381,7 @@ const icon = computed(() => ({
                     variant="text"
                     :loading="loading"
                     @click="confirmRemove"
-                    :title="t(tsCommonPrefix + 'confirm-remove.label')"
+                    :title="t($common.$confirmRemove.$label)"
                     pt:root:class="p-2"
                 />
             </div>

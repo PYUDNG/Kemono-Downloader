@@ -170,6 +170,25 @@ export default {
                     },
                 },
             },
+            aria2: {
+                settings: {
+                    label: '下載器: Aria2',
+                    "disabled-text": 'Aria2並不是目前下載器',
+                    endpoint: {
+                        label: 'Aria2伺服器',
+                        placeholder: 'http://127.0.0.1:6800/jsonrpc',
+                    },
+                    secret: {
+                        label: '密鑰',
+                        caption: '留空則不使用密鑰',
+                    },
+                    dir: {
+                        label: '下載位置',
+                        caption: '儲存下載檔案的資料夾路徑，留空以不指定下載位置',
+                        help: `如果您曾在Aria2伺服器端配置過下載位置，此選項會覆蓋您的伺服器配置<br>如需使用伺服器配置，請將此選項留空<br><span class="font-bold">請注意：如果您希望透過自訂檔名建立資料夾，那麼此項不可省略，否則自訂資料夾將會在aria2執行目錄而非伺服器配置的下載目錄下建立</span>`,
+                    },
+                }
+            },
         },
     },
     creator: {

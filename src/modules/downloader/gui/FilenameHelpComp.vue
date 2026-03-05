@@ -4,10 +4,11 @@ import Button from '@/volt/Button.vue';
 import { useToast } from 'primevue/usetoast';
 import { useI18n } from 'vue-i18n';
 import Toast from '@/volt/Toast.vue';
+import { i18nKeys } from '@/i18n/utils';
 
 const { t } = useI18n();
 const toast = useToast();
-const tPrefix = 'downloader.settings.filename.';
+const $filename = i18nKeys.$downloader.$settings.$filename;
 
 const markups = [
     "PostID", "CreatorID", "Service", "P", "Name",
@@ -24,7 +25,7 @@ function copy(markup: string) {
     const fullMarkup = '{' + markup + '}';
     const callback = () => {
         toast.add({
-            summary: t(tPrefix + 'toast.copied'),
+            summary: t($filename.$toast.$copied),
             detail: fullMarkup,
             severity: 'info',
             life: 3000,
@@ -41,12 +42,12 @@ function copy(markup: string) {
 
 <template>
     <!-- Header -->
-    <div class="font-bold py-2">{{ t(tPrefix + 'help.header') }}</div>
+    <div class="font-bold py-2">{{ t($filename.$help.$header) }}</div>
 
     <!-- 模板 -->
     <div class="grid grid-cols-[min-content_1fr] my-2 border-3 border-solid border-surface-200 dark:border-surface-800">
-        <div class="font-bold flex flex-row items-center justify-center py-2 border-r-3 border-b-3 border-solid border-surface-200 dark:border-surface-800">{{ t(tPrefix + 'help.markup') }}</div>
-        <div class="font-bold flex flex-row items-center justify-start py-2 px-3 border-b-3 border-solid border-surface-200 dark:border-surface-800">{{ t(tPrefix + 'help.desc') }}</div>
+        <div class="font-bold flex flex-row items-center justify-center py-2 border-r-3 border-b-3 border-solid border-surface-200 dark:border-surface-800">{{ t($filename.$help.$markup) }}</div>
+        <div class="font-bold flex flex-row items-center justify-start py-2 px-3 border-b-3 border-solid border-surface-200 dark:border-surface-800">{{ t($filename.$help.$desc) }}</div>
         <template v-for="markup of markups">
             <div class="border-r-3 border-b border-solid border-surface-200 dark:border-surface-800">
                 <Button
@@ -56,12 +57,12 @@ function copy(markup: string) {
                     pt:root:class="w-full"
                 />
             </div>
-            <span class="px-3 flex flex-row items-center border-b border-solid border-surface-200 dark:border-surface-800" v-html="t(tPrefix + 'help.templates.' + markup)"></span>
+            <span class="px-3 flex flex-row items-center border-b border-solid border-surface-200 dark:border-surface-800" v-html="t($filename.$help.$templates + '.' + markup)"></span>
         </template>
     </div>
 
     <!-- Footer -->
-    <div class="font-bold py-2">{{ t(tPrefix + 'help.footer') }}</div>
+    <div class="font-bold py-2">{{ t($filename.$help.$footer) }}</div>
 
     <!-- Toast -->
     <Toast />

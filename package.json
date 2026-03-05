@@ -17,6 +17,7 @@
         "@types/postcss-url": "^10.0.4",
         "dedent": "^1.7.1",
         "idb": "^8.0.3",
+        "maria2": "^0.4.1",
         "mitt": "^3.0.1",
         "primeicons": "^7.0.0",
         "primevue": "^4.5.4",

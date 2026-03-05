@@ -7,6 +7,7 @@ import { providerInjectionKey } from './utils.js';
 import { Nullable } from '@/utils/main.ts';
 import { BaseDownloadTask } from '../types/base/task.ts';
 import { BaseDownloadProvider } from '../types/base/provider.ts';
+import { i18nKeys } from '@/i18n/utils.ts';
 
 const { t } = useI18n();
 
@@ -76,7 +77,7 @@ defineExpose({
 <template>
     <Dialog
         v-model:visible="visible"
-        :header="internalName ? t('downloader.gui.title-detail', { name: internalName }) : t('downloader.gui.title-detail-noname')"
+        :header="internalName ? t(i18nKeys.$downloader.$gui.$titleDetail, { name: internalName }) : t(i18nKeys.$downloader.$gui.$titleDetailNoname)"
         class="w-[80vw] h-[80vh]"
         append-to="self"
         dismissable-mask

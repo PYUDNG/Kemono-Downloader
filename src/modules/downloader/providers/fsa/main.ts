@@ -15,30 +15,30 @@ import { constructFilename, getFullUrl } from "../../utils/main";
 import { BaseDownloadProvider, Feature } from "../../types/base/provider";
 import { IDownloadProvider } from "../../types/interface/provider";
 import { onModuleRegistered, registerGroup, registerItem } from "@/modules/settings/main.js";
-import i18n from "@/i18n/main.js";
+import i18n, { i18nKeys } from "@/i18n/main.js";
 
 const t = i18n.global.t;
 const logger = globalLogger.withPath('downloader', 'provider', 'browser');
-const storage = globalStorage.withKeys('downloader');
+const storage = globalStorage.withKeys('downloader').withKeys('providerSettings').withKeys('fsa');
 
 // 设置
-const tSettingsPrefix = 'downloader.provider.fsa.settings.';
+const $settings = i18nKeys.$downloader.$provider.$fsa.$settings;
 
 onModuleRegistered('downloader', () => {
     registerGroup('downloader', {
         id: 'fsa',
         index: 2,
-        name: t(tSettingsPrefix + 'label'),
+        name: t($settings.$label),
     });
     registerItem('downloader', [{
         id: 'directory',
-        label: t(tSettingsPrefix + 'directory.label'),
-        caption: t(tSettingsPrefix + 'directory.caption'),
+        label: t($settings.$directory.$label),
+        caption: t($settings.$directory.$caption),
         icon: 'pi pi-folder',
         type: 'button',
         value: (() => {
             // buttons类型的value是按钮的label，且不会从组件内不改变（数据单向流动）
-            const label = ref(t(tSettingsPrefix + 'directory.not-selected'));
+            const label = ref(t($settings.$directory.$notSelected));
             // 当保存的目录改变时，更新按钮的label
             watchDirChange((newHandle) => newHandle && (label.value = newHandle.name), true);
             return label;
@@ -305,21 +305,6 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
                     }
                 );
                 this.subTasks.push(fileTask);
-
-                // 根据文件下载任务状态，更新Post下载任务状态
-                watch(() => fileTask.progress.status, (newVal, oldVal) => {
-                    if (newVal === 'complete') this.progress.finished++;
-                    if (oldVal === 'complete') this.progress.finished--;
-                    if (this.hasTaskStatus('ongoing') || this.hasTaskStatus('queue')) {
-                        this.progress.status = 'ongoing';
-                    } else if (this.hasTaskStatus('aborted')) {
-                        this.progress.status = 'aborted';
-                    } else if (this.hasTaskStatus('error')) {
-                        this.progress.status = 'error';
-                    } else if (this.subTasks.every(t => t.progress.status === 'complete')) {
-                        this.progress.status = 'complete';
-                    }
-                });
                 
                 await fileTask.init;
             }));
@@ -343,9 +328,11 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
 
         // 排队下载所有文件
         this.progress.status = 'ongoing' as Status;
+        this.progress.finished = 0;
+        this.progress.total = this.subTasks.length;
         await Promise.allSettled(this.subTasks.map(subTask =>
             // fileTask.run内部已存在错误处理逻辑，即使下载出错，这里也不应报错（除非是代码错误）
-            subTask.run()
+            subTask.run().then(() => this.progress.finished++)
         ));
 
         // 下载完毕，设置任务状态
@@ -434,6 +421,7 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
         // 开始下载
         this.progress.finished = 0;
         this.progress.status = 'ongoing' as Status;
+        this.progress.total = this.subTasks.length;
         await Promise.allSettled(this.subTasks.map(async task => {
             await task.run();
             this.progress.finished++;

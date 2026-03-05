@@ -25,6 +25,7 @@ TODO
   - [ ] 暂停下载功能
   - [x] 通过使用原生fetch实现边下边存
   - [x] fsa自己的模块设置
+  - [ ] 点击检查并授权按钮
 - [x] Github Actions自动构建
   - [x] CI build
   - [x] Tagged Release
@@ -42,12 +43,19 @@ TODO
   - [x] 基础图标
   - [ ] 文件分类图标
   - [ ] 缩略图
-- [ ] 其他类型下载任务展示正确的图标
+- [x] 其他类型下载任务展示正确的图标
 - [ ] 持久化日志
   - [ ] 存储日志
   - [ ] 导出日志功能
 - [x] 脚本更新URL（非Greasyfork版）/主页URL/支持反馈URL
   - [x] 主页/支持URL
   - [x] downloadURL
-  - [x] updateURL：只有meta 
+  - [x] updateURL：只有meta
 - [ ] Aria2 Provider
+  - [x] Aria2下载
+  - [x] 暂停功能
+  - [ ] UI提示用户使用专业Aria2界面
+  - [ ] 测试连接功能
+- [x] i18n vue-i18n key object
+  - [x] 实现
+  - [x] 应用

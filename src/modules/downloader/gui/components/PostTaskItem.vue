@@ -6,10 +6,11 @@ import BaseTaskItem from './BaseTaskItem.vue';
 import AppTaskDetail from '../app-taskdetail.vue';
 import { createShadowApp } from '@/utils/main.js';
 import { BasePostDownloadTask } from '../../types/base/post.js';
+import { i18nKeys } from '@/i18n/utils.js';
 
 const { t } = useI18n();
-const tsCommonPrefix = 'downloader.gui.task-component.common.';
-const tsPostPrefix = 'downloader.gui.task-component.post.';
+const $common = i18nKeys.$downloader.$gui.$taskComponent.$common;
+const $post = i18nKeys.$downloader.$gui.$taskComponent.$post;
 
 // props
 const { task, isSubtask = false } = defineProps<{
@@ -37,7 +38,7 @@ const loading = ref(false);
  * 适配Progress类型的数值转字符串：当数值为-1时，展示“未知”；其余数值展示原值的字符串表示
  * @param num 进度数值
  */
-const toProgressString = (num: number) => num > -1 ? num.toString() : t(tsCommonPrefix + 'unknown');
+const toProgressString = (num: number) => num > -1 ? num.toString() : t($common.$unknown);
 
 /**
  * 用户停止下载任务
@@ -93,7 +94,6 @@ function detail(_e: PointerEvent, task: BasePostDownloadTask) {
 
     // 当tasks变化时更新到UI
     const handleTaskUpdate = watch(task.subTasks, () => {
-        console.log('update subTasks', task, task.subTasks);
         root.tasks = task.subTasks;
     }, { deep: true });
 
@@ -121,12 +121,12 @@ function detail(_e: PointerEvent, task: BasePostDownloadTask) {
     >
         <!-- 标题插槽：当post api尚未加载完成时，先展示占位文本 -->
         <template #title>
-            {{ task.name ?? t(tsCommonPrefix + 'title-nodata') }}
+            {{ task.name ?? t($common.$titleNodata) }}
         </template>
 
         <!-- 副标题-进度文本插槽 -->
         <template #progress>
-            {{ t(tsPostPrefix + 'caption', {
+            {{ t($post.$caption, {
                 total: toProgressString(task.progress.total),
                 finished: toProgressString(task.progress.finished),
             }) }}

@@ -2,7 +2,7 @@ import { createShadowApp } from "@/utils/main";
 import { defineModule } from "../types.js";
 import * as providers from './providers/main.js';
 import { registerModule } from "../settings/main.js";
-import i18n from "@/i18n/main.js";
+import i18n, { i18nKeys } from "@/i18n/main.js";
 import { globalStorage, makeStorageRef } from '@/storage.js';
 import App from './gui/app.vue';
 import AppTaskDetail from './gui/app-taskdetail.vue';
@@ -20,9 +20,9 @@ export { default as gui } from './gui/app.vue';
 const t = i18n.global.t;
 const storage = globalStorage.withKeys('downloader');
 
-// 翻译前缀
-const tDownloaderPrefix = 'downloader.';
-const tSettingsPrefix = tDownloaderPrefix + 'settings.';
+// 翻译key前缀
+const $downloader = i18nKeys.$downloader;
+const $settings = $downloader.$settings;
 
 // 模块定义
 export default defineModule({
@@ -33,19 +33,19 @@ export default defineModule({
 // 设置项
 registerModule({
     id: 'downloader',
-    name: t(tSettingsPrefix + 'label'),
+    name: t($settings.$label),
     items: [{
         id: 'provider',
         type: 'select',
         icon: 'pi pi-download',
-        label: t(tSettingsPrefix + 'provider.label'),
-        caption: t(tSettingsPrefix + 'provider.caption'),
+        label: t($settings.$provider.$label),
+        caption: t($settings.$provider.$caption),
         value: makeStorageRef('provider', storage),
         props: {
             optionLabel: 'label',
             optionValue: 'value',
             options: Object.keys(providers).map(name => ({
-                label: t(tSettingsPrefix + 'provider.options.' + name),
+                label: t($settings.$provider.$options + '.' + name),
                 value: name,
             })),
         },
@@ -55,7 +55,7 @@ registerModule({
         id: 'filename',
         type: 'text',
         icon: 'pi pi-file',
-        label: t(tSettingsPrefix + 'filename.label'),
+        label: t($settings.$filename.$label),
         help: markRaw(FilenameHelpComp),
         value: makeStorageRef('filename', storage),
         group: 'regular',
@@ -63,21 +63,21 @@ registerModule({
         id: 'noCoverFile',
         type: 'switch',
         icon: 'pi pi-image',
-        label: t(tSettingsPrefix + 'no-cover-file'),
+        label: t($settings.$noCoverFile),
         value: makeStorageRef('noCoverFile', storage),
         group: 'regular',
     }, {
         id: 'abortFiles',
         type: 'select',
         icon: 'pi pi-folder',
-        label: t(tSettingsPrefix + 'abort-files.label'),
-        caption: t(tSettingsPrefix + 'abort-files.caption'),
+        label: t($settings.$abortFiles.$label),
+        caption: t($settings.$abortFiles.$caption),
         value: makeStorageRef('abortFiles', storage),
         props: {
             optionLabel: 'label',
             optionValue: 'value',
             options: ['prompt', 'delete', 'preserve'].map(action => ({
-                label: t(tSettingsPrefix + 'abort-files.options.' + action),
+                label: t($settings.$abortFiles.$options + '.' + action),
                 value: action,
             })),
         },
@@ -87,8 +87,8 @@ registerModule({
                 providers[provider.value].features.includes('abortFiles') ?
                     false :
                     ({
-                        text: t(tSettingsPrefix + 'feature-not-supported', {
-                            provider: t(tSettingsPrefix + 'provider.options.' + provider.value),
+                        text: t($settings.$featureNotSupported, {
+                            provider: t($settings.$provider.$options + '.' + provider.value),
                         }),
                         props: {
                             class: 'text-yellow-500'
@@ -101,7 +101,7 @@ registerModule({
     }],
     groups: [{
         id: 'regular',
-        name: t(tSettingsPrefix + 'group'),
+        name: t($settings.$group),
         index: 1,
     }],
 });
@@ -133,7 +133,7 @@ const { root } = createShadowApp(App, {
     }
 });
 
-GM_registerMenuCommand(t(tDownloaderPrefix + 'show-ui'), _e => showUI('ongoing'))
+GM_registerMenuCommand(t($downloader.$showUi), _e => showUI('ongoing'))
 
 export async function downloadPost(info: PostInfo) {
     const taskId = await Promise.resolve(provider.downloadPost(info));

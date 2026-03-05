@@ -1,3 +1,5 @@
+import dedent from "dedent";
+
 export default {
     components: {
         "posts-selector": {
@@ -157,7 +159,7 @@ export default {
         provider: {
             browser: {
                 settings: {
-                    label: '下载器: browser',
+                    label: '下载器: 浏览器内置下载',
                 }
             },
             fsa: {
@@ -169,6 +171,29 @@ export default {
                         "not-selected": '尚未选择文件夹',
                     },
                 },
+            },
+            aria2: {
+                settings: {
+                    label: '下载器: Aria2',
+                    "disabled-text": 'Aria2并不是当前下载器',
+                    endpoint: {
+                        label: 'Aria2服务器',
+                        placeholder: 'http://127.0.0.1:6800/jsonrpc',
+                    },
+                    secret: {
+                        label: '密钥',
+                        caption: '留空则不使用密钥',
+                    },
+                    dir: {
+                        label: '下载位置',
+                        caption: '存储下载文件的文件夹路径，留空以不指定下载位置',
+                        help: dedent`
+                            如果您曾在Aria2服务端配置过下载位置，此选项会覆盖您的服务端配置
+                            如需使用服务端配置，请将此选项留空
+                            <span class="font-bold">请注意：如果您希望通过自定义文件名创建文件夹，那么此项不可省略，否则自定义文件夹将会在aria2运行目录而非服务端配置的下载目录下创建</span>
+                        `.replaceAll('\n', '<br>'),
+                    },
+                }
             },
         },
     },
