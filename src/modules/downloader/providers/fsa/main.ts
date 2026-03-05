@@ -7,7 +7,7 @@ import { FeatureNotSupportedError } from "../../types/base/error";
 import { ensurePermission, getDirectoryHandleRecursive, getDownloadDirectoryHandle, getFileHandleRecursive, requestNewHandle, streamDownloadToFileHandle, watchDirChange } from "./utils";
 import { BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/post";
 import { IPostDownloadTask, IPostsDownloadTask } from "../../types/interface/post";
-import { Reactive, reactive, ref, watch } from "vue";
+import { Reactive, reactive, ref } from "vue";
 import { PostApiResponse } from "@/modules/api/types/post";
 import { PostInfo } from "@/modules/api/types/common";
 import { post, profile } from "@/modules/api/main";
