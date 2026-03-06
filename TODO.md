@@ -16,7 +16,6 @@ TODO
 - [x] 原始文件名自带的路径分隔符转全角字符
 - [x] 移动端设置界面优化
 - [ ] 下载器设置项添加文件名如何创建目录结构的说明
-- [x] Github CI build
 - [x] features功能
 - [x] 暂停/继续下载功能
 - [x] 取消下载任务时删除该任务中已下载文件功能
@@ -26,9 +25,10 @@ TODO
   - [x] 通过使用原生fetch实现边下边存
   - [x] fsa自己的模块设置
   - [ ] 点击检查并授权按钮
-- [x] Github Actions自动构建
+- [ ] Github Actions自动构建
   - [x] CI build
   - [x] Tagged Release
+  - [ ] 自动总结上一个Release以来的commit，写入新Release信息
 - [ ] api缓存完善
   - [ ] 持久化的缓存
     - [ ] 持久化存储
@@ -56,6 +56,8 @@ TODO
   - [x] 暂停功能
   - [ ] UI提示用户使用专业Aria2界面
   - [ ] 测试连接功能
+  - [ ] 同步更新所有任务
+  - [ ] 自定义任务更新周期
 - [x] i18n vue-i18n key object
   - [x] 实现
   - [x] 应用
