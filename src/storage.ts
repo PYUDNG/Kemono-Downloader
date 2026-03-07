@@ -56,6 +56,7 @@ export const globalStorage = new UserscriptStorage(
  * 生成某一存储项的响应式变量，存储值与变量值之间实时同步
  * @param key 存储键
  * @param storage 用户存储管理器实例
+ * @param autoClear 当响应式变量被修改为空值（目前只有空字符串`''`）时，是否从存储空间删除此条目以恢复默认值；此参数默认为true
  * @returns 
  */
 export function makeStorageRef<
@@ -63,16 +64,21 @@ export function makeStorageRef<
     D extends Record<string, any>
 >(
     key: K,
-    storage: UserscriptStorage<D> = globalStorage as unknown as UserscriptStorage<D>
+    storage: UserscriptStorage<D> = globalStorage as unknown as UserscriptStorage<D>,
+    autoClear: boolean = true,
 ) {
     const val = ref(storage.get(key));
     storage.watch(key, (_key, _oldVal, newVal, _remote) =>
         // 当存储和变量确实不再同步时，更新变量值
         deepEqual(val.value, newVal) || (val.value = newVal)
     );
-    watch(val, value => 
-        // 当存储和变量确实不再同步时，写入存储
-        deepEqual(storage.get(key), value) || storage.set(key, value)
-    );
+    watch(val, value => {
+        if (autoClear && [''].includes(value as any))
+            // 当为空值时，重置为默认值（通过删除存储条目实现）
+            storage.has(key) && storage.delete(key)
+        else
+            // 当存储和变量确实不再同步时，写入存储
+            deepEqual(storage.get(key), value) || storage.set(key, value)
+    });
     return val;
 };

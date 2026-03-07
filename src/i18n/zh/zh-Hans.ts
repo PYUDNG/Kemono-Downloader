@@ -170,6 +170,21 @@ export default {
                         caption: '点击更改下载文件保存位置',
                         "not-selected": '尚未选择文件夹',
                     },
+                    "permission-check": {
+                        label: '检查文件夹权限',
+                        caption: '如果下载时无法正常触发授权、且保存文件出错，点这里',
+                        button: '授权',
+                        toast: {
+                            granted: {
+                                title: '权限检查',
+                                message: '权限已授予',
+                            },
+                            failed: {
+                                title: '权限检查',
+                                message: '无法获取可读写的文件夹权限',
+                            },
+                        },
+                    },
                 },
             },
             aria2: {
@@ -178,6 +193,7 @@ export default {
                     "disabled-text": 'Aria2并不是当前下载器',
                     endpoint: {
                         label: 'Aria2服务器',
+                        caption: '服务端的链接，同时支持http(s)/ws(s)协议',
                         placeholder: 'http://127.0.0.1:6800/jsonrpc',
                     },
                     secret: {
@@ -192,6 +208,25 @@ export default {
                             如需使用服务端配置，请将此选项留空
                             <span class="font-bold">请注意：如果您希望通过自定义文件名创建文件夹，那么此项不可省略，否则自定义文件夹将会在aria2运行目录而非服务端配置的下载目录下创建</span>
                         `.replaceAll('\n', '<br>'),
+                    },
+                    "connection-test": {
+                        label: '测试连接',
+                        caption: '使用当前配置尝试连接Aria2服务器',
+                        button: '测试',
+                        toast: {
+                            "not-enabled": {
+                                title: '未启用aria2下载器',
+                                message: '请先将下载器设置为aria2，再进行测试',
+                            },
+                            granted: {
+                                title: '连接成功',
+                                message: '已连接到Aria2服务器，版本 {version}',
+                            },
+                            failed: {
+                                title: '连接失败',
+                                message: '无法连接，请检查配置',
+                            },
+                        },
                     },
                 }
             },

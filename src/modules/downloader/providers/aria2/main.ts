@@ -5,16 +5,16 @@ import { IPostDownloadTask, IPostsDownloadTask } from "../../types/interface/pos
 import { IDownloadProvider } from "../../types/interface/provider.js";
 import { DownloadFile, IFileDownloadTask, Status } from "../../types/interface/task.js";
 import { PostApiResponse } from "@/modules/api/types/post.js";
-import { debounce, logger as globalLogger, Nullable, Queue } from "@/utils/main.js";
+import { debounce, logger as globalLogger, Nullable, Queue, toast } from "@/utils/main.js";
 import { post, profile } from "@/modules/api/main.js";
 import { BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/post.js";
-import { computed, Reactive, reactive } from "vue";
+import { computed, Reactive, reactive, ref, watch } from "vue";
 import { constructFilename, getFullUrl } from "../../utils/main.js";
 import { globalStorage, makeStorageRef } from "@/storage.js";
 import { onModuleRegistered, registerGroup, registerItem } from "@/modules/settings/main.js";
 import i18n, { i18nKeys } from "@/i18n/main.js";
 import { DisabledGUI } from "@/modules/settings/types.js";
-import { open, createWebSocket, createHTTP, Aria2RpcWebSocketUrl, Aria2RpcHTTPUrl, OpenOptions } from "maria2";
+import { open, createWebSocket, createHTTP, Aria2RpcWebSocketUrl, Aria2RpcHTTPUrl, OpenOptions, close } from "maria2";
 import { buildPath, path2DirFile, ARIA2_STATUS_MAP, Aria2Status} from "./utils.js";
 
 const t = i18n.global.t;
@@ -62,24 +62,25 @@ onModuleRegistered('downloader', () => {
         id: 'endpoint',
         type: 'text',
         label: t($settings.$endpoint.$label),
+        caption: t($settings.$endpoint.$caption),
+        icon: 'pi pi-server',
         props: {
             placeholder: t($settings.$endpoint.$placeholder),
         },
         value: makeStorageRef('endpoint', storage),
         disabled: settingDisabled,
-        reload: true,
         group: 'aria2',
     }, {
         id: 'secret',
         type: 'password',
         label: t($settings.$secret.$label),
         caption: t($settings.$secret.$caption),
+        icon: 'pi pi-key',
         props: {
             feedback: false,
         },
         value: makeStorageRef('secret', storage),
         disabled: settingDisabled,
-        reload: true,
         group: 'aria2',
     }, {
         id: 'dir',
@@ -87,34 +88,108 @@ onModuleRegistered('downloader', () => {
         label: t($settings.$dir.$label),
         caption: t($settings.$dir.$caption),
         help: t($settings.$dir.$help),
+        icon: 'pi pi-folder',
         value: makeStorageRef('dir', storage),
         disabled: settingDisabled,
+        group: 'aria2',
+    }, {
+        id: 'connection-test',
+        type: 'button',
+        label: t($settings.$connectionTest.$label),
+        caption: t($settings.$connectionTest.$caption),
+        icon: 'pi pi-key',
+        value: ref(t($settings.$connectionTest.$button)),
+        props: {
+            async onClick() {
+                const $toast = $settings.$connectionTest.$toast;
+                if (!aria2) {
+                    toast({
+                        severity: 'error',
+                        life: 3000,
+                        summary: t($toast.$notEnabled.$title),
+                        detail: t($toast.$notEnabled.$message),
+                    });
+                    return;
+                }
+
+                type Aria2Version = {
+                    version: string;
+                    enabledFeatures: string[];
+                };
+
+                await aria2.sendRequest<Aria2Version>(
+                    { method: 'aria2.getVersion' },
+                ).then(version => {
+                    // 连接成功
+                    logger.simple('Detail', 'aria2 server connection ok');
+                    logger.asLevel('Detail', version);
+                    toast({
+                        severity: 'success',
+                        life: 3000,
+                        summary: t($toast.$granted.$title),
+                        detail: t($toast.$granted.$message, { version: version.version }),
+                    });
+                }, err => {
+                    // 存在授权或其他问题
+                    logger.simple('Error', 'error connecting aria2 server');
+                    logger.asLevel('Error', err);
+                    toast({
+                        severity: 'error',
+                        life: 3000,
+                        summary: t($toast.$failed.$title),
+                        detail: t($toast.$failed.$message),
+                    });
+                });
+            }
+        },
         group: 'aria2',
     }, ]);
 });
 
 // 连接Aria2服务端
-const aria2ProviderEnabled = globalStorage.get('downloader').provider === 'aria2';
-const serverUrl = storage.get('endpoint');
-const secret = storage.get('secret');
-
-const isWebSocket = serverUrl.startsWith('ws://') || serverUrl.startsWith('wss://');
-const options: Partial<OpenOptions> = {
-    secret: secret || undefined,
-    onServerError(err) {
-        logger.simple('Error', 'aria2 server error');
-        logger.asLevel('Error', err);
-    },
-};
+const currentProvider = makeStorageRef('provider', globalStorage.withKeys('downloader'));
+const serverUrl = makeStorageRef('endpoint', storage);
+const secret = makeStorageRef('secret', storage);
 /**
  * Aria2实例
  */
-const aria2 = aria2ProviderEnabled ? 
-    await open(isWebSocket ?
-        createWebSocket(serverUrl as Aria2RpcWebSocketUrl, options) :
-        createHTTP(serverUrl as Aria2RpcHTTPUrl, options)) :
-    null;
-console.log('aria2 instance', aria2);
+let aria2: Nullable<Awaited<ReturnType<typeof open>>> = null;
+watch(() => ({
+    currentProvider: currentProvider.value,
+    serverUrl: serverUrl.value,
+    secret: secret.value,
+}), debounce(async ({ currentProvider, serverUrl, secret }: {
+    currentProvider: ProviderType;
+    serverUrl: string;
+    secret: string;
+}) => {
+    // 关闭先前的连接（如果有）
+    if (aria2) {
+        close(aria2);
+        aria2 = null;
+    }
+
+    // 如果aria2是当前provder，开启新连接
+    if (currentProvider === 'aria2') {
+        const isWebSocket = serverUrl.startsWith('ws://') || serverUrl.startsWith('wss://');
+        // 即使协议不合法这里也进行连接，目的是保证aria2变量有值；后续报错交由后续逻辑处理
+        //const isHTTP = serverUrl.startsWith('http://') || serverUrl.startsWith('https://');
+        //if (!isWebSocket && !isHTTP) return;
+
+        const options: Partial<OpenOptions> = {
+            secret: secret || undefined,
+            onServerError(err) {
+                logger.simple('Error', 'aria2 server error');
+                logger.asLevel('Error', err);
+            },
+        };
+        aria2 = await open(
+            isWebSocket ?
+                createWebSocket(serverUrl as Aria2RpcWebSocketUrl, options) :
+                createHTTP(serverUrl as Aria2RpcHTTPUrl, options)
+        );
+    }
+}, 500), { immediate: true, deep: true });
 
 /**
  * 单文件下载任务  
@@ -168,6 +243,12 @@ class Aria2FileDownloadTask extends BaseFileDownloadTask implements IFileDownloa
         // 实时更新进度
         // 即使是WebSocket连接，服务端通知也没有进度通知，因此通过轮询更新进度
         const updateProgress = async () => {
+            if (!aria2) {
+                this.logger.simple('Warning', 'Aria2 closed while progress update running');
+                clearInterval(interval);
+                return;
+            }
+
             // 从服务端获取进度
             const status: {
                 status: Aria2Status;

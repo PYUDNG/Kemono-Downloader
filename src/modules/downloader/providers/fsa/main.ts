@@ -1,4 +1,4 @@
-import { Nullable, Queue, requestBuffer } from "@/utils/main.js";
+import { Nullable, Queue, requestBuffer, toast } from "@/utils/main.js";
 import { BaseDownloadTask, BaseFileDownloadTask, ProviderType } from "../../types/base/task";
 import { DownloadFile, IFileDownloadTask, Status } from "../../types/interface/task";
 import { logger as globalLogger } from "@/utils/main.js";
@@ -55,6 +55,40 @@ onModuleRegistered('downloader', () => {
                     logger.asLevel('Error', err);
                 }
             }),
+        },
+        group: 'fsa',
+    }, {
+        id: 'permission-check',
+        type: 'button',
+        label: t($settings.$permissionCheck.$label),
+        caption: t($settings.$permissionCheck.$caption),
+        icon: 'pi pi-key',
+        value: ref(t($settings.$permissionCheck.$button)),
+        props: {
+            async onClick() {
+                const $toast = $settings.$permissionCheck.$toast;
+                getDownloadDirectoryHandle().then(handle => {
+                    // 权限OK
+                    logger.simple('Detail', 'directory permission test ok');
+                    logger.asLevel('Detail', handle);
+                    toast({
+                        severity: 'success',
+                        life: 3000,
+                        summary: t($toast.$granted.$title),
+                        detail: t($toast.$granted.$message),
+                    });
+                }).catch(err => {
+                    // 存在授权或其他问题
+                    logger.simple('Error', 'error while testing dir handle');
+                    logger.asLevel('Error', err);
+                    toast({
+                        severity: 'error',
+                        life: 3000,
+                        summary: t($toast.$failed.$title),
+                        detail: t($toast.$failed.$message),
+                    });
+                });
+            }
         },
         group: 'fsa',
     }]);

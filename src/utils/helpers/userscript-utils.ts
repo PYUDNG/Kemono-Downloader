@@ -90,7 +90,8 @@ export class UserscriptStorage<D extends Record<string, any>> {
     }
 
     /**
-     * 判断存储中是否已**写入**了某键（未写入仅有默认值返回false）
+     * 判断存储中是否已**写入**了某键（未写入仅有默认值返回false）  
+     * 如需判断“包括默认值在内是否可以访问到某键的值”，请用`get`方法
      * @param name 存储键
      * @returns 该键是否已写入存储
      */

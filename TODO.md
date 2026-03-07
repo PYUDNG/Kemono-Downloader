@@ -25,6 +25,9 @@ TODO
   - [x] 通过使用原生fetch实现边下边存
   - [x] fsa自己的模块设置
   - [ ] 点击检查并授权按钮
+    - [x] 检查授权
+    - [ ] 测试写入
+    - [x] 接入常驻Toast服务展示结果
 - [ ] Github Actions自动构建
   - [x] CI build
   - [x] Tagged Release
@@ -55,9 +58,11 @@ TODO
   - [x] Aria2下载
   - [x] 暂停功能
   - [ ] UI提示用户使用专业Aria2界面
-  - [ ] 测试连接功能
+  - [x] 测试连接功能
   - [ ] 同步更新所有任务
   - [ ] 自定义任务更新周期
 - [x] i18n vue-i18n key object
   - [x] 实现
   - [x] 应用
+- [x] 常驻Toast服务
+- [x] 设置项change事件提交修改

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import InputNumber from '@/volt/InputNumber.vue';
-import { computed, UnwrapNestedRefs } from 'vue';
+import { computed, ref, UnwrapNestedRefs } from 'vue';
 import { eggExpectedModification } from './utils';
 import { SettingItem } from '@/modules/settings/types';
 
@@ -17,6 +17,8 @@ const displayValue = computed({
     set: val => noDisplayValue.value ? (number.value = val) : eggExpectedModification(),
 });
 
+const innerModel = ref(number.value);
+
 defineEmits<{
     focus: [e: Event];
     blur: [e: Event];
@@ -25,8 +27,9 @@ defineEmits<{
 
 <template>
     <InputNumber
-        v-model="displayValue"
+        v-model="innerModel"
         @mouseenter="(e: Event) => $emit('focus', e)"
         @mouseleave="(e: Event) => $emit('blur', e)"
+        @change="displayValue = innerModel"
     />
 </template>

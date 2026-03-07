@@ -5,6 +5,7 @@ export * from './helpers/page-utils.js';
 export * from './helpers/dom-utils.js';
 export * from './helpers/userscript-utils.js';
 export * from './helpers/ui-utils.js';
+export * from './helpers/toast/main.js';
 
 // 类型
 export * from './types/main.js';

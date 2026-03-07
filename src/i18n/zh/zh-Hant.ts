@@ -1,3 +1,5 @@
+import dedent from "dedent";
+
 export default {
     components: {
         "posts-selector": {
@@ -157,7 +159,7 @@ export default {
         provider: {
             browser: {
                 settings: {
-                    label: '下載器: browser',
+                    label: '下載器: 瀏覽器內建下載',
                 }
             },
             fsa: {
@@ -168,24 +170,63 @@ export default {
                         caption: '點擊更改下載檔案儲存位置',
                         "not-selected": '尚未選擇資料夾',
                     },
+                    "permission-check": {
+                        label: '檢查資料夾權限',
+                        caption: '如果下載時無法正常觸發授權、且儲存檔案出錯，點這裡',
+                        button: '授權',
+                        toast: {
+                            granted: {
+                                title: '權限檢查',
+                                message: '權限已授予',
+                            },
+                            failed: {
+                                title: '權限檢查',
+                                message: '無法獲取可讀寫的資料夾權限',
+                            },
+                        },
+                    },
                 },
             },
             aria2: {
                 settings: {
                     label: '下載器: Aria2',
-                    "disabled-text": 'Aria2並不是目前下載器',
+                    "disabled-text": 'Aria2並不是當前下載器',
                     endpoint: {
                         label: 'Aria2伺服器',
+                        caption: '服務端的連結，同時支援 http(s)/ws(s) 協定',
                         placeholder: 'http://127.0.0.1:6800/jsonrpc',
                     },
                     secret: {
-                        label: '密鑰',
-                        caption: '留空則不使用密鑰',
+                        label: '金鑰',
+                        caption: '留空則不使用金鑰',
                     },
                     dir: {
                         label: '下載位置',
                         caption: '儲存下載檔案的資料夾路徑，留空以不指定下載位置',
-                        help: `如果您曾在Aria2伺服器端配置過下載位置，此選項會覆蓋您的伺服器配置<br>如需使用伺服器配置，請將此選項留空<br><span class="font-bold">請注意：如果您希望透過自訂檔名建立資料夾，那麼此項不可省略，否則自訂資料夾將會在aria2執行目錄而非伺服器配置的下載目錄下建立</span>`,
+                        help: dedent`
+                            如果您曾在 Aria2 伺服端配置過下載位置，此選項會覆蓋您的伺服端配置
+                            如需使用伺服端配置，請將此選項留空
+                            <span class="font-bold">請注意：如果您希望透過自定義檔名建立資料夾，那麼此項不可省略，否則自定義資料夾將會在 aria2 執行目錄而非伺服端配置的下載目錄下建立</span>
+                        `.replaceAll('\n', '<br>'),
+                    },
+                    "connection-test": {
+                        label: '測試連線',
+                        caption: '使用當前配置嘗試連線 Aria2 伺服器',
+                        button: '測試',
+                        toast: {
+                            "not-enabled": {
+                                title: '未啟用 aria2 下載器',
+                                message: '請先將下載器設定為 aria2，再進行測試',
+                            },
+                            granted: {
+                                title: '連線成功',
+                                message: '已連線到 Aria2 伺服器，版本 {version}',
+                            },
+                            failed: {
+                                title: '連線失敗',
+                                message: '無法連線，請檢查配置',
+                            },
+                        },
                     },
                 }
             },

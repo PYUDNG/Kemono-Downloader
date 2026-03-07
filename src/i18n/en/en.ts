@@ -1,3 +1,5 @@
+import dedent from "dedent";
+
 export default {
     components: {
         "posts-selector": {
@@ -164,9 +166,24 @@ export default {
                 settings: {
                     label: 'Downloader: File System API',
                     directory: {
-                        label: 'Download folder',
-                        caption: 'Click to change download file save location',
-                        "not-selected": 'Folder not selected yet',
+                        label: 'Download Folder',
+                        caption: 'Click to change the download destination',
+                        "not-selected": 'No folder selected',
+                    },
+                    "permission-check": {
+                        label: 'Check Folder Permissions',
+                        caption: 'If authorization isn\'t triggered or errors occur during saving, click here',
+                        button: 'Authorize',
+                        toast: {
+                            granted: {
+                                title: 'Permission Check',
+                                message: 'Permission granted',
+                            },
+                            failed: {
+                                title: 'Permission Check',
+                                message: 'Unable to acquire read/write permissions for the folder',
+                            },
+                        },
                     },
                 },
             },
@@ -175,17 +192,41 @@ export default {
                     label: 'Downloader: Aria2',
                     "disabled-text": 'Aria2 is not the current downloader',
                     endpoint: {
-                        label: 'Aria2 server',
+                        label: 'Aria2 Server',
+                        caption: 'Server endpoint, supports http(s)/ws(s) protocols',
                         placeholder: 'http://127.0.0.1:6800/jsonrpc',
                     },
                     secret: {
                         label: 'Secret',
-                        caption: 'Leave empty to not use secret',
+                        caption: 'Leave empty if no secret is required',
                     },
                     dir: {
-                        label: 'Download location',
-                        caption: 'Folder path to store downloaded files, leave empty to not specify download location',
-                        help: `If you have configured download location on Aria2 server, this option will override your server configuration<br>If you want to use server configuration, leave this option empty<br><span class="font-bold">Please note: If you want to create folders through custom filenames, this item cannot be omitted, otherwise custom folders will be created in the aria2 running directory instead of the server-configured download directory</span>`,
+                        label: 'Download Path',
+                        caption: 'Folder path for saving downloads; leave empty to use default',
+                        help: dedent`
+                            If you have configured a download location on the Aria2 server, this option will override it.
+                            To use the server-side configuration, please leave this field empty.
+                            <span class="font-bold">Note: If you intend to create folders via custom filenames, this field must be specified; otherwise, custom folders will be created in the Aria2 execution directory instead of the server's download directory.</span>
+                        `.replaceAll('\n', '<br>'),
+                    },
+                    "connection-test": {
+                        label: 'Test Connection',
+                        caption: 'Attempt to connect to the Aria2 server with current settings',
+                        button: 'Test',
+                        toast: {
+                            "not-enabled": {
+                                title: 'Aria2 Not Enabled',
+                                message: 'Please set the downloader to Aria2 before testing',
+                            },
+                            granted: {
+                                title: 'Connection Successful',
+                                message: 'Connected to Aria2 server, version {version}',
+                            },
+                            failed: {
+                                title: 'Connection Failed',
+                                message: 'Unable to connect, please check your settings',
+                            },
+                        },
                     },
                 }
             },

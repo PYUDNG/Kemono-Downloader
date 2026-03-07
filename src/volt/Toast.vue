@@ -1,10 +1,7 @@
 <template>
     <!-- This is NOT a volt component - its fully written by myself -->
-    <!-- 定位用元素 -->
-    <div v-if="!parent" ref="div"></div>
-
     <!-- PrimeVue Toast -->
-    <Toast v-else
+    <Toast
         unstyled
         :pt="theme"
         :ptOptions="{
@@ -20,7 +17,7 @@
 <script setup lang="ts">
 import TimesIcon from '@primevue/icons/times';
 import Toast, { type ToastPassThroughOptions, type ToastProps } from 'primevue/toast';
-import { ref, useTemplateRef, watch } from 'vue';
+import { computed, getCurrentInstance, ref, watch } from 'vue';
 import { ptViewMerge } from './utils';
 import { detectDom } from '@/utils/main';
 import { v4 as uuid } from 'uuid';
@@ -28,14 +25,8 @@ import { v4 as uuid } from 'uuid';
 interface Props extends /* @vue-ignore */ ToastProps {}
 defineProps<Props>();
 
-const div = useTemplateRef('div');
-const parent = ref<HTMLDivElement>();
-const handle = watch(div, div => {
-    if (div) {
-        parent.value = div.closest('[data-v-app]')! as HTMLDivElement;
-        handle.stop();
-    }
-});
+const instance = getCurrentInstance();
+const parent = computed(() => instance?.root.vnode.el?.parentElement);
 
 const className = `primevue-toast-${ uuid() }`;
 const theme = ref<ToastPassThroughOptions>({
