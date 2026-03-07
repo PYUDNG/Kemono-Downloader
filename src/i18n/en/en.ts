@@ -194,7 +194,6 @@ export default {
                     endpoint: {
                         label: 'Aria2 Server',
                         caption: 'Server endpoint, supports http(s)/ws(s) protocols',
-                        placeholder: 'http://127.0.0.1:6800/jsonrpc',
                     },
                     secret: {
                         label: 'Secret',

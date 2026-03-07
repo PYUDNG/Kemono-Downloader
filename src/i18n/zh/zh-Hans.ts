@@ -194,7 +194,6 @@ export default {
                     endpoint: {
                         label: 'Aria2服务器',
                         caption: '服务端的链接，同时支持http(s)/ws(s)协议',
-                        placeholder: 'http://127.0.0.1:6800/jsonrpc',
                     },
                     secret: {
                         label: '密钥',
@@ -217,6 +216,10 @@ export default {
                             "not-enabled": {
                                 title: '未启用aria2下载器',
                                 message: '请先将下载器设置为aria2，再进行测试',
+                            },
+                            "not-ready": {
+                                title: '未连接aria2下载器',
+                                message: 'aria2下载器尚未准备好，请检查配置进行测试',
                             },
                             granted: {
                                 title: '连接成功',

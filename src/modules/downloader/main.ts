@@ -54,9 +54,12 @@ registerModule({
     }, {
         id: 'filename',
         type: 'text',
-        icon: 'pi pi-file',
+        icon: 'pi pi-file-edit',
         label: t($settings.$filename.$label),
         help: markRaw(FilenameHelpComp),
+        props: {
+            placeholder: storage.default('filename'),
+        },
         value: makeStorageRef('filename', storage),
         group: 'regular',
     }, {

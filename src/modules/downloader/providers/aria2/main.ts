@@ -8,12 +8,11 @@ import { PostApiResponse } from "@/modules/api/types/post.js";
 import { debounce, logger as globalLogger, Nullable, Queue, toast } from "@/utils/main.js";
 import { post, profile } from "@/modules/api/main.js";
 import { BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/post.js";
-import { computed, Reactive, reactive, ref, watch } from "vue";
+import { Reactive, reactive, ref, watch } from "vue";
 import { constructFilename, getFullUrl } from "../../utils/main.js";
 import { globalStorage, makeStorageRef } from "@/storage.js";
 import { onModuleRegistered, registerGroup, registerItem } from "@/modules/settings/main.js";
 import i18n, { i18nKeys } from "@/i18n/main.js";
-import { DisabledGUI } from "@/modules/settings/types.js";
 import { open, createWebSocket, createHTTP, Aria2RpcWebSocketUrl, Aria2RpcHTTPUrl, OpenOptions, close } from "maria2";
 import { buildPath, path2DirFile, ARIA2_STATUS_MAP, Aria2Status} from "./utils.js";
 
@@ -45,19 +44,6 @@ onModuleRegistered('downloader', () => {
         name: t($settings.$label),
     });
 
-    /**
-     * disabled属性：当Aria2未被选中作为当前Provider时，禁用设置项
-     */
-    const settingDisabled = (() => {
-        const provider = makeStorageRef('provider', globalStorage.withKeys('downloader'));
-        return computed(() => provider.value === 'aria2' ? false : {
-            text: t($settings.$disabledText),
-            props: {
-                class: 'text-yellow-500',
-            },
-        } satisfies DisabledGUI);
-    }) ();
-
     registerItem('downloader', [{
         id: 'endpoint',
         type: 'text',
@@ -65,10 +51,9 @@ onModuleRegistered('downloader', () => {
         caption: t($settings.$endpoint.$caption),
         icon: 'pi pi-server',
         props: {
-            placeholder: t($settings.$endpoint.$placeholder),
+            placeholder: storage.default('endpoint'),
         },
         value: makeStorageRef('endpoint', storage),
-        disabled: settingDisabled,
         group: 'aria2',
     }, {
         id: 'secret',
@@ -80,7 +65,6 @@ onModuleRegistered('downloader', () => {
             feedback: false,
         },
         value: makeStorageRef('secret', storage),
-        disabled: settingDisabled,
         group: 'aria2',
     }, {
         id: 'dir',
@@ -90,14 +74,13 @@ onModuleRegistered('downloader', () => {
         help: t($settings.$dir.$help),
         icon: 'pi pi-folder',
         value: makeStorageRef('dir', storage),
-        disabled: settingDisabled,
         group: 'aria2',
     }, {
         id: 'connection-test',
         type: 'button',
         label: t($settings.$connectionTest.$label),
         caption: t($settings.$connectionTest.$caption),
-        icon: 'pi pi-key',
+        icon: 'pi pi-wifi',
         value: ref(t($settings.$connectionTest.$button)),
         props: {
             async onClick() {

@@ -194,7 +194,6 @@ export default {
                     endpoint: {
                         label: 'Aria2伺服器',
                         caption: '服務端的連結，同時支援 http(s)/ws(s) 協定',
-                        placeholder: 'http://127.0.0.1:6800/jsonrpc',
                     },
                     secret: {
                         label: '金鑰',

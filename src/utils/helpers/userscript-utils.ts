@@ -27,7 +27,7 @@ export class UserscriptStorage<D extends Record<string, any>> {
         defaultValues?: D,
     ) {
         this.storage = storage;
-        this.defaultValues = defaultValues ?? {} as D;
+        this.defaultValues = Object.assign(Object.create(null), defaultValues ?? {});
     }
 
     /**
@@ -214,6 +214,15 @@ export class UserscriptStorage<D extends Record<string, any>> {
         ) as UserscriptStorage<K extends keyof D ? D[K] : {}>;
 
         return storage;
+    }
+
+    /**
+     * 获取存储键的默认值
+     * @param name 存储键
+     * @returns 
+     */
+    default<K extends HintedString<string & keyof D>>(key: K): K extends keyof D ? D[K] : undefined {
+        return this.defaultValues[key];
     }
 }
 
