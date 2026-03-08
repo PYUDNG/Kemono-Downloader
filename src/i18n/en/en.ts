@@ -89,14 +89,16 @@ export default {
                     }
                 },
                 file: {
-                    caption: 'Download progress: {percentage}%, {finished} / {total}'
+                    caption: 'Download Progress: {percentage}%, {finished} / {total}',
                 },
                 post: {
-                    caption: 'Total {total} files, {finished} downloaded'
+                    caption: '{total} files in total, {finished} downloaded',
+                    "caption-aborted": ', {aborted} aborted',
                 },
                 posts: {
-                    caption: 'Total {total} posts, {finished} downloaded'
-                }
+                    caption: '{total} posts in total, {finished} downloaded',
+                    "caption-aborted": ', {aborted} aborted',
+                },
             }
         },
         settings: {

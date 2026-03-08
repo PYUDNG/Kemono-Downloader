@@ -366,7 +366,7 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
         this.progress.total = this.subTasks.length;
         await Promise.allSettled(this.subTasks.map(subTask =>
             // fileTask.run内部已存在错误处理逻辑，即使下载出错，这里也不应报错（除非是代码错误）
-            subTask.run().then(() => this.progress.finished++)
+            subTask.run().then(() => subTask.progress.status === 'complete' && this.progress.finished++)
         ));
 
         // 下载完毕，设置任务状态
@@ -458,7 +458,7 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
         this.progress.total = this.subTasks.length;
         await Promise.allSettled(this.subTasks.map(async task => {
             await task.run();
-            this.progress.finished++;
+            task.progress.status === 'complete' && this.progress.finished++;
         }));
 
         // 设置下载完成状态

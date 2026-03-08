@@ -89,14 +89,16 @@ export default {
                     }
                 },
                 file: {
-                    caption: '下載進度: {percentage}%, {finished} / {total}'
+                    caption: '下載進度: {percentage}%, {finished} / {total}',
                 },
                 post: {
-                    caption: '共 {total} 個檔案，已下載 {finished} 個'
+                    caption: '共 {total} 個檔案，已下載 {finished} 個',
+                    "caption-aborted": '，已取消 {aborted} 個',
                 },
                 posts: {
-                    caption: '共 {total} 個貼文，已下載 {finished} 個'
-                }
+                    caption: '共 {total} 則貼文，已下載 {finished} 個',
+                    "caption-aborted": '，已取消 {aborted} 個',
+                },
             }
         },
         settings: {

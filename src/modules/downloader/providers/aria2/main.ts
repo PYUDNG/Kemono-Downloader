@@ -9,12 +9,13 @@ import { debounce, logger as globalLogger, Nullable, Queue, toast } from "@/util
 import { post, profile } from "@/modules/api/main.js";
 import { BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/post.js";
 import { Reactive, reactive, ref, watch } from "vue";
-import { constructFilename, getFullUrl } from "../../utils/main.js";
+import { Aria2IntervalCallsManager, constructFilename, getFullUrl } from "../../utils/main.js";
 import { globalStorage, makeStorageRef } from "@/storage.js";
 import { onModuleRegistered, registerGroup, registerItem } from "@/modules/settings/main.js";
 import i18n, { i18nKeys } from "@/i18n/main.js";
-import { open, createWebSocket, createHTTP, Aria2RpcWebSocketUrl, Aria2RpcHTTPUrl, OpenOptions, close } from "maria2";
+import { open, createWebSocket, createHTTP, Aria2RpcWebSocketUrl, Aria2RpcHTTPUrl, OpenOptions, close, Conn } from "maria2";
 import { buildPath, path2DirFile, ARIA2_STATUS_MAP, Aria2Status} from "./utils.js";
+import mitt from "mitt";
 
 const t = i18n.global.t;
 const logger = globalLogger.withPath('downloader', 'provider', 'aria2');
@@ -25,6 +26,7 @@ const storage = globalStorage.withKeys('downloader').withKeys('providerSettings'
  * @todo 实现对此常量的用户设置
  */
 const ARIA2_INTERVAL = 1000;
+const manager = new Aria2IntervalCallsManager(null, ARIA2_INTERVAL);
 
 /**
  * Aria2Provider 全局共享API访问队列
@@ -129,14 +131,15 @@ onModuleRegistered('downloader', () => {
     }, ]);
 });
 
-// 连接Aria2服务端
+// 连接Aria2服务端，并开启Aria2周期任务循环
 const currentProvider = makeStorageRef('provider', globalStorage.withKeys('downloader'));
 const serverUrl = makeStorageRef('endpoint', storage);
 const secret = makeStorageRef('secret', storage);
+
 /**
  * Aria2实例
  */
-let aria2: Nullable<Awaited<ReturnType<typeof open>>> = null;
+let aria2: Nullable<Conn> = null;
 watch(() => ({
     currentProvider: currentProvider.value,
     serverUrl: serverUrl.value,
@@ -148,8 +151,10 @@ watch(() => ({
 }) => {
     // 关闭先前的连接（如果有）
     if (aria2) {
+        manager.stop();
         close(aria2);
         aria2 = null;
+        manager.aria2 = null;
     }
 
     // 如果aria2是当前provder，开启新连接
@@ -171,6 +176,8 @@ watch(() => ({
                 createWebSocket(serverUrl as Aria2RpcWebSocketUrl, options) :
                 createHTTP(serverUrl as Aria2RpcHTTPUrl, options)
         );
+        manager.aria2 = aria2;
+        manager.run();
     }
 }, 500), { immediate: true, deep: true });
 
@@ -184,6 +191,9 @@ class Aria2FileDownloadTask extends BaseFileDownloadTask implements IFileDownloa
 
     private logger = logger.withPath('Aria2FileDownloadTask');
     private gid?: string;
+    private emmiter = mitt<{
+        abort: void;
+    }>();
 
     constructor(parent: Nullable<BaseDownloadTask>, file: DownloadFile) {
         super(parent, file);
@@ -225,37 +235,38 @@ class Aria2FileDownloadTask extends BaseFileDownloadTask implements IFileDownloa
 
         // 实时更新进度
         // 即使是WebSocket连接，服务端通知也没有进度通知，因此通过轮询更新进度
-        const updateProgress = async () => {
-            if (!aria2) {
-                this.logger.simple('Warning', 'Aria2 closed while progress update running');
-                clearInterval(interval);
-                return;
-            }
+        const intervalTaskId = manager.add({
+            call: {
+                methodName: 'aria2.tellStatus',
+                params: [
+                    gid,
+                    ['status', 'totalLength', 'completedLength'],
+                ],
+            },
+            callback: (
+                status: {
+                    status: Aria2Status;
+                    totalLength: number;
+                    completedLength: number;
+                }
+            ) => {
+                // 更新到本地数据
+                this.progress.status = ARIA2_STATUS_MAP[status.status];
+                this.progress.total = status.totalLength;
+                this.progress.finished = status.completedLength;
 
-            // 从服务端获取进度
-            const status: {
-                status: Aria2Status;
-                totalLength: number;
-                completedLength: number;
-            } = await aria2.sendRequest(
-                { method: 'aria2.tellStatus' },
-                gid,
-                ['status', 'totalLength', 'completedLength'],
-            );
-
-            // 更新到本地数据
-            this.progress.status = ARIA2_STATUS_MAP[status.status];
-            this.progress.total = status.totalLength;
-            this.progress.finished = status.completedLength;
-
-            // 当下载不再进行时停止轮询
-            if (!['active', 'waiting', 'paused'].includes(status.status)) {
-                clearInterval(interval);
-                resolve();
-            }
-        };
-        const debouncedUpdate = debounce(updateProgress, ARIA2_INTERVAL, true);
-        const interval = setInterval(debouncedUpdate, ARIA2_INTERVAL);
+                // 当下载不再进行时停止轮询
+                if (!['active', 'waiting', 'paused'].includes(status.status)) {
+                    manager.remove(intervalTaskId);
+                    resolve();
+                }
+            },
+        });
+        // 当接收到abort事件时停止轮询
+        this.emmiter.on('abort', () => {
+            manager.remove(intervalTaskId);
+            resolve();
+        });
 
         return promise;
     }
@@ -307,6 +318,13 @@ class Aria2FileDownloadTask extends BaseFileDownloadTask implements IFileDownloa
             { method: 'aria2.remove' },
             this.gid,
         );
+
+        // 广播abort事件
+        this.emmiter.emit('abort');
+        
+        // 无需等待run运行完毕，接收到abort事件后run会静默退出且不更改任务status
+        // 设置停止状态
+        this.progress.status = 'aborted';
     }
 }
 
@@ -395,7 +413,7 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
         this.progress.total = this.subTasks.length;
         await Promise.allSettled(this.subTasks.map(subTask =>
             // fileTask.run内部已存在错误处理逻辑，即使下载出错，这里也不应报错（除非是代码错误）
-            subTask.run().then(() => this.progress.finished++)
+            subTask.run().then(() => subTask.progress.status === 'complete' && this.progress.finished++)
         ));
 
         // 下载完毕，设置任务状态
@@ -494,7 +512,7 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
         this.progress.total = this.subTasks.length;
         await Promise.allSettled(this.subTasks.map(async task => {
             await task.run();
-            this.progress.finished++;
+            task.progress.status === 'complete' && this.progress.finished++;
         }));
 
         // 设置下载完成状态

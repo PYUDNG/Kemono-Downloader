@@ -126,10 +126,17 @@ function detail(_e: PointerEvent, task: BasePostDownloadTask) {
 
         <!-- 副标题-进度文本插槽 -->
         <template #progress>
-            {{ t($post.$caption, {
-                total: toProgressString(task.progress.total),
-                finished: toProgressString(task.progress.finished),
-            }) }}
+            <span>{{
+                t($post.$caption, {
+                    total: toProgressString(task.progress.total),
+                    finished: toProgressString(task.progress.finished),
+                })
+            }}</span>
+            <span v-if="task.subTasks.some(t => t.progress.status === 'aborted')">{{
+                t($post.$captionAborted, {
+                    aborted: task.subTasks.filter(t => t.progress.status === 'aborted').length
+                })
+            }}</span>
         </template>
     </BaseTaskItem>
 </template>

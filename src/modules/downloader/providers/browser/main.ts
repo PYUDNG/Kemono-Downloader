@@ -213,21 +213,6 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
                 );
                 this.subTasks.push(fileTask);
 
-                // 根据文件下载任务状态，更新Post下载任务状态
-                watch(() => fileTask.progress.status, (newVal, oldVal) => {
-                    if (newVal === 'complete') this.progress.finished++;
-                    if (oldVal === 'complete') this.progress.finished--;
-                    if (this.hasTaskStatus('ongoing') || this.hasTaskStatus('queue')) {
-                        this.progress.status = 'ongoing';
-                    } else if (this.hasTaskStatus('aborted')) {
-                        this.progress.status = 'aborted';
-                    } else if (this.hasTaskStatus('error')) {
-                        this.progress.status = 'error';
-                    } else if (this.subTasks.every(t => t.progress.status === 'complete')) {
-                        this.progress.status = 'complete';
-                    }
-                });
-
                 await fileTask.init;
             }));
             this.progress.total = files.length;
@@ -250,9 +235,11 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
 
         // 排队下载所有文件
         this.progress.status = 'ongoing' as Status;
+        this.progress.finished = 0;
+        this.progress.total = this.subTasks.length;
         await Promise.allSettled(this.subTasks.map(subTask =>
             // fileTask.run内部已存在错误处理逻辑，即使下载出错，这里也不应报错（除非是代码错误）
-            subTask.run()
+            subTask.run().then(() => subTask.progress.status === 'complete' && this.progress.finished++)
         ));
 
         // 下载完毕，设置任务状态
@@ -339,7 +326,7 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
         this.progress.status = 'ongoing' as Status;
         await Promise.allSettled(this.subTasks.map(async task => {
             await task.run();
-            this.progress.finished++;
+            task.progress.status === 'complete' && this.progress.finished++;
         }));
 
         // 设置下载完成状态

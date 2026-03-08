@@ -4,6 +4,8 @@ import { PostsApiResponse } from "@/modules/api/types/posts";
 import { ProfileApiResponse } from "@/modules/api/types/profile";
 import { globalStorage } from "@/storage";
 import { Nullable, ReplaceRule, safeBatchReplace } from "@/utils/main";
+import { Conn } from "maria2";
+import { v4 as uuid } from "uuid";
 
 const storage = globalStorage.withKeys('downloader');
 
@@ -111,4 +113,112 @@ export function getFullUrl(file: FileItem, data: PostApiResponse): string {
     // preview.server be like: 'https://n3.kemono.cr'
     const server = preview?.server ?? `https://n1.${ location.host }`;
     return `${server}/data${file.path}`;
+}
+
+interface Aria2Call {
+    call: {
+        methodName: string;
+        params: any[];
+    };
+    callback: (response: any) => any;
+}
+
+/**
+ * 统筹执行大量的周期性aria2调用
+ */
+export class Aria2IntervalCallsManager {
+    private tasks: Record<string, Aria2Call> = {};
+
+    /**
+     * aria2实例  
+     * 允许设置为null，设置为null时无法启动循环，如果循环已启动，则会自动停止
+     */
+    public aria2: Nullable<Conn>;
+
+    /**
+     * 调用执行周期
+     */
+    public interval: number;
+
+    /**
+     * 周期任务setInterval句柄  
+     * 为空时表示周期任务不在运行
+     */
+    private handle: Nullable<number> = null;
+
+    constructor(aria2: Nullable<Conn> = null, interval: number = 1000) {
+        this.aria2 = aria2;
+        this.interval = interval;
+    }
+
+    /**
+     * 开始运行周期调用循环
+     */
+    run() {
+        // 检查是否已经在运行
+        if (this.handle !== null) return;
+
+        // 开始周期执行
+        this.handle = setInterval(async () => {
+            if (this.aria2 === null) {
+                this.stop();
+                return;
+            }
+            if (Object.keys(this.tasks).length === 0) return;
+
+            // 提取任务参数和回调
+            const values = Object.values(this.tasks);
+            const calls = structuredClone(values.map(call => call.call));
+            const callbacks = values.map(call => call.callback);
+
+            // multicall需要将secret填入每个call的params当中
+            this.aria2.secret && calls.forEach(call => call.params.splice(0, 0, 'token:' + this.aria2!.secret));
+
+            // multicall调用
+            const results = await this.aria2.sendRequest<any[]>(
+                { method: 'system.multicall', secret: false },
+                calls,
+            );
+            this.aria2.sendRequest
+
+            // 回调
+            results.forEach((val, i) => 
+                callbacks[i](Array.isArray(val) ? val[0] : val)
+            );
+        }, this.interval);
+    }
+
+    /**
+     * 停止周期循环
+     */
+    stop() {
+        this.handle !== null && clearInterval(this.handle);
+        this.handle = null;
+    }
+
+    /**
+     * 新增周期调用任务
+     * @returns 任务id
+     */
+    add(call: Aria2Call): string {
+        const id = uuid();
+        this.tasks[id] = call;
+        return id;
+    }
+
+    /**
+     * 从周期循环中移除指定调用任务
+     * @param id 任务id
+     */
+    remove(id: string) {
+        delete this.tasks[id];
+    }
+
+    /**
+     * 当前周期调用循环是否在运行中
+     * @readonly
+     */
+    get isRunning() {
+        return this.handle !== null;
+    }
 }
