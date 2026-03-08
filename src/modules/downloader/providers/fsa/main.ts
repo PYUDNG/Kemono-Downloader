@@ -16,6 +16,8 @@ import { BaseDownloadProvider, Feature } from "../../types/base/provider";
 import { IDownloadProvider } from "../../types/interface/provider";
 import { onModuleRegistered, registerGroup, registerItem } from "@/modules/settings/main.js";
 import i18n, { i18nKeys } from "@/i18n/main.js";
+import FolderIcon from '~icons/prime/folder'
+import KeyIcon from '~icons/prime/key'
 
 const t = i18n.global.t;
 const logger = globalLogger.withPath('downloader', 'provider', 'browser');
@@ -34,7 +36,7 @@ onModuleRegistered('downloader', () => {
         id: 'directory',
         label: t($settings.$directory.$label),
         caption: t($settings.$directory.$caption),
-        icon: 'pi pi-folder',
+        icon: FolderIcon,
         type: 'button',
         value: (() => {
             // buttons类型的value是按钮的label，且不会从组件内不改变（数据单向流动）
@@ -62,7 +64,7 @@ onModuleRegistered('downloader', () => {
         type: 'button',
         label: t($settings.$permissionCheck.$label),
         caption: t($settings.$permissionCheck.$caption),
-        icon: 'pi pi-key',
+        icon: KeyIcon,
         value: ref(t($settings.$permissionCheck.$button)),
         props: {
             async onClick() {

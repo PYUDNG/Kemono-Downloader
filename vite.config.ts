@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, PluginOption } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import monkey, { cdn } from 'vite-plugin-monkey';
 import path from 'path';
@@ -8,13 +8,19 @@ import postcssUrl from 'postcss-url';
 import cssnano from 'cssnano';
 import stringCssTransformer from './build-utils/stringCssTransformer.js';
 import rem2px from 'postcss-rem-to-responsive-pixel';
+import { visualizer } from "rollup-plugin-visualizer";
+import Icons from 'unplugin-icons/vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [
         tailwindcss(),
+        Icons({
+            compiler: 'vue3',
+        }),
         vue(),
         stringCssTransformer(),
+        visualizer() as PluginOption,
         monkey({
             entry: 'src/main.ts',
             userscript: {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, getCurrentInstance, reactive, ref, Ref, UnwrapNestedRefs, useTemplateRef, watch } from 'vue';
+import { computed, getCurrentInstance, reactive, ref, Ref, UnwrapNestedRefs, watch } from 'vue';
 import { DisabledGUI, SettingItem } from '../types';
 import ListItem, { ExtraCaption } from '@/components/ListItem.vue';
 import { deepEqual, getIsMobile, Nullable } from '@/utils/main';
@@ -10,6 +10,10 @@ import Dialog from '@/volt/Dialog.vue';
 import SecondaryButton from '@/volt/SecondaryButton.vue';
 import Button from '@/volt/Button.vue';
 import { i18nKeys } from '@/i18n/utils';
+import AngleRightIcon from '~icons/prime/angle-right'
+import TimesIcon from '~icons/prime/times'
+import CheckIcon from '~icons/prime/check'
+import QuestionCircleIcon from '~icons/prime/question-circle'
 
 const { t } = useI18n();
 const storage = globalStorage.withKeys('settings');
@@ -67,8 +71,8 @@ const status = reactive<SettingStatus>((() => {
 
 // help overlay元素位置
 // 不能直接设置为'self'，因为祖先元素中存在relative定位元素会干扰overlay定位
-const icon = useTemplateRef('icon');
-const overlayParent = computed(() => icon.value?.closest('[data-v-app]') as Nullable<HTMLElement>);
+const instance = getCurrentInstance();
+const overlayParent = computed(() => instance?.root.vnode.el?.parentElement as Nullable<HTMLElement>);
 
 // help text展示逻辑
 const helpVisible = ref(false);
@@ -150,7 +154,7 @@ const itemValStr = computed<string>(() => {
                     <!-- 当前值预览 -->
                     <span class="text-sm grow shrink truncate">{{ itemValStr }}</span>
                     <!-- 小图标: ">" -->
-                    <i class="pi pi-angle-right flex flex-row justify-center items-center shrink-0 grow-0"></i>
+                    <AngleRightIcon class="flex flex-row justify-center items-center shrink-0 grow-0"/>
 
                     <!-- 弹窗 -->
                     <Dialog
@@ -186,18 +190,24 @@ const itemValStr = computed<string>(() => {
                         <template #footer>
                             <SecondaryButton
                                 :variant="useMobileLayout ? undefined : 'text'"
-                                icon="pi pi-times"
                                 :label="t($gui.$mobileDialog.$cancel)"
                                 :pt:root:class="{ grow: useMobileLayout }"
                                 @click="resetVal"
-                            />
+                            >
+                                <template #icon>
+                                    <TimesIcon />
+                                </template>
+                            </SecondaryButton>
                             <Button
                                 :variant="useMobileLayout ? undefined : 'text'"
-                                icon="pi pi-check"
                                 :label="t($gui.$mobileDialog.$ok)"
                                 :pt:root:class="{ grow: useMobileLayout }"
                                 @click="submitVal"
-                            />
+                            >
+                                <template #icon>
+                                    <CheckIcon />
+                                </template>
+                            </Button>
                         </template>
                     </Dialog>
                 </template>
@@ -206,9 +216,8 @@ const itemValStr = computed<string>(() => {
 
         <!-- 文字区域右侧按钮 -->
         <template v-if="item.help && !useMobileLayout" #text-extension>
-            <i
-                ref="icon"
-                class="pi pi-question-circle cursor-pointer p-2"
+            <QuestionCircleIcon
+                class="cursor-pointer p-2"
                 @click="toggleHelpText"
             />
             <Dialog

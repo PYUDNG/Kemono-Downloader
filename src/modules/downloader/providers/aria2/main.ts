@@ -16,6 +16,10 @@ import i18n, { i18nKeys } from "@/i18n/main.js";
 import { open, createWebSocket, createHTTP, Aria2RpcWebSocketUrl, Aria2RpcHTTPUrl, OpenOptions, close, Conn } from "maria2";
 import { buildPath, path2DirFile, ARIA2_STATUS_MAP, Aria2Status} from "./utils.js";
 import mitt from "mitt";
+import ServerIcon from '~icons/prime/server'
+import WifiIcon from '~icons/prime/wifi'
+import FolderIcon from '~icons/prime/folder'
+import KeyIcon from '~icons/prime/key'
 
 const t = i18n.global.t;
 const logger = globalLogger.withPath('downloader', 'provider', 'aria2');
@@ -51,7 +55,7 @@ onModuleRegistered('downloader', () => {
         type: 'text',
         label: t($settings.$endpoint.$label),
         caption: t($settings.$endpoint.$caption),
-        icon: 'pi pi-server',
+        icon: ServerIcon,
         props: {
             placeholder: storage.default('endpoint'),
         },
@@ -62,7 +66,7 @@ onModuleRegistered('downloader', () => {
         type: 'password',
         label: t($settings.$secret.$label),
         caption: t($settings.$secret.$caption),
-        icon: 'pi pi-key',
+        icon: KeyIcon,
         props: {
             feedback: false,
         },
@@ -74,7 +78,7 @@ onModuleRegistered('downloader', () => {
         label: t($settings.$dir.$label),
         caption: t($settings.$dir.$caption),
         help: t($settings.$dir.$help),
-        icon: 'pi pi-folder',
+        icon: FolderIcon,
         value: makeStorageRef('dir', storage),
         group: 'aria2',
     }, {
@@ -82,7 +86,7 @@ onModuleRegistered('downloader', () => {
         type: 'button',
         label: t($settings.$connectionTest.$label),
         caption: t($settings.$connectionTest.$caption),
-        icon: 'pi pi-wifi',
+        icon: WifiIcon,
         value: ref(t($settings.$connectionTest.$button)),
         props: {
             async onClick() {

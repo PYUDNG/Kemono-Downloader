@@ -3,6 +3,7 @@ import ProgressBar from '@/volt/ProgressBar.vue';
 import type { Status } from '../../types/interface/main.js';
 import { useI18n } from 'vue-i18n';
 import { computed, ref } from 'vue';
+import type { Component } from 'vue';
 import Button from '@/volt/Button.vue';
 import ConfirmDialog from '@/volt/ConfirmDialog.vue';
 import { useConfirm } from 'primevue/useconfirm';
@@ -13,6 +14,15 @@ import { BaseDownloadTask } from '../../types/base/task.js';
 import Checkbox from '@/volt/Checkbox.vue';
 import ExclamationTriangleIcon from '@primevue/icons/exclamationtriangle';
 import { i18nKeys } from '@/i18n/utils.js';
+import DownloadIcon from '~icons/prime/times'
+import FileIcon from '~icons/prime/file'
+import FolderIcon from '~icons/prime/folder'
+import PlayIcon from '~icons/prime/play'
+import PauseIcon from '~icons/prime/pause'
+import StopIcon from '~icons/prime/stop'
+import RefreshIcon from '~icons/prime/refresh'
+import TrashIcon from '~icons/prime/trash'
+
 
 const { t } = useI18n();
 const storage = globalStorage.withKeys('downloader');
@@ -261,11 +271,11 @@ const confirmRemove = function(e?: PointerEvent | KeyboardEvent) {
  * 根据任务类型展示对应的图标
  */
 const icon = computed(() => ({
-    download: 'pi pi-download',
-    file: 'pi pi-file',
-    post: 'pi pi-file',
-    posts: 'pi pi-folder',
-})[task.type] as string);
+    download: DownloadIcon,
+    file: FileIcon,
+    post: FileIcon,
+    posts: FolderIcon,
+})[task.type] as Component);
 </script>
 
 <template>
@@ -301,7 +311,7 @@ const icon = computed(() => ({
                 <!-- 如果是图片且已经下载完毕，就加载为缩略图 -->
                 <!-- 缩略图尚未实现 -->
                 <!-- 没有缩略图时，展示图标 -->
-                <i :class="[icon]" class="max-w-full max-h-full absolute left-1/2 top-1/2 -translate-1/2 text-2xl flex justify-center items-center"></i>
+                <component :is="icon" class="max-w-full max-h-full absolute left-1/2 top-1/2 -translate-1/2 text-2xl flex justify-center items-center" />
             </div>
             
             <!-- 中间文字区域 -->
@@ -344,46 +354,59 @@ const icon = computed(() => ({
                 <!-- 暂停下载任务按钮 -->
                 <Button
                     v-show="pausable"
-                    :icon="task.progress.status === 'paused' ? 'pi pi-play' : 'pi pi-pause'"
                     variant="text"
                     :loading="loading"
                     @click="task.progress.status === 'paused' ? task.unpause() : task.pause()"
                     :title="t($common + '.' + (task.progress.status === 'paused' ? 'unpause' : 'pause'))"
                     pt:root:class="p-2"
-                />
+                >
+                    <template #icon>
+                        <PlayIcon v-if="task.progress.status === 'paused'" />
+                        <PauseIcon v-else />
+                    </template>
+                </Button>
 
                 <!-- 重新下载任务按钮 -->
                 <Button
                     v-show="restartable"
-                    icon="pi pi-refresh"
                     variant="text"
                     :loading="loading"
                     @click="confirmRestart"
                     :title="t($common.$confirmRemove.$label)"
                     pt:root:class="p-2"
-                />
+                >
+                    <template #icon>
+                        <RefreshIcon />
+                    </template>
+                </Button>
 
                 <!-- 停止下载任务按钮 -->
                 <Button
                     v-show="abortable"
-                    icon="pi pi-stop"
                     variant="text"
                     :loading="loading"
                     @click="confirmAbort"
                     :title="t($common.$confirmAbort.$label)"
                     pt:root:class="p-2"
-                />
+                >
+                    <template #icon>
+                        <StopIcon />
+                    </template>
+                </Button>
 
                 <!-- 移除下载任务按钮 -->
                 <Button
                     v-show="removable"
-                    icon="pi pi-trash"
                     variant="text"
                     :loading="loading"
                     @click="confirmRemove"
                     :title="t($common.$confirmRemove.$label)"
                     pt:root:class="p-2"
-                />
+                >
+                    <template #icon>
+                        <TrashIcon />
+                    </template>
+                </Button>
             </div>
         </div>
 

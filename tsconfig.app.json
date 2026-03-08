@@ -5,7 +5,7 @@
     "useDefineForClassFields": true,
     "module": "ESNext",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
-    "types": ["@types/wicg-file-system-access"],
+    "types": ["@types/wicg-file-system-access", "unplugin-icons/types/vue"],
     "skipLibCheck": true,
 
     /* Bundler mode */

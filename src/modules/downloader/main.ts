@@ -16,6 +16,10 @@ import { BaseDownloadProvider } from "./types/base/provider.js";
 import { Status } from "./types/interface/task.js";
 import { GM_registerMenuCommand } from "$";
 export { default as gui } from './gui/app.vue';
+import DownloadIcon from '~icons/prime/download';
+import FileEditIcon from '~icons/prime/file-edit';
+import ImageIcon from '~icons/prime/image';
+import FolderIcon from '~icons/prime/folder';
 
 const t = i18n.global.t;
 const storage = globalStorage.withKeys('downloader');
@@ -37,7 +41,7 @@ registerModule({
     items: [{
         id: 'provider',
         type: 'select',
-        icon: 'pi pi-download',
+        icon: DownloadIcon,
         label: t($settings.$provider.$label),
         caption: t($settings.$provider.$caption),
         value: makeStorageRef('provider', storage),
@@ -54,7 +58,7 @@ registerModule({
     }, {
         id: 'filename',
         type: 'text',
-        icon: 'pi pi-file-edit',
+        icon: FileEditIcon,
         label: t($settings.$filename.$label),
         help: markRaw(FilenameHelpComp),
         props: {
@@ -65,14 +69,14 @@ registerModule({
     }, {
         id: 'noCoverFile',
         type: 'switch',
-        icon: 'pi pi-image',
+        icon: ImageIcon,
         label: t($settings.$noCoverFile),
         value: makeStorageRef('noCoverFile', storage),
         group: 'regular',
     }, {
         id: 'abortFiles',
         type: 'select',
-        icon: 'pi pi-folder',
+        icon: FolderIcon,
         label: t($settings.$abortFiles.$label),
         caption: t($settings.$abortFiles.$caption),
         value: makeStorageRef('abortFiles', storage),

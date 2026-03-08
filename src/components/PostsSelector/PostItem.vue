@@ -11,6 +11,8 @@ import { getPostContent, getPostFilePath, getPostTitle, isPostsApiItem } from '.
 import Popover from '@/volt/Popover.vue';
 import { useI18n } from 'vue-i18n';
 import { i18nKeys } from '@/i18n/utils.js';
+import ImageIcon from '~icons/prime/image'
+import ExternalLinkIcon from '~icons/prime/external-link'
 
 const { t } = useI18n()
 
@@ -133,7 +135,7 @@ const appWatchHandle = watch(appContainer, val => {
                     @touchstart="e => {e.preventDefault(); showCoverPop(e);}"
                     loading="lazy"
                 >
-                <i class="pi pi-image max-h-full max-w-full absolute left-1/2 top-1/2 -translate-1/2 z-0 text-[2rem] flex justify-center items-center"></i>
+                <ImageIcon class="max-h-full max-w-full absolute left-1/2 top-1/2 -translate-1/2 z-0 text-[2rem] flex justify-center items-center" />
             </div>
             <Popover
                 v-if="overlayParent && coverUrl"
@@ -166,7 +168,11 @@ const appWatchHandle = watch(appContainer, val => {
         <!-- 按钮 -->
         <div class="flex flex-row items-center px-3 py-2">
             <a :href="postUrl" target="_blank">
-                <Button icon="pi pi-external-link" variant="text" :pt:root:title="t(i18nKeys.$components.$postsSelector.$buttons.$openPost)" />
+                <Button variant="text" :pt:root:title="t(i18nKeys.$components.$postsSelector.$buttons.$openPost)">
+                    <template #icon>
+                        <ExternalLinkIcon />
+                    </template>
+                </Button>
             </a>
         </div>
     </label>

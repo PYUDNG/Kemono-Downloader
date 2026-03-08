@@ -11,6 +11,8 @@ import { useI18n } from 'vue-i18n';
 import SecondaryButton from '@/volt/SecondaryButton.vue';
 import { getIsMobile } from '@/utils/main';
 import { i18nKeys } from '@/i18n/utils';
+import TimesIcon from '~icons/prime/times'
+import DownloadIcon from '~icons/prime/download'
 
 const { t } = useI18n();
 
@@ -138,20 +140,26 @@ function submit(_e: PointerEvent) {
 
         <template #footer>
             <SecondaryButton
-                icon="pi pi-times"
                 :label="t(i18nKeys.$components.$postsSelector.$buttons.$cancel)"
                 :variant="mobile ? undefined : 'text'"
                 :pt:root:class="{ grow: mobile }"
                 @click="hide"
-            />
+            >
+                <template #icon>
+                    <TimesIcon />
+                </template>
+            </SecondaryButton>
             <Button
                 :disabled="!selectedPosts.length"
-                icon="pi pi-download"
                 :label="t(i18nKeys.$components.$postsSelector.$buttons.$ok)"
                 :variant="mobile ? undefined : 'text'"
                 :pt:root:class="{ grow: mobile }"
                 @click="submit"
-            />
+            >
+                <template #icon>
+                    <DownloadIcon />
+                </template>
+            </Button>
         </template>
     </Dialog>
 </template>

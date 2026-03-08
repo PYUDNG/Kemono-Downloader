@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Component } from 'vue';
 import { computed } from 'vue';
 
 export type ExtraCaption = string | {
@@ -12,7 +13,7 @@ const props = defineProps<{
     caption?: string;
 
     /** PrimeIcons 类名（不带 "pi" 前缀），如 "pi-home" 只需传 "home" */
-    icon?: string;
+    icon?: Component;
 
     /** 左侧区域自定义类名 */
     leftClass?: string | Record<string, boolean>;
@@ -63,7 +64,7 @@ function computeClasses(val: string | Record<string, boolean>): string {
             <div class="flex justify-center items-center w-full">
                 <slot name="left">
                     <!-- 默认图标显示 - 使用 PrimeIcons -->
-                    <i v-if="icon" :class="`pi pi-${icon}`" class="text-lg" />
+                    <component v-if="icon" :is="icon" class="text-lg"></component>
                 </slot>
             </div>
         </div>

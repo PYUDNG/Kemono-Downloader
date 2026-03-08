@@ -54,9 +54,9 @@ export interface SettingItem {
     help?: string | Component;
 
     /**
-     * 图标
+     * 图标  
      */
-    icon?: string;
+    icon?: Component;
 
     /**
      * 响应式设置项值  

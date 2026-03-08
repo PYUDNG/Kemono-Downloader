@@ -26,5 +26,8 @@ dist-ssr
 # vite server certs
 /server/
 
+# rollup-plugin-visualizer result
+/stats.html
+
 # OS files
 desktop.ini
