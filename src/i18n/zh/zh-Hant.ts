@@ -103,7 +103,7 @@ export default {
         },
         settings: {
             label: '下載器',
-            "feature-not-supported": '目前下載器（{provider}）不支援此功能',
+            "feature-not-supported": '當前下載器（{provider}）不支援修改此設定',
             provider: {
                 label: '下載器',
                 caption: '預設使用瀏覽器內建下載；其它下載器有其獨特優勢，但需要自行測試和您的瀏覽器的相容性',

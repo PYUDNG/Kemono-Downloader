@@ -169,6 +169,7 @@ npm run build
 | `code`         | 功能无变化，仅代码（包含注释）修改（代码优化等）     |
 | `performance`  | 功能无变化，仅性能改进                               |
 | `bug fix`      | 修复bug                                              |
+| `i18n`         | 代码无变化，仅更新语言包                             |
 | `maintainence` | 代码无变化的其他更新，如：TODO列表更新，依赖更新等等 |
 | `refactor`     | 功能无变化，代码整体重写（重构）                     |
 

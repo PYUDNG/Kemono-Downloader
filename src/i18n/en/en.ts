@@ -103,7 +103,7 @@ export default {
         },
         settings: {
             label: 'Downloader',
-            "feature-not-supported": 'Current downloader ({provider}) does not support this feature',
+            "feature-not-supported": 'The current downloader ({provider}) does not support modifying this setting',
             provider: {
                 label: 'Downloader',
                 caption: 'Default uses browser built-in download; other downloaders have their unique advantages, but require testing compatibility with your browser',

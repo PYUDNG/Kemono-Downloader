@@ -8,7 +8,7 @@ import { PostApiResponse } from "@/modules/api/types/post.js";
 import { download, logger as globalLogger, Nullable, Queue } from "@/utils/main.js";
 import { post, profile } from "@/modules/api/main.js";
 import { BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/post.js";
-import { Reactive, reactive, watch } from "vue";
+import { Reactive, reactive } from "vue";
 import { constructFilename, getFullUrl } from "../../utils/main.js";
 import { globalStorage } from "@/storage.js";
 import { FeatureNotSupportedError } from "../../types/base/error.js";
