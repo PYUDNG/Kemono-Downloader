@@ -28,6 +28,7 @@ defineEmits<{
 <template>
     <InputNumber
         v-model="innerModel"
+        fluid
         @mouseenter="(e: Event) => $emit('focus', e)"
         @mouseleave="(e: Event) => $emit('blur', e)"
         @change="displayValue = innerModel"

@@ -28,8 +28,9 @@ const innerModel = ref(text.value);
 
 <template>
     <InputText
-        v-model="innerModel" type="text"
-        class="w-full"
+        v-model="innerModel"
+        type="text"
+        fluid
         @click="e => e.stopPropagation()"
         @focus="e => $emit('focus', e)"
         @blur="e => $emit('blur', e)"

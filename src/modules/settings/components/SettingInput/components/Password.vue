@@ -34,7 +34,7 @@ const overlayParent = computed(() => getCurrentInstance()?.root.vnode.el?.parent
 <template>
     <Password
         v-model="innerModel"
-        class="w-full"
+        fluid
         toggle-mask
         :append-to="overlayParent"
         @click="e => e.stopPropagation()"
