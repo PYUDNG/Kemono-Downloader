@@ -7,12 +7,13 @@ import { PostApiResponse } from '@/modules/api/types/post.js';
 import { extractText, getViewport, Nullable } from '@/utils/main.js';
 import Button from '@/volt/Button.vue';
 import { PostInfo } from '@/modules/api/types/common';
-import { getPostContent, getPostFilePath, getPostTitle, isPostsApiItem } from './utils.js';
+import { getPostContent, getPostFilePath, getPostTitle, isPostApiResponse, isPostsApiItem } from './utils.js';
 import Popover from '@/volt/Popover.vue';
 import { useI18n } from 'vue-i18n';
 import { i18nKeys } from '@/i18n/utils.js';
 import ImageIcon from '~icons/prime/image'
 import ExternalLinkIcon from '~icons/prime/external-link'
+import OverlayBadge from '@/volt/OverlayBadge.vue';
 
 const { t } = useI18n()
 
@@ -57,6 +58,8 @@ const coverUrl = computed(() => {
  * post页面url
  */
 const postUrl = computed(() => `https://${ location.host }/${ info.value.service }/user/${ info.value.creatorId }/post/${ info.value.postId }`);
+
+const attachmentsCount = computed(() => isPostApiResponse(data) ? data.post.attachments.length : data.attachments.length);
 
 // cover overlay元素位置
 // 不建议直接设置为'self'，因为祖先元素中可能存在relative定位元素会干扰overlay定位
@@ -124,19 +127,29 @@ const appWatchHandle = watch(appContainer, val => {
 
         <!-- 缩略图 -->
         <div class="grow-0 shrink-0 flex flex-row items-center px-3 py-2">
-            <div class="relative overflow-hidden w-10 h-10">
-                <img
-                    v-if="coverUrl"
-                    ref="img"
-                    :src="coverUrl"
-                    class="object-cover object-center w-full h-full relative z-1"
-                    @mouseenter="e => isTouchScreen || showCoverPop(e)"
-                    @mouseleave="isTouchScreen || hideCoverPop()"
-                    @touchstart="e => {e.preventDefault(); showCoverPop(e);}"
-                    loading="lazy"
-                >
-                <ImageIcon class="max-h-full max-w-full absolute left-1/2 top-1/2 -translate-1/2 z-0 text-[2rem] flex justify-center items-center" />
-            </div>
+            <!-- Badge置于图片上层角落 -->
+            <OverlayBadge
+                :value="attachmentsCount"
+                size="small"
+                :severity="attachmentsCount ? 'primary' : 'secondary'"
+                pt:root:class="z-1"
+            >
+                <div class="relative overflow-hidden w-10 h-10">
+                    <!-- static图片占据主要位置 -->
+                    <img
+                        v-if="coverUrl"
+                        ref="img"
+                        :src="coverUrl"
+                        class="object-cover object-center w-full h-full relative z-1"
+                        @mouseenter="e => isTouchScreen || showCoverPop(e)"
+                        @mouseleave="isTouchScreen || hideCoverPop()"
+                        @touchstart="e => {e.preventDefault(); showCoverPop(e);}"
+                        loading="lazy"
+                    >
+                    <!-- absolute图标置于图片之下 -->
+                    <ImageIcon class="max-h-full max-w-full absolute left-1/2 top-1/2 -translate-1/2 z-0 text-[2rem] flex justify-center items-center" />
+                </div>
+            </OverlayBadge>
             <Popover
                 v-if="overlayParent && coverUrl"
                 ref="cover-pop"
