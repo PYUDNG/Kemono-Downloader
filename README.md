@@ -77,7 +77,7 @@ npm run build
 yarn build
 ```
 
-### 安装用户脚本
+#### 安装用户脚本
 
 构建完成后，会在项目`/dist/`目录生成 `kemono-downloader.(min|greasyfork)?.user.js` 文件，可以通过以下步骤安装：
 - 打开任一构建产物，复制其中全部代码内容
