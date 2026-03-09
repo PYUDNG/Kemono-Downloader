@@ -1,4 +1,4 @@
-import { GM_addValueChangeListener, GM_deleteValue, GM_getValue, GM_listValues, GM_setValue, GmAddValueChangeListenerType, GmValueListenerId } from "$";
+import { GM_addValueChangeListener, GM_deleteValue, GM_getValue, GM_listValues, GM_setValue, GmValueListenerId } from "$";
 import { ref, watch } from "vue";
 import { HintedString } from "../main.js";
 

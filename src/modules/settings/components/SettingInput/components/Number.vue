@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import InputNumber from '@/volt/InputNumber.vue';
-import { computed, ref, UnwrapNestedRefs } from 'vue';
+import { computed, UnwrapNestedRefs } from 'vue';
 import { eggExpectedModification } from './utils';
 import { SettingItem } from '@/modules/settings/types';
 
@@ -16,8 +16,6 @@ const displayValue = computed({
     get: () => noDisplayValue.value ? number.value : props.displayValue,
     set: val => noDisplayValue.value ? (number.value = val) : eggExpectedModification(),
 });
-
-const innerModel = ref(number.value);
 
 defineEmits<{
     focus: [e: Event];
