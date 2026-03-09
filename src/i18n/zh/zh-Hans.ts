@@ -210,6 +210,10 @@ export default {
                             <span class="font-bold">请注意：如果您希望通过自定义文件名创建文件夹，那么此项不可省略，否则自定义文件夹将会在aria2运行目录而非服务端配置的下载目录下创建</span>
                         `.replaceAll('\n', '<br>'),
                     },
+                    interval: {
+                        label: '任务刷新间隔（秒）',
+                        caption: '下载时，每隔多长时间刷新一下任务进度',
+                    },
                     "connection-test": {
                         label: '测试连接',
                         caption: '使用当前配置尝试连接Aria2服务器',

@@ -20,6 +20,7 @@ import ServerIcon from '~icons/prime/server'
 import WifiIcon from '~icons/prime/wifi'
 import FolderIcon from '~icons/prime/folder'
 import KeyIcon from '~icons/prime/key'
+import ClockIcon from '~icons/prime/clock'
 
 const t = i18n.global.t;
 const logger = globalLogger.withPath('downloader', 'provider', 'aria2');
@@ -29,7 +30,7 @@ const storage = globalStorage.withKeys('downloader').withKeys('providerSettings'
  * 轮询操作的时间周期（毫秒）
  * @todo 实现对此常量的用户设置
  */
-const ARIA2_INTERVAL = 1000;
+const ARIA2_INTERVAL = storage.get('interval') * 1000;
 const manager = new Aria2IntervalCallsManager(null, ARIA2_INTERVAL);
 
 /**
@@ -59,7 +60,7 @@ onModuleRegistered('downloader', () => {
         props: {
             placeholder: storage.default('endpoint'),
         },
-        value: makeStorageRef('endpoint', storage),
+        value: makeStorageRef('endpoint', storage, true, false),
         group: 'aria2',
     }, {
         id: 'secret',
@@ -70,7 +71,7 @@ onModuleRegistered('downloader', () => {
         props: {
             feedback: false,
         },
-        value: makeStorageRef('secret', storage),
+        value: makeStorageRef('secret', storage, true, false),
         group: 'aria2',
     }, {
         id: 'dir',
@@ -79,7 +80,19 @@ onModuleRegistered('downloader', () => {
         caption: t($settings.$dir.$caption),
         help: t($settings.$dir.$help),
         icon: FolderIcon,
-        value: makeStorageRef('dir', storage),
+        value: makeStorageRef('dir', storage, true, false),
+        group: 'aria2',
+    }, {
+        id: 'interval',
+        type: 'number',
+        label: t($settings.$interval.$label),
+        caption: t($settings.$interval.$caption),
+        icon: ClockIcon,
+        value: makeStorageRef('interval', storage, true, false),
+        props: {
+            placeholder: storage.default('interval').toString(),
+            maxFractionDigits: 3,
+        },
         group: 'aria2',
     }, {
         id: 'connection-test',
@@ -133,6 +146,10 @@ onModuleRegistered('downloader', () => {
         },
         group: 'aria2',
     }, ]);
+});
+
+storage.watch('interval', (_key, _oldVal, newVal, _remote) => {
+    newVal && manager.setInterval(newVal * 1000);
 });
 
 // 连接Aria2服务端，并开启Aria2周期任务循环

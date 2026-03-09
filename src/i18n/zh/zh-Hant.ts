@@ -210,6 +210,10 @@ export default {
                             <span class="font-bold">請注意：如果您希望透過自定義檔名建立資料夾，那麼此項不可省略，否則自定義資料夾將會在 aria2 執行目錄而非伺服端配置的下載目錄下建立</span>
                         `.replaceAll('\n', '<br>'),
                     },
+                    interval: {
+                        label: '任務重新整理間隔（秒）',
+                        caption: '下載時，每隔多長時間重新整理一次任務進度',
+                    },
                     "connection-test": {
                         label: '測試連線',
                         caption: '使用當前配置嘗試連線 Aria2 伺服器',

@@ -210,6 +210,10 @@ export default {
                             <span class="font-bold">Note: If you intend to create folders via custom filenames, this field must be specified; otherwise, custom folders will be created in the Aria2 execution directory instead of the server's download directory.</span>
                         `.replaceAll('\n', '<br>'),
                     },
+                    interval: {
+                        label: 'Task Refresh Interval (sec)',
+                        caption: 'The time interval for refreshing task progress during download',
+                    },
                     "connection-test": {
                         label: 'Test Connection',
                         caption: 'Attempt to connect to the Aria2 server with current settings',

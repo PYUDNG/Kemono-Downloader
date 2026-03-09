@@ -27,10 +27,10 @@ defineEmits<{
 
 <template>
     <InputNumber
-        v-model="innerModel"
+        v-model.lazy="displayValue"
+        :useGrouping="false"
         fluid
         @mouseenter="(e: Event) => $emit('focus', e)"
         @mouseleave="(e: Event) => $emit('blur', e)"
-        @change="displayValue = innerModel"
     />
 </template>

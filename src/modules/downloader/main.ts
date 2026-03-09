@@ -44,7 +44,7 @@ registerModule({
         icon: DownloadIcon,
         label: t($settings.$provider.$label),
         caption: t($settings.$provider.$caption),
-        value: makeStorageRef('provider', storage),
+        value: makeStorageRef('provider', storage, true, false),
         props: {
             optionLabel: 'label',
             optionValue: 'value',
@@ -64,14 +64,14 @@ registerModule({
         props: {
             placeholder: storage.default('filename'),
         },
-        value: makeStorageRef('filename', storage),
+        value: makeStorageRef('filename', storage, true, false),
         group: 'regular',
     }, {
         id: 'noCoverFile',
         type: 'switch',
         icon: ImageIcon,
         label: t($settings.$noCoverFile),
-        value: makeStorageRef('noCoverFile', storage),
+        value: makeStorageRef('noCoverFile', storage, true, false),
         group: 'regular',
     }, {
         id: 'abortFiles',
@@ -79,7 +79,7 @@ registerModule({
         icon: FolderIcon,
         label: t($settings.$abortFiles.$label),
         caption: t($settings.$abortFiles.$caption),
-        value: makeStorageRef('abortFiles', storage),
+        value: makeStorageRef('abortFiles', storage, true, false),
         props: {
             optionLabel: 'label',
             optionValue: 'value',

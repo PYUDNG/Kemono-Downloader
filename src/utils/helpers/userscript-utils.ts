@@ -10,6 +10,13 @@ export interface GM_Storage {
     GM_addValueChangeListener: typeof GM_addValueChangeListener,
 }
 
+type GmAddValueChangeListenerCallback<T> = (
+    name: string,
+    oldValue?: T,
+    newValue?: T,
+    remote?: boolean
+) => void;
+
 /**
  * 用户存储管理器
  */
@@ -128,12 +135,18 @@ export class UserscriptStorage<D extends Record<string, any>> {
     }
 
     /**
-     * 监听存储值的变化
+     * 监听存储值的变化  
+     * 当存储键不存在时，将使用其默认值调用回调
      * @param name 存储键
      * @param callback 
      * @returns 用户脚本管理器{@link GM_addValueChangeListener}返回的监听器ID
      */
-    watch(name: string, callback: Parameters<GmAddValueChangeListenerType>[1]): GmValueListenerId {
+    watch<
+        K extends HintedString<string & keyof D>
+    >(
+        name: K,
+        callback: GmAddValueChangeListenerCallback<K extends keyof D ? D[K] : any>
+    ): GmValueListenerId {
         return this.storage.GM_addValueChangeListener(name, callback);
     }
 
@@ -204,7 +217,7 @@ export class UserscriptStorage<D extends Record<string, any>> {
                             Object.hasOwn(storage.defaultValues, subKey) ? storage.defaultValues[subKey] : undefined;
                         // 当更新前后值未改变时无需callback
                         const deepEqual = (await import('./js-utils.js')).deepEqual;
-                        if (deepEqual(oldVal[subKey], newVal[subKey])) return;
+                        if (deepEqual(oldSubVal, newSubVal)) return;
                         // 确定存储空间值存在且监听值发生了改变，回调
                         callback(subKey, oldSubVal, newSubVal, remote);
                     });

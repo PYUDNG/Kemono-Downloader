@@ -138,7 +138,7 @@ export class Aria2IntervalCallsManager {
     /**
      * 调用执行周期
      */
-    public interval: number;
+    private interval: number;
 
     /**
      * 周期任务setInterval句柄  
@@ -212,6 +212,28 @@ export class Aria2IntervalCallsManager {
      */
     remove(id: string) {
         delete this.tasks[id];
+    }
+
+    /**
+     * 更改任务执行周期
+     * @returns 新的任务执行周期
+     */
+    setInterval(val: number) {
+        this.interval = val;
+
+        // 使用新的interval重新开始周期循环
+        if (this.handle !== null) {
+            this.stop();
+            this.run();
+        }
+        return val;
+    }
+
+    /**
+     * 获取当前任务执行周期
+     */
+    getInterval() {
+        return this.interval;
     }
 
     /**
