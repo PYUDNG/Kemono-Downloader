@@ -24,7 +24,7 @@ const config = {
     // GitHub 仓库链接
     githubRepo: 'https://github.com/PYUDNG/Kemono-Downloader',
     // Minified version 脚本下载/更新链接
-    downloadURL: 'https://github.com/PYUDNG/Kemono-Downloader/releases/latest/download/kemono-downloader.user.js',
+    downloadURL: 'https://github.com/PYUDNG/Kemono-Downloader/releases/latest/download/kemono-downloader.min.user.js',
     updateURL: 'https://github.com/PYUDNG/Kemono-Downloader/releases/latest/download/kemono-downloader.meta.js',
     // Greasyfork版本源代码说明
     get comment() {
