@@ -239,9 +239,15 @@ export default {
     },
     creator: {
         gui: {
+            download: '下載',
             "posts-selector": {
                 header: '選擇要下載的貼文',
             },
+        },
+    },
+    post: {
+        gui: {
+            download: '下載',
         },
     },
 };

@@ -239,9 +239,15 @@ export default {
     },
     creator: {
         gui: {
+            download: 'Download',
             "posts-selector": {
                 header: 'Select posts to download',
             },
+        },
+    },
+    post: {
+        gui: {
+            download: 'Download',
         },
     },
 };

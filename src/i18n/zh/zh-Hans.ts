@@ -243,9 +243,15 @@ export default {
     },
     creator: {
         gui: {
+            download: '下载',
             "posts-selector": {
                 header: '选择要下载的帖子',
             },
+        },
+    },
+    post: {
+        gui: {
+            download: '下载',
         },
     },
 };

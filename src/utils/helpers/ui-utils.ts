@@ -123,7 +123,7 @@ export function createShadowApp<
     // 挂载应用并获得根组件实例
     //const rootComponent = appInstance.mount(appElm) as ComponentExposed<T>;
     appInstance.mount(appElm);
-    const rootComponent = reactive(expose!.component.exposed) as ComponentExposed<T>;
+    const rootComponent = reactive(Object.assign({}, expose!.component.exposed)) as ComponentExposed<T>;
 
     // 返回根组件实例
     return {
