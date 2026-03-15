@@ -111,7 +111,30 @@ export default {
                     browser: '瀏覽器內建下載',
                     fsa: 'File System API',
                     "aria2": 'Aria2 RPC'
-                }
+                },
+                // 注意：若修改了此處的 templates，應該同時檢查是否需要修改 src\modules\downloader\gui\setting-help\Provider.vue
+                help: {
+                    instruction: '不同的下載器有著不同的特性，以下表格為對您的瀏覽器和指令碼管理器測試得出的相容性數據：',
+                    table: {
+                        provider: {
+                            browser: '瀏覽器內建下載',
+                            fsa: 'File System API',
+                            aria2: 'Aria2 RPC',
+                        },
+                        support: {
+                            self: '下載器自身可用性',
+                            pause: '暫停/繼續下載',
+                            "abort-files": '取消任務時刪除已下載檔案',
+                            dir: '儲存檔案時建立資料夾結構',
+                        },
+                    },
+                    questionable: '開發者並不能 100% 確定此項的相容性和可用性，請自行測試',
+                    aria2NeedInstall: dedent`
+                        需要自行安裝並配置好 aria2
+                        同時推薦使用專業的 aria2 用戶端 GUI
+                    `.replaceAll('\n', '<br>'),
+                    fsaMobile: '行動裝置瀏覽器可能會出現檔案讀寫問題，請自行測試',
+                },
             },
             filename: {
                 label: '檔案命名',
@@ -222,6 +245,10 @@ export default {
                             "not-enabled": {
                                 title: '未啟用 aria2 下載器',
                                 message: '請先將下載器設定為 aria2，再進行測試',
+                            },
+                            "not-ready": {
+                                title: '未連線 aria2 下載器',
+                                message: 'aria2 下載器尚未準備好，請檢查配置進行測試',
                             },
                             granted: {
                                 title: '連線成功',

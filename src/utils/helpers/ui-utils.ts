@@ -7,6 +7,7 @@ import Ripple from 'primevue/ripple';
 import ToastService from 'primevue/toastservice';
 import ConfirmationService from "primevue/confirmationservice";
 import { Nullable } from "../main";
+import type Popover from "@/volt/Popover.vue";
 
 interface ShadowAppCreationOptions<
     C extends Component
@@ -89,11 +90,13 @@ export function createShadowApp<
     // 屏蔽Shadown DOM内常见事件冒泡，预防性阻止Shadow DOM和页面互相干扰
     // 例如：在Dialog的InputText内按下左右箭头时，不触发页面翻页
     // 已知缺陷：当Dialog打开但未focus在任一输入元素上时，按下左右键依然会触发翻页
-    // 例外：mouseup需要向上冒泡，以供Dialog监听拖动-释放事件，用于拖动窗口标题栏
+    // 例外
+    // - mouseup需要向上冒泡，以供Dialog监听拖动-释放事件，用于拖动窗口标题栏
+    // - touchstart需要向上冒泡，以供popoverLogic监听任意位置点击，用于自动隐藏popover
     const events = Array.isArray(stopPropagation) ? stopPropagation : [
         'click', 'dblclick', 'auxclick',
         'mousedown', 'mousewheel', 'wheel',
-        'touchstart', 'touchend',
+        'touchend',
         'pointerdown', 'pointerup', 'pointerenter', 'pointerleave', 'pointermove', 'pointerout', 'pointerover',
         'contextmenu', 'scroll', 'scrollend',
         'keydown', 'keyup', 'keypress',
@@ -279,9 +282,79 @@ export function getViewport() {
  * 根据视口宽度，是否采用移动端布局
  * @returns 响应式变量，是否为移动端布局
  */
-export function getIsMobile() {
+export function getIsMobileLayout() {
     const MIN_DISPLAY_WIDTH = 48 * 14; // TailwindCSS的md前缀，设置为48rem
     const viewport = getViewport();
     const useMobileLayout = computed(() => viewport.value.width < MIN_DISPLAY_WIDTH);
     return useMobileLayout;
+}
+
+/**
+ * 根据userAgent判断当前是否运行在一个移动端浏览器上
+ * @returns 布尔值（**不是**响应式变量），是否运行在移动端浏览器上
+ */
+export function isMobileAgent() {
+    return /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(navigator.userAgent)
+}
+
+/**
+ * 统筹Volt Popover组件的展示与隐藏逻辑  
+ * 支持光标和触屏点击
+ * @param popover Popover组件实例
+ * @param debounce 防抖时长；在显示Popover前后的防抖时段区间内，所有隐藏调用都会失效
+ */
+export function popoverLogic(popover: ComponentExposed<typeof Popover>, debounce: number = 100) {
+    let isTouchScreen = false;
+    let handle: Nullable<number> = null;
+    let lastShowEvent: Event = new Event('placeholder-event');
+
+    const show = (e: Event) => {
+        // 显示可以打断/取消隐藏
+        if (handle !== null) {
+            clearTimeout(handle);
+            handle = null;
+        }
+        lastShowEvent = e;
+        // 显示Popover
+        popover.show(e);
+    };
+    const hide = (e: Event) => {
+        // 如果当前事件就是先前触发show的事件，则不隐藏
+        if (e === lastShowEvent) return;
+        // 规划：从现在开始到防抖时间后，执行隐藏，期间可以被显示打断/取消
+        handle = setTimeout(() => popover.hide(), debounce);
+    };
+
+    // 触屏模式下，点击DOM其他位置时自动隐藏Popover
+    const controller = new AbortController();
+    document.addEventListener('touchstart', e => {
+        isTouchScreen = true;
+        // 隐藏
+        hide(e);
+    }, { signal: controller.signal });
+
+    return {
+        onTouchStart(e: TouchEvent) {
+            isTouchScreen = true;
+            show(e);
+        },
+
+        onMouseEnter(e: MouseEvent) {
+            if (isTouchScreen) return;
+            show(e);
+        },
+
+        onMouseLeave(e: MouseEvent) {
+            if (isTouchScreen) return;
+            hide(e);
+        },
+
+        /**
+         * 当不在使用此处理器时应调用此方法  
+         * 以清理所添加的全局事件监听器
+         */
+        destroy() {
+            controller.abort();
+        }
+    };
 }

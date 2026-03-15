@@ -2,7 +2,7 @@
 import { computed, getCurrentInstance, reactive, ref, Ref, UnwrapNestedRefs, watch } from 'vue';
 import { DisabledGUI, SettingItem } from '../types';
 import ListItem, { ExtraCaption } from '@/components/ListItem.vue';
-import { deepEqual, getIsMobile, Nullable } from '@/utils/main';
+import { deepEqual, getIsMobileLayout, Nullable } from '@/utils/main';
 import { useI18n } from 'vue-i18n';
 import SettingInput from './SettingInput/SettingInput.vue';
 import { globalStorage } from '@/storage';
@@ -86,7 +86,7 @@ watch(helpOnInput, val => storage.set('helpOnInput', val));
 const noMobilePopup = computed(() => ['switch', 'button'].includes(item.type));
 
 // 宽度较小时展示移动端界面：不直接展示输入元素，而是点击设置项条目后弹窗输入
-const useMobileLayout = getIsMobile();
+const useMobileLayout = getIsMobileLayout();
 const inputVisible = ref(false);
 const dialogParent = computed(() => getCurrentInstance()?.root.vnode.el?.parentElement);
 
@@ -216,10 +216,12 @@ const itemValStr = computed<string>(() => {
 
         <!-- 文字区域右侧按钮 -->
         <template v-if="item.help && !useMobileLayout" #text-extension>
-            <QuestionCircleIcon
-                class="cursor-pointer p-2"
+            <div
+                class="cursor-pointer p-2 text-xl"
                 @click="toggleHelpText"
-            />
+            >
+                <QuestionCircleIcon />
+            </div>
             <Dialog
                 v-if="overlayParent"
                 v-model:visible="helpVisible"

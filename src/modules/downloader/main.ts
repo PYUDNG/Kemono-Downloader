@@ -9,7 +9,8 @@ import AppTaskDetail from './gui/app-taskdetail.vue';
 import { computed, markRaw, reactive } from "vue";
 import { PostInfo } from "../api/types/common.js";
 import { rootTaskDetailInjectionKey } from "./gui/utils.js";
-import FilenameHelpComp from "./gui/FilenameHelpComp.vue";
+import FilenameHelpComp from "./gui/setting-help/Filename.vue";
+import ProviderHelpComp from "./gui/setting-help/Provider.vue";
 import { ProviderType } from "./types/base/task.js";
 import { DisabledGUI } from "../settings/types.js";
 import { BaseDownloadProvider } from "./types/base/provider.js";
@@ -44,6 +45,7 @@ registerModule({
         icon: DownloadIcon,
         label: t($settings.$provider.$label),
         caption: t($settings.$provider.$caption),
+        help: markRaw(ProviderHelpComp),
         value: makeStorageRef('provider', storage, true, false),
         props: {
             optionLabel: 'label',

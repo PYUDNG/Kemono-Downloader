@@ -111,7 +111,30 @@ export default {
                     browser: 'Browser built-in download',
                     fsa: 'File System API',
                     "aria2": 'Aria2 RPC'
-                }
+                },
+                // Note: If you modify the templates here, you should also check if src\modules\downloader\gui\setting-help\Provider.vue needs updates.
+                help: {
+                    instruction: 'Different downloaders have different characteristics. The following table shows compatibility data tested against your browser and script manager:',
+                    table: {
+                        provider: {
+                            browser: 'Browser Built-in',
+                            fsa: 'File System API',
+                            aria2: 'Aria2 RPC',
+                        },
+                        support: {
+                            self: 'Provider Availability',
+                            pause: 'Pause/Resume',
+                            "abort-files": 'Delete downloaded files when aborting',
+                            dir: 'Create folder structure when saving',
+                        },
+                    },
+                    questionable: 'The developer cannot guarantee 100% compatibility and availability for this item; please test it yourself',
+                    aria2NeedInstall: dedent`
+                        Aria2 needs to be installed and configured manually.
+                        Using a professional Aria2 client GUI is also recommended.
+                    `.replaceAll('\n', '<br>'),
+                    fsaMobile: 'Mobile browsers may encounter file read/write issues; please test it yourself',
+                },
             },
             filename: {
                 label: 'File Naming',
@@ -222,6 +245,10 @@ export default {
                             "not-enabled": {
                                 title: 'Aria2 Not Enabled',
                                 message: 'Please set the downloader to Aria2 before testing',
+                            },
+                            "not-ready": {
+                                title: 'Aria2 Not Connected',
+                                message: 'Aria2 downloader is not ready; please check the configuration and test the connection',
                             },
                             granted: {
                                 title: 'Connection Successful',

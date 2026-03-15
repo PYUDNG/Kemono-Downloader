@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import Checkbox from '@/volt/Checkbox.vue';
-import { computed, useTemplateRef, watch } from 'vue';
+import { computed, useTemplateRef } from 'vue';
 import { v4 as uuid } from 'uuid';
 import { PostsApiItem } from '@/modules/api/types/posts.js';
 import { PostApiResponse } from '@/modules/api/types/post.js';
-import { extractText, getViewport, Nullable } from '@/utils/main.js';
+import { extractText, getViewport, Nullable, popoverLogic } from '@/utils/main.js';
 import Button from '@/volt/Button.vue';
 import { PostInfo } from '@/modules/api/types/common';
 import { getPostContent, getPostFilePath, getPostTitle, isPostApiResponse, isPostsApiItem } from './utils.js';
@@ -80,37 +80,8 @@ const coverSizingClasses = computed(() => {
 });
 
 // 封面图Popover展示逻辑
-// 防抖数据
-const DEBOUNCE_TIME = 100;
-let timeoutId: Nullable<ReturnType<typeof setTimeout>> = null;
-let lastShow = 0;
-/** 是否为触屏设备 */
-let isTouchScreen = false;
 const coverPop = useTemplateRef('cover-pop');
-const showCoverPop = (e: Event, target?: any) => {
-    // 任一事件为TouchEvent，则说明当前为触屏设备
-    isTouchScreen = isTouchScreen || e instanceof TouchEvent;
-    // 防抖：显示可以打断隐藏
-    timeoutId && clearInterval(timeoutId);
-    // 执行显示
-    coverPop.value?.show(e, target);
-    // 防抖：记录显示时间
-    lastShow = performance.now();
-}
-const hideCoverPop = () => {
-    // 防抖：在上一次显示后的防抖时间内，不执行隐藏
-    if (performance.now() - lastShow < DEBOUNCE_TIME && isTouchScreen) return;
-    // 防抖调用：在防抖时间后执行隐藏，期间可以使用clearTimeout打断（取消隐藏任务）
-    timeoutId = setTimeout(() => coverPop.value?.hide(), DEBOUNCE_TIME);
-}
-// 触屏设备点击任意位置因此Popover
-const appContainer = computed(() => img.value?.closest('[data-v-app]'));
-const appWatchHandle = watch(appContainer, val => {
-    if (val) {
-        val.addEventListener('touchstart', () => hideCoverPop(), { passive: true });
-        appWatchHandle.stop();
-    }
-}, { immediate: true });
+const popoverHandlers = computed(() =>coverPop.value ? popoverLogic(coverPop.value) : Object.create(null) as Record<any, undefined>);
 </script>
 
 <template>
@@ -141,9 +112,9 @@ const appWatchHandle = watch(appContainer, val => {
                         ref="img"
                         :src="coverUrl"
                         class="object-cover object-center w-full h-full relative z-1"
-                        @mouseenter="e => isTouchScreen || showCoverPop(e)"
-                        @mouseleave="isTouchScreen || hideCoverPop()"
-                        @touchstart="e => {e.preventDefault(); showCoverPop(e);}"
+                        @mouseenter="popoverHandlers.onMouseEnter"
+                        @mouseleave="popoverHandlers.onMouseLeave"
+                        @touchstart="e => {e.preventDefault(); popoverHandlers.onTouchStart?.(e);}"
                         loading="lazy"
                     >
                     <!-- absolute图标置于图片之下 -->

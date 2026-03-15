@@ -110,13 +110,36 @@ export default {
                 options: {
                     browser: '浏览器内置下载',
                     fsa: 'File System API',
-                    "aria2": 'Aria2 RPC'
-                }
+                    aria2: 'Aria2 RPC',
+                },
+                // 注意：若修改了此处的templates，应该同时检查是否需要修改src\modules\downloader\gui\setting-help\Provider.vue
+                help: {
+                    instruction: '不同的下载器有着不同的特性，以下表格为对您的浏览器和脚本管理器测试得出的兼容性数据：',
+                    table: {
+                        provider: {
+                            browser: '浏览器内置下载',
+                            fsa: 'File System API',
+                            aria2: 'Aria2 RPC',
+                        },
+                        support: {
+                            self: '下载器自身可用性',
+                            pause: '暂停/继续下载',
+                            "abort-files": '取消任务时删除已下载文件',
+                            dir: '保存文件时创建文件夹结构',
+                        },
+                    },
+                    questionable: '开发者并不能100%确定此项的兼容性和可用性，请自行测试',
+                    aria2NeedInstall: dedent`
+                        需要自行安装并配置好aria2
+                        同时推荐使用专业的aria2客户端GUI
+                    `.replaceAll('\n', '<br>'),
+                    fsaMobile: '移动端浏览器可能会出现文件读写问题，请自行测试',
+                },
             },
             filename: {
                 label: '文件命名',
                 caption: '可以使用模板进行文件命名，清空即可恢复默认文件名',
-                // 注意：若修改了此处的templates，应该同时检查是否需要修改src\modules\downloader\gui\FilenameHelpComp.vue
+                // 注意：若修改了此处的templates，应该同时检查是否需要修改src\modules\downloader\gui\setting-help\Filename.vue
                 help: {
                     header: '以下模板可在自定义文件名中使用，不区分大小写，使用时需保留大括号（可直接点击复制）',
                     markup: '模板',

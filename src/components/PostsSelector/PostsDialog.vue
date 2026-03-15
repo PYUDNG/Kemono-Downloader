@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="T extends PostsApiItem | PostApiResponse">
 import Button from '@/volt/Button.vue';
 import Dialog from '@/volt/Dialog.vue';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import PostsList from './PostsList.vue';
 import { PostApiResponse } from '@/modules/api/types/post.js';
 import { PostsApiItem } from '@/modules/api/types/posts.js';
@@ -9,7 +9,7 @@ import { PageState } from 'primevue';
 import { PostInfo } from '@/modules/api/types/common';
 import { useI18n } from 'vue-i18n';
 import SecondaryButton from '@/volt/SecondaryButton.vue';
-import { getIsMobile } from '@/utils/main';
+import { getIsMobileLayout } from '@/utils/main';
 import { i18nKeys } from '@/i18n/utils';
 import TimesIcon from '~icons/prime/times'
 import DownloadIcon from '~icons/prime/download'
@@ -89,7 +89,7 @@ const emit = defineEmits<{
 defineExpose({ show, hide });
 
 // 是否采用移动端布局
-const mobile = getIsMobile();
+const mobile = getIsMobileLayout();
 
 /**
  * 展示帖子选择器，并返回一个最终以选中的Posts解决的Promise
@@ -115,6 +115,9 @@ function submit(_e: PointerEvent) {
     // 隐藏Dialog
     visible.value = false;
 }
+
+// 当选择器UI被隐藏时，自动reject，以应对点击右上角关闭按钮/点击背景遮罩/Escape按键等非取消按钮隐藏的情况
+watch(visible, (val, oldVal) => oldVal && !val && reject());
 </script>
 
 <template>

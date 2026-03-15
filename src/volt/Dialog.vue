@@ -1,4 +1,5 @@
 <template>
+    <!-- This is a MODIFIED volt component - so it's not exactly same as that volt provided one -->
     <Dialog
         unstyled
         :pt="theme"
@@ -44,7 +45,7 @@ defineSlots<Slots>();
 
 const theme = ref<DialogPassThroughOptions>({
     root: `max-h-[90%] max-w-screen rounded-xl
-        border border-surface-200 dark:border-surface-700
+        border border-solid border-surface-200 dark:border-surface-700
         bg-surface-0 dark:bg-surface-900
         text-surface-700 dark:text-surface-0 shadow-lg
         p-maximized:w-screen p-maximized:h-screen p-maximized:top-0 p-maximized:start-0p-maximized: max-h-full p-maximized:rounded-none`,
