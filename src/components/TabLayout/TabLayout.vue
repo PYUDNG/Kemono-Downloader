@@ -3,10 +3,10 @@ import { getLayoutRef } from '@/utils/main';
 import { computed, provide, ref } from 'vue';
 import SelectButton from '@/volt/SelectButton.vue';
 import ListBox from '@/volt/ListBox.vue';
-import { keyName, keyNames } from './utils';
+import { keyName, keyNames, initialKeyName } from './utils';
 
 // 使用 defineModel 简化 v-model 处理
-const selectedTab = defineModel<string | null>('modelValue', { default: null });
+const selectedTab = defineModel<string | null | typeof initialKeyName>('modelValue', { default: initialKeyName });
 
 // props
 const {
@@ -67,7 +67,7 @@ provide(keyNames, names);
 /**
  * 根据当前是否有指定展示的TabPanel确定是否展示placeholder
  */
-const placeholder = computed(() => ([null, undefined] as (string | null | undefined)[]).includes(selectedTab.value));
+const placeholder = computed(() => ([null, undefined] as (string | null | undefined | typeof initialKeyName)[]).includes(selectedTab.value));
 </script>
 
 <template>

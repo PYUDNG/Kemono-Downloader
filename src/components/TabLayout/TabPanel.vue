@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, onMounted, Ref } from 'vue';
-import { keyName, keyNames } from './utils';
+import { keyName, keyNames, initialKeyName } from './utils';
 
 const { name } = defineProps<{
     /**
@@ -18,6 +18,10 @@ const visible = computed(() => {
         // 如果没有显式指定name，则allNames数组中的第一个可见
         allNames.value[0] === name;
     */
+    // 初始载入且未指定name时，将allNames数组中的第一个设置为可见
+    if (displayName?.value === initialKeyName) {
+        displayName.value = allNames.value[0];
+    }
     return displayName?.value === name;
 });
 onMounted(() => allNames.value.push(name));

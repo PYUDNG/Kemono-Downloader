@@ -69,10 +69,34 @@ onModuleRegistered('downloader', () => {
         props: {
             async onClick() {
                 const $toast = $settings.$permissionCheck.$toast;
-                getDownloadDirectoryHandle().then(handle => {
+                getDownloadDirectoryHandle().then(async handle => {
                     // 权限OK
                     logger.simple('Detail', 'directory permission test ok');
                     logger.asLevel('Detail', handle);
+
+                    // 测试实际读写
+                    const DIR_NAME = 'test-dir';
+                    const FILE_NAME = 'test-file';
+                    const CONTENT = 'test-content';
+                    try {
+                        const testDir = await handle.getDirectoryHandle(DIR_NAME, { create: true });
+                        const testFile = await testDir.getFileHandle(FILE_NAME, { create: true });
+                        const writable = await testFile.createWritable({ keepExistingData: false });
+                        await writable.write(CONTENT);
+                        await writable.close();
+                        const file = await testFile.getFile();
+                        const content = await file.text();
+                        if (content !== CONTENT)
+                            throw new Error(`file content not match: ${JSON.stringify(content)} !== ${JSON.stringify(CONTENT)}`);
+                    } catch(err) {
+                        // 出错就向下传递
+                        throw err;
+                    } finally {
+                        // 无论是否出错，都清理测试文件
+                        await handle.removeEntry(DIR_NAME, { recursive: true });
+                    }
+                }).then(() => {
+                    // 实际读写也没有问题
                     toast({
                         severity: 'success',
                         life: 3000,
