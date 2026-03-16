@@ -116,6 +116,10 @@ export default {
                 help: {
                     instruction: '不同的下載器有著不同的特性，以下表格為對您的瀏覽器和指令碼管理器測試得出的相容性數據：',
                     table: {
+                        corner: {
+                            provider: '下載器',
+                            support: '功能',
+                        },
                         provider: {
                             browser: '瀏覽器內建下載',
                             fsa: 'File System API',
@@ -141,7 +145,10 @@ export default {
                 caption: '可以使用範本進行檔案命名，清空即可恢復預設檔名',
                 // 注意：若修改了此處的templates，應該同時檢查是否需要修改src\modules\downloader\gui\FilenameHelpComp.vue
                 help: {
-                    header: '以下範本可在自訂檔名中使用，不區分大小寫，使用時需保留大括號（可直接點擊複製）',
+                    header: dedent`
+                        您可以使用斜線建立目錄結構，Windows 使用 "\\"，蘋果/Linux/安卓使用 "/"
+                        以下範本可在自定義檔名中使用，不區分大小寫，使用時需保留大括號（可直接點擊複製）
+                    `.replaceAll('\n', '<br>'),
                     markup: '範本',
                     desc: '說明',
                     templates: {

@@ -116,6 +116,10 @@ export default {
                 help: {
                     instruction: '不同的下载器有着不同的特性，以下表格为对您的浏览器和脚本管理器测试得出的兼容性数据：',
                     table: {
+                        corner: {
+                            provider: '下载器',
+                            support: '功能',
+                        },
                         provider: {
                             browser: '浏览器内置下载',
                             fsa: 'File System API',
@@ -141,7 +145,10 @@ export default {
                 caption: '可以使用模板进行文件命名，清空即可恢复默认文件名',
                 // 注意：若修改了此处的templates，应该同时检查是否需要修改src\modules\downloader\gui\setting-help\Filename.vue
                 help: {
-                    header: '以下模板可在自定义文件名中使用，不区分大小写，使用时需保留大括号（可直接点击复制）',
+                    header: dedent`
+                        您可以使用斜杠创建目录结构，windows使用"\\"，苹果/linux/安卓使用"/"
+                        以下模板可在自定义文件名中使用，不区分大小写，使用时需保留大括号（可直接点击复制）
+                    `.replaceAll('\n', '<br>'),
                     markup: '模板',
                     desc: '说明',
                     templates: {

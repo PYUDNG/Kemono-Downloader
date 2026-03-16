@@ -116,6 +116,10 @@ export default {
                 help: {
                     instruction: 'Different downloaders have different characteristics. The following table shows compatibility data tested against your browser and script manager:',
                     table: {
+                        corner: {
+                            provider: 'Provider',
+                            support: 'Features',
+                        },
                         provider: {
                             browser: 'Browser Built-in',
                             fsa: 'File System API',
@@ -141,7 +145,10 @@ export default {
                 caption: 'You can use templates for file naming, clear to restore default filename',
                 // Note: If modifying templates here, also check if src\modules\downloader\gui\FilenameHelpComp.vue needs to be updated
                 help: {
-                    header: 'The following templates can be used in custom filenames, case-insensitive, keep braces when using (click to copy)',
+                    header: dedent`
+                        You can use slashes to create directory structures: "\\" for Windows, and "/" for Apple/Linux/Android.
+                        The following templates can be used in custom filenames (case-insensitive); keep the curly braces when using them (click to copy).
+                    `.replaceAll('\n', '<br>'),
                     markup: 'Template',
                     desc: 'Description',
                     templates: {

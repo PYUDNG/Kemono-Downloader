@@ -42,7 +42,7 @@ function copy(markup: string) {
 
 <template>
     <!-- Header -->
-    <div class="font-bold py-2">{{ t($filename.$help.$header) }}</div>
+    <div class="font-bold py-2" v-html="t($filename.$help.$header)"></div>
 
     <!-- 模板 -->
     <div class="grid grid-cols-[min-content_1fr] my-2 border-3 border-solid border-surface-200 dark:border-surface-800">

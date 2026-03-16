@@ -122,8 +122,10 @@ function isQuestionable(comp: Compatibiliy): comp is Compatibiliy & { questionab
     <!-- 表格 -->
     <div class="grid grid-cols-4 grid-rows-4 my-2 border-l-3 border-t-3 border-solid border-surface-200 dark:border-surface-800">
         <!-- 每列的表头: 下载器 -->
-        <div class="font-bold flex flex-row items-center justify-center py-2 px-3 border-r-3 border-b-3 border-solid border-surface-200 dark:border-surface-800">
-            <!-- 占据左上角那一格，仅边框无内容 -->
+        <div class="font-bold flex flex-row items-center justify-center py-2 px-3 border-r-3 border-b-3 border-solid border-surface-200 dark:border-surface-800 corner-cell">
+            <!-- 左上角角落格 -->
+            <div class="row-label">{{ t($help.$table.$corner.$provider) }}</div>
+            <div class="col-label">{{ t($help.$table.$corner.$support) }}</div>
         </div>
         <div class="font-bold flex flex-row items-center justify-center py-2 px-3 border-r-3 border-b-3 border-solid border-surface-200 dark:border-surface-800">
             {{ t($help.$table.$provider.$browser) }}
@@ -185,3 +187,27 @@ function isQuestionable(comp: Compatibiliy): comp is Compatibiliy & { questionab
         </Popover>
     </div>
 </template>
+
+<style lang="css" scoped>
+    .corner-cell {
+        position: relative;
+        /* 创建从左上到右下的对角线 */
+        background: linear-gradient(to top right, transparent calc(50% - 1.5px), var(--color-surface-200), transparent calc(50% + 1.5px));
+    }
+    .dark .corner-cell {
+        /* 创建从左上到右下的对角线（深色模式） */
+        background: linear-gradient(to top right, transparent calc(50% - 1.5px), var(--color-surface-800), transparent calc(50% + 1.5px));
+    }
+
+    .row-label {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+    }
+
+    .col-label {
+        position: absolute;
+        bottom: 5px;
+        left: 5px;
+    }
+</style>
