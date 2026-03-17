@@ -16,7 +16,7 @@ const logger = globalLogger.withPath('debugging');
 
 export default defineModule({
     id: 'debugger',
-    name: t($settings.$label),
+    name: t($debugging.$name),
 });
 
 /**

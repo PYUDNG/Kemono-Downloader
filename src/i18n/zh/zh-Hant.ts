@@ -13,7 +13,11 @@ export default {
             },
         }
     },
+    api: {
+        name: 'Kemono API',
+    },
     settings: {
+        name: '設定',
         menu: {
             label: '設定',
         },
@@ -22,7 +26,7 @@ export default {
             "tabpanel-placeholder": '選擇一個模組以進入其設定',
             "no-items-placeholder": '設定列表為空',
             "reload-to-apply": '修改此設定後，已開啟的頁面需要重新整理後才能生效',
-            "help-header": '幫助 - {name}',
+            "help-header": '說明 - {name}',
             "mobile-dialog": {
                 ok: '儲存',
                 cancel: '取消',
@@ -36,7 +40,8 @@ export default {
         }
     },
     downloader: {
-        "show-ui": '下載管理器',
+        "show-ui": '下載管理員',
+        name: '下載器',
         gui: {
             title: '下載器',
             "title-detail": '任務詳情 - {name}',
@@ -61,7 +66,7 @@ export default {
                     complete: '已完成',
                     aborted: '已取消',
                     error: '存在錯誤',
-                    "title-nodata": '等待取得任務資訊中',
+                    "title-nodata": '等待獲取任務資訊中',
                     "caption-nodata": 'service: {service}, creator id: {creatorId}, post id: {postId}',
                     pause: '暫停下載',
                     unpause: '取消暫停',
@@ -106,13 +111,12 @@ export default {
             "feature-not-supported": '當前下載器（{provider}）不支援修改此設定',
             provider: {
                 label: '下載器',
-                caption: '預設使用瀏覽器內建下載；其它下載器有其獨特優勢，但需要自行測試和您的瀏覽器的相容性',
+                caption: '預設使用瀏覽器內建下載；其它下載器有其獨特優勢，但需要自行測試與您的瀏覽器的相容性',
                 options: {
                     browser: '瀏覽器內建下載',
                     fsa: 'File System API',
-                    "aria2": 'Aria2 RPC'
+                    aria2: 'Aria2 RPC',
                 },
-                // 注意：若修改了此處的 templates，應該同時檢查是否需要修改 src\modules\downloader\gui\setting-help\Provider.vue
                 help: {
                     instruction: '不同的下載器有著不同的特性，以下表格為對您的瀏覽器和指令碼管理器測試得出的相容性數據：',
                     table: {
@@ -143,7 +147,6 @@ export default {
             filename: {
                 label: '檔案命名',
                 caption: '可以使用範本進行檔案命名，清空即可恢復預設檔名',
-                // 注意：若修改了此處的templates，應該同時檢查是否需要修改src\modules\downloader\gui\FilenameHelpComp.vue
                 help: {
                     header: dedent`
                         您可以使用斜線建立目錄結構，Windows 使用 "\\"，蘋果/Linux/安卓使用 "/"
@@ -152,13 +155,13 @@ export default {
                     markup: '範本',
                     desc: '說明',
                     templates: {
-                        PostID: '貼文內容ID',
-                        CreatorID: '作者ID',
-                        Service: '平台（如"fanbox"/"fantia"等等）',
-                        P: '該檔案在目前資料夾層級是第幾個檔案',
-                        Name: 'kemono伺服器上的檔案原名',
-                        Base: '檔案原名的非副檔名部分（如"abc.jpg"中的"abc"）',
-                        Ext: '檔案原名的副檔名部分（如"abc.jpg"中的"jpg"）',
+                        PostID: '貼文內容 ID',
+                        CreatorID: '作者 ID',
+                        Service: '平台（如 "fanbox"/"fantia" 等等）',
+                        P: '該檔案在當前資料夾層級是第幾個檔案',
+                        Name: 'Kemono 伺服器上的檔案原名',
+                        Base: '檔案原名的非副檔名部分（如 "abc.jpg" 中的 "abc"）',
+                        Ext: '檔案原名的副檔名部分（如 "abc.jpg" 中的 "jpg"）',
                         Title: '貼文內容標題',
                         Creator: '創作者名',
                         Year: '四位數年份',
@@ -167,8 +170,8 @@ export default {
                         Hour: '兩位數時間',
                         Minute: '兩位數分鐘',
                         Second: '兩位數秒',
-                        Timestamp: '純數字時間戳',
-                        Timetext: '文字時間戳',
+                        Timestamp: '純數字時間戳記',
+                        Timetext: '文字時間戳記',
                     },
                     footer: '註: 所有時間相關範本均基於內容的發佈時間'
                 },
@@ -222,10 +225,10 @@ export default {
             aria2: {
                 settings: {
                     label: '下載器: Aria2',
-                    "disabled-text": 'Aria2並不是當前下載器',
+                    "disabled-text": 'Aria2 並不是當前下載器',
                     endpoint: {
-                        label: 'Aria2伺服器',
-                        caption: '服務端的連結，同時支援 http(s)/ws(s) 協定',
+                        label: 'Aria2 伺服器',
+                        caption: '伺服端的連結，同時支援 http(s)/ws(s) 協定',
                     },
                     secret: {
                         label: '金鑰',
@@ -272,6 +275,7 @@ export default {
         },
     },
     creator: {
+        name: '創作者頁面',
         gui: {
             download: '下載',
             "posts-selector": {
@@ -280,11 +284,13 @@ export default {
         },
     },
     post: {
+        name: '貼文頁面',
         gui: {
             download: '下載',
         },
     },
     debugging: {
+        name: '偵錯',
         settings: {
             label: '偵錯',
             "save-logs": {

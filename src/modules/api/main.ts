@@ -6,6 +6,9 @@ import { GmXmlhttpRequestOption } from "$";
 import { PostsApiResponse } from "./types/posts.js";
 import { ProfileApiResponse } from "./types/profile.js";
 import { Nullable } from "@primevue/core";
+import i18n, { i18nKeys } from "@/i18n/main.js";
+
+const t = i18n.global.t;
 
 interface ApiOptions {
     /**
@@ -151,5 +154,5 @@ export function profile({ service, creatorId }: { service: KemonoService, creato
 // 默认导出模块定义
 export default defineModule({
     id: 'api',
-    name: 'Kemono API',
+    name: t(i18nKeys.$api.$name),
 });

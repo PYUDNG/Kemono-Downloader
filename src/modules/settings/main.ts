@@ -33,7 +33,7 @@ export const settings = computed(() => modules.value.reduce(
 
 export default defineModule({
     id: 'settings',
-    name: '设置',
+    name: t(i18nKeys.$settings.$name),
     checkers: {
         type: 'switch',
         value: true,

@@ -15,7 +15,7 @@ const regPath = /^\/(boosty|dlsite|fanbox|fantia|gumroad|patreon|subscribestar)\
 
 export default defineModule({
     id: 'post',
-    name: '帖子页面',
+    name: t(i18nKeys.$post.$name),
     checkers: [{
         type: 'regpath',
         value: regPath

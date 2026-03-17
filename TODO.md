@@ -82,4 +82,4 @@ TODO
   - [x] 创作者*
   - [x] 帖子*
 - [x] TabLayout默认选中第一个Tab，但同时允许取消选中当前Tab回到无Tab选中状态*
-- [ ] 规范化：将所有defineModule传入的name写入i18n，取代现有的硬编码简中字符串*
+- [x] 规范化：将所有defineModule传入的name写入i18n，取代现有的硬编码简中字符串*

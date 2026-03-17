@@ -13,7 +13,11 @@ export default {
             },
         }
     },
+    api: {
+        name: 'Kemono API',
+    },
     settings: {
+        name: '设置',
         menu: {
             label: '设置',
         },
@@ -37,6 +41,7 @@ export default {
     },
     downloader: {
         "show-ui": '下载管理器',
+        name: '下载器',
         gui: {
             title: '下载器',
             "title-detail": '任务详情 - {name}',
@@ -272,6 +277,7 @@ export default {
         },
     },
     creator: {
+        name: '创作者页面',
         gui: {
             download: '下载',
             "posts-selector": {
@@ -280,11 +286,13 @@ export default {
         },
     },
     post: {
+        name: '帖子页面',
         gui: {
             download: '下载',
         },
     },
     debugging: {
+        name: '调试',
         settings: {
             label: '调试',
             "save-logs": {

@@ -13,7 +13,11 @@ export default {
             },
         }
     },
+    api: {
+        name: 'Kemono API',
+    },
     settings: {
+        name: 'Settings',
         menu: {
             label: 'Settings',
         },
@@ -21,7 +25,7 @@ export default {
             title: 'Settings',
             "tabpanel-placeholder": 'Select a module to enter its settings',
             "no-items-placeholder": 'Settings list is empty',
-            "reload-to-apply": 'After modifying this setting, open pages need to be refreshed to take effect',
+            "reload-to-apply": 'Changes will take effect after refreshing the page',
             "help-header": 'Help - {name}',
             "mobile-dialog": {
                 ok: 'Save',
@@ -37,6 +41,7 @@ export default {
     },
     downloader: {
         "show-ui": 'Download Manager',
+        name: 'Downloader',
         gui: {
             title: 'Downloader',
             "title-detail": 'Task Details - {name}',
@@ -52,7 +57,7 @@ export default {
             },
             "task-component": {
                 common: {
-                    caption: 'Download progress: {percentage}%, {finished} / {total}',
+                    caption: 'Progress: {percentage}%, {finished} / {total}',
                     unknown: 'Unknown',
                     init: 'Initializing',
                     queue: 'Queued',
@@ -63,33 +68,33 @@ export default {
                     error: 'Error',
                     "title-nodata": 'Waiting for task information',
                     "caption-nodata": 'service: {service}, creator id: {creatorId}, post id: {postId}',
-                    pause: 'Pause download',
-                    unpause: 'Unpause',
+                    pause: 'Pause',
+                    unpause: 'Resume',
                     "confirm-delete-files": 'Also delete downloaded files',
                     "confirm-restart": {
-                        label: 'Restart Download',
-                        message: 'Are you sure you want to restart download task <span class="text-primary">{name}</span>?<br>Existing download progress will be lost and download will start from the beginning',
-                        header: 'Confirm Restart Download',
-                        accept: 'Restart',
+                        label: 'Redownload',
+                        message: 'Are you sure you want to restart the download task <span class="text-primary">{name}</span>?<br>Current progress will be lost and the download will start from the beginning',
+                        header: 'Confirm Redownload',
+                        accept: 'Redownload',
                         reject: 'Cancel',
                     },
                     "confirm-abort": {
-                        label: 'Stop (Cancel) Download',
-                        message: 'Are you sure you want to stop (cancel) download task <span class="text-primary">{name}</span>?<br>Resume from breakpoint is not supported yet, if you need to restart download it will start from the beginning',
-                        header: 'Confirm Stop (Cancel) Download',
+                        label: 'Stop (Abort) Download',
+                        message: 'Are you sure you want to stop (abort) the download task <span class="text-primary">{name}</span>?<br>Resuming is not currently supported; you will have to restart from the beginning if needed',
+                        header: 'Confirm Abort',
                         accept: 'Stop',
                         reject: 'Cancel',
                     },
                     "confirm-remove": {
-                        label: 'Remove Download Task',
-                        message: 'Are you sure you want to remove download task <span class="text-primary">{name}</span>?<br>The download task will be completely removed, if you need to download again please click the download button on the corresponding page',
-                        header: 'Confirm Remove Download Task',
+                        label: 'Remove Task',
+                        message: 'Are you sure you want to remove the download task <span class="text-primary">{name}</span>?<br>The task will be permanently removed; you must click the download button again on the original page to restart',
+                        header: 'Confirm Removal',
                         accept: 'Remove',
                         reject: 'Cancel',
                     }
                 },
                 file: {
-                    caption: 'Download Progress: {percentage}%, {finished} / {total}',
+                    caption: 'Progress: {percentage}%, {finished} / {total}',
                 },
                 post: {
                     caption: '{total} files in total, {finished} downloaded',
@@ -105,14 +110,13 @@ export default {
             label: 'Downloader',
             "feature-not-supported": 'The current downloader ({provider}) does not support modifying this setting',
             provider: {
-                label: 'Downloader',
-                caption: 'Default uses browser built-in download; other downloaders have their unique advantages, but require testing compatibility with your browser',
+                label: 'Downloader Provider',
+                caption: 'Defaults to Browser Built-in; other downloaders have unique advantages but require compatibility testing with your browser/manager',
                 options: {
-                    browser: 'Browser built-in download',
+                    browser: 'Browser Built-in',
                     fsa: 'File System API',
-                    "aria2": 'Aria2 RPC'
+                    aria2: 'Aria2 RPC',
                 },
-                // Note: If you modify the templates here, you should also check if src\modules\downloader\gui\setting-help\Provider.vue needs updates.
                 help: {
                     instruction: 'Different downloaders have different characteristics. The following table shows compatibility data tested against your browser and script manager:',
                     table: {
@@ -128,22 +132,21 @@ export default {
                         support: {
                             self: 'Provider Availability',
                             pause: 'Pause/Resume',
-                            "abort-files": 'Delete downloaded files when aborting',
-                            dir: 'Create folder structure when saving',
+                            "abort-files": 'Delete files when aborting',
+                            dir: 'Create folder structure',
                         },
                     },
-                    questionable: 'The developer cannot guarantee 100% compatibility and availability for this item; please test it yourself',
+                    questionable: 'Developer cannot guarantee 100% compatibility for this item; please test it yourself',
                     aria2NeedInstall: dedent`
                         Aria2 needs to be installed and configured manually.
-                        Using a professional Aria2 client GUI is also recommended.
+                        A professional Aria2 client GUI is also recommended.
                     `.replaceAll('\n', '<br>'),
                     fsaMobile: 'Mobile browsers may encounter file read/write issues; please test it yourself',
                 },
             },
             filename: {
                 label: 'File Naming',
-                caption: 'You can use templates for file naming, clear to restore default filename',
-                // Note: If modifying templates here, also check if src\modules\downloader\gui\FilenameHelpComp.vue needs to be updated
+                caption: 'Use templates for custom naming; leave empty to restore default filenames',
                 help: {
                     header: dedent`
                         You can use slashes to create directory structures: "\\" for Windows, and "/" for Apple/Linux/Android.
@@ -152,23 +155,23 @@ export default {
                     markup: 'Template',
                     desc: 'Description',
                     templates: {
-                        PostID: 'Post content ID',
+                        PostID: 'Post ID',
                         CreatorID: 'Creator ID',
-                        Service: 'Platform (e.g., "fanbox"/"fantia", etc.)',
-                        P: 'The file\'s sequence number in the current folder level',
-                        Name: 'Original filename on kemono server',
-                        Base: 'Non-extension part of original filename (e.g., "abc" in "abc.jpg")',
-                        Ext: 'Extension part of original filename (e.g., "jpg" in "abc.jpg")',
-                        Title: 'Post content title',
-                        Creator: 'Creator name',
-                        Year: 'Four-digit year',
-                        Month: 'Two-digit month',
-                        Date: 'Two-digit date',
-                        Hour: 'Two-digit hour',
-                        Minute: 'Two-digit minute',
-                        Second: 'Two-digit second',
-                        Timestamp: 'Pure numeric timestamp',
-                        Timetext: 'Text timestamp',
+                        Service: 'Platform (e.g., "fanbox", "fantia", etc.)',
+                        P: 'The index of the file in the current folder level',
+                        Name: 'Original filename on Kemono server',
+                        Base: 'Filename without extension (e.g., "abc" from "abc.jpg")',
+                        Ext: 'File extension (e.g., "jpg" from "abc.jpg")',
+                        Title: 'Post Title',
+                        Creator: 'Creator Name',
+                        Year: '4-digit Year',
+                        Month: '2-digit Month',
+                        Date: '2-digit Date',
+                        Hour: '2-digit Hour',
+                        Minute: '2-digit Minute',
+                        Second: '2-digit Second',
+                        Timestamp: 'Numeric Timestamp',
+                        Timetext: 'Readable Timestamp',
                     },
                     footer: 'Note: All time-related templates are based on the content\'s publication time'
                 },
@@ -176,14 +179,14 @@ export default {
                     copied: 'Copied',
                 },
             },
-            "no-cover-file": 'Do not download cover image files',
+            "no-cover-file": 'Do not download cover images',
             "abort-files": {
-                label: 'When canceling task, how to handle downloaded files',
+                label: 'Action when aborting a task',
                 caption: 'Some downloaders may not support this feature',
                 options: {
-                    prompt: 'Ask every time',
-                    delete: 'Delete',
-                    preserve: 'Preserve',
+                    prompt: 'Always ask',
+                    delete: 'Delete downloaded files',
+                    preserve: 'Keep downloaded files',
                 },
             },
             group: 'General Settings',
@@ -191,7 +194,7 @@ export default {
         provider: {
             browser: {
                 settings: {
-                    label: 'Downloader: browser',
+                    label: 'Downloader: Browser Built-in',
                 }
             },
             fsa: {
@@ -272,6 +275,7 @@ export default {
         },
     },
     creator: {
+        name: 'Creator Page',
         gui: {
             download: 'Download',
             "posts-selector": {
@@ -280,11 +284,13 @@ export default {
         },
     },
     post: {
+        name: 'Post Page',
         gui: {
             download: 'Download',
         },
     },
     debugging: {
+        name: 'Debugging',
         settings: {
             label: 'Debugging',
             "save-logs": {

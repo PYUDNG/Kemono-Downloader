@@ -32,7 +32,7 @@ const $settings = $downloader.$settings;
 // 模块定义
 export default defineModule({
     id: 'downloader',
-    name: '下载器',
+    name: t(i18nKeys.$downloader.$name),
 });
 
 // 设置项
