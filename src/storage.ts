@@ -2,6 +2,7 @@ import { GM_getValue, GM_setValue, GM_deleteValue, GM_listValues, GM_addValueCha
 import { deepEqual, HintedString, UserscriptStorage } from "@/utils/main.js";
 import { ref, watch } from "vue";
 import { ProviderType } from "./modules/downloader/types/base/task.js";
+import { LogPage } from "./modules/debugging/types.js";
 
 /**
  * 全局作用域的用户存储管理器
@@ -49,6 +50,11 @@ export const globalStorage = new UserscriptStorage(
              * 设置项输入时是否保持帮助文本常态化显示（如果有）
              */
             helpOnInput: true as boolean,
+        },
+        debugging: {
+            saveLogs: false as boolean,
+            /** 可以存入任何可序列化的数据，数据格式取决于你的序列化方法 */
+            logs: [] as LogPage[],
         },
     }
 );

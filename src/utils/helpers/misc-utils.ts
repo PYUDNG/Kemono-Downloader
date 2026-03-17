@@ -1,4 +1,5 @@
 import mitt, { Emitter } from 'mitt';
+import { $CrE } from './dom-utils';
 
 export function getSearchParam(name: string, url?: string): string | null {
     url = url ?? location.href;
@@ -222,4 +223,49 @@ export class URLChangeMonitor {
         // 通过mitt分发事件（外部可监听）
         this.emitter.emit('urlChange', detail);
     }
+}
+
+/**
+ * 将传入值以文件形式下载到用户的操作系统上
+ * @param target 需要保存的对象
+ * @param filename 文件名
+ */
+export async function saveAs(
+    target: Blob | File | string | FileSystemFileHandle,
+    filename: string,
+) {
+    // 先将参数统一转化为Blob
+    let blob: Blob;
+    if (typeof target === 'string') {
+        // 字符串用Blob构造函数包装
+        blob = new Blob([target], { type: 'text/plain' });
+    } else if (target instanceof File) {
+        // File就是一种特殊类型的Blob，且根据[MDN文档](https://developer.mozilla.org/zh-CN/docs/Web/API/File)，
+        // File可以在Blob可以使用的任何上下文中使用
+        blob = target;
+    } else if (target instanceof Blob) {
+        // 本身就是Blob
+        blob = target;
+    } else if (target instanceof FileSystemFileHandle) {
+        // 使用.getFile获取File，File同时也是特殊类型的Blob
+        blob = await target.getFile()
+    } else {
+        // 如果代码通过了typescript静态类型检查（且没有乱用类型断言），那么理论上不会走到这里
+        throw TypeError('Impossible: invalid argument target');
+    }
+
+    // 创建Blob URL
+    const url = URL.createObjectURL(blob);
+
+    // 使用<a>标签下载
+    const a = $CrE('a', {
+        attrs: {
+            href: url,
+            download: filename,
+        },
+    });
+    a.click();
+
+    // 释放Blob URL
+    setTimeout(() => URL.revokeObjectURL(url));
 }

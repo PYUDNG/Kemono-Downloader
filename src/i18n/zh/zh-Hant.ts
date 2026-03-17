@@ -284,4 +284,18 @@ export default {
             download: '下載',
         },
     },
+    debugging: {
+        settings: {
+            label: '偵錯',
+            "save-logs": {
+                label: '記錄記錄檔',
+                caption: '將執行記錄儲存在指令碼儲存空間中，以便匯出',
+            },
+            "export-log": {
+                label: '匯出記錄檔',
+                caption: '如需回報 Bug，請先開啟上方的「記錄記錄檔」按鈕，並在重新整理頁面後觸發一遍 Bug，最後點擊此處匯出記錄檔進行回報',
+                button: '匯出',
+            },
+        },
+    },
 };

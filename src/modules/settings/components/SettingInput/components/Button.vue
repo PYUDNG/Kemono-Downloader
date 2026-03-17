@@ -35,5 +35,10 @@ const label = defineModel<string>();
         @click="e => (e.stopPropagation(), onClick?.(e))"
         @mouseenter="e => $emit('focus', e)"
         @mouseleave="e => $emit('blur', e)"
-    />
+    >
+        <!-- 支持插槽透传：接收来自SettingInput的插槽并传入Button内部 -->
+        <template v-for="(_, name) of $slots" #[name]="slotProps">
+            <slot :name="name" v-bind="slotProps" />
+        </template>
+    </Button>
 </template>

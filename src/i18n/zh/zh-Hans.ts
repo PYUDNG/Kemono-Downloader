@@ -284,4 +284,18 @@ export default {
             download: '下载',
         },
     },
+    debugging: {
+        settings: {
+            label: '调试',
+            "save-logs": {
+                label: '记录日志',
+                caption: '将运行日志保存在脚本存储空间中，以便导出',
+            },
+            "export-log": {
+                label: '导出日志',
+                caption: '如需反馈bug，请先开启上方的“记录日志”按钮，然后在刷新页面后触发一遍bug，最后点击此处导出日志文件进行反馈',
+                button: '导出',
+            },
+        },
+    },
 };

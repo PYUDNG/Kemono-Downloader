@@ -3,3 +3,4 @@ export * as post from './post/main.js';
 export * as settings from './settings/main.js';
 export * as api from './api/main.js';
 export * as downloader from './downloader/main.js';
+export * as debugging from './debugging/main.js';

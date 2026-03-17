@@ -68,9 +68,14 @@ export interface SettingItem {
     value: Ref<any>;
 
     /**
-     * 作为设置项提供时，需要向设置项编辑组件额外传递的props
+     * 需要向设置项编辑组件额外传递的props
      */
     props?: Record<string, any>;
+
+    /**
+     * 需要向设置项编辑组件额外传递的插槽
+     */
+    slots?: Record<string, Component>;
 
     /**
      * 响应式设置项禁用状态  

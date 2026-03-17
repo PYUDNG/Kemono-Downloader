@@ -123,7 +123,7 @@ const itemValStr = computed<string>(() => {
         :caption="item.caption"
         :icon="item.icon"
         :extras="status.extras"
-        :right-class="{ 'min-w-fit': !useMobileLayout, 'max-w-[30%]': true, 'min-w-8': useMobileLayout }"
+        :right-class="{ 'min-w-fit': !useMobileLayout, 'max-w-[30%]': true }"
         @click="inputVisible = true"
     >
         <!-- 右侧输入元素 -->

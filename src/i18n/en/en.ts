@@ -284,4 +284,18 @@ export default {
             download: 'Download',
         },
     },
+    debugging: {
+        settings: {
+            label: 'Debugging',
+            "save-logs": {
+                label: 'Save Logs',
+                caption: 'Save runtime logs in the script storage for later export',
+            },
+            "export-log": {
+                label: 'Export Logs',
+                caption: 'To report a bug, please enable the "Save Logs" button above, refresh the page to reproduce the bug, and then click here to export the log file for feedback',
+                button: 'Export',
+            },
+        },
+    },
 };

@@ -74,5 +74,9 @@ const component = computed(() => {
         v-bind="props ?? {}"
         @focus="e => $emit('focus', e)"
         @blur="e => $emit('blur', e)"
-    />
+    >
+        <template v-for="[name, comp] of Object.entries(item.slots ?? {})" #[name]="slotProps">
+            <component :is="comp" v-bind="slotProps ?? {}" />
+        </template>
+    </component>
 </template>

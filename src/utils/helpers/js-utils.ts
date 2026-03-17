@@ -2,6 +2,7 @@ import { console } from "@/hooks.js";
 import { GM_info } from "$";
 import { Ref, toRaw, watch } from "vue";
 import { Nullable } from "../main";
+import mitt from "mitt";
 
 /** @satisfies {Record<string, (...args: any[]) => boolean>} */
 const checkers = {
@@ -60,7 +61,24 @@ type ConsoleMethods = {
     [K in keyof Console]: Console[K] extends (...args: any[]) => any ? K : never
 }[keyof Console];
 
+export interface LogItem {
+    level: LogLevel;
+    type: 'string' | 'raw';
+    logger: ConsoleMethods;
+    path: string[];
+    content: any;
+}
+
+type LoggerEvents = {
+    log: LogItem;
+}
+
 class Logger {
+    /**
+     * 父级Logger实例
+     */
+    private parent: Nullable<Logger> = null;
+
     /**
      * 日志等级，数值越大越容易实际输出
      */
@@ -114,6 +132,21 @@ class Logger {
     public static readonly PrefixPathColor = '#f97316';
 
     /**
+     * 是否将日志缓存在内存中以备外部取用
+     */
+    public cacheLogs: boolean = true;
+
+    /**
+     * 日志的内存缓存
+     */
+    private logsCache: LogItem[] = [];
+
+    /**
+     * mitt实例，用于向外部发布log事件
+     */
+    public events = mitt<LoggerEvents>();
+
+    /**
      * 记录当前logger所属的作用域路径，在输出时可用作前缀以帮助调试辨识日志来源
      */
     public prefixPath: string[] = [];
@@ -158,7 +191,7 @@ class Logger {
     ): boolean {
         // 仅当等级达到当前输出等级及以上时才输出
         const numLevel = Logger.Level[level];
-        if (numLevel < this.level) return false;
+        const logToConsole = numLevel >= this.level;
 
         // 纯文本输出：按照预定义颜色格式化
         if (isStringLog(content)) {
@@ -171,14 +204,38 @@ class Logger {
             ];
         }
 
-        console[logger].apply(null, content);
+        // 控制台输出
+        logToConsole && console[logger].apply(null, content);
 
-        return true;
+        // 缓存
+        const path = this.prefixPath;
+        const item: LogItem = { level, type, logger, path, content };
+        this.cacheLogs && this.logsCache.push(item);
 
-        // @ts-ignore: Unused parameter
-        function isStringLog(content: any[]): content is string[] {
+        // 发布log事件
+        this.emit('log', item);
+
+        return logToConsole;
+
+        function isStringLog(_content: any[]): _content is string[] {
             return type === 'string';
         }
+    }
+
+    /**
+     * 发布log事件
+     */
+    private emit(event: keyof LoggerEvents, item: LogItem) {
+        this.events.emit(event, item);
+        this.parent?.emit(event, item);
+    }
+
+    /**
+     * 从内存缓存中取出所有日志  
+     * 注：为了减少内存占用，此方法调用后将会清空缓存，也就意味着对于每一条缓存的日志，只能通过此方法读取一次
+     */
+    public readCache() {
+        return this.logsCache.splice(0, this.logsCache.length);
     }
 
     /**
@@ -208,10 +265,12 @@ class Logger {
      * @param name 新增作用域层名称
      */
     withPath(name: string, ...names: string[]) {
-        return new Logger({
+        const logger =  new Logger({
             level: this.level,
             path: this.prefixPath.concat(name, ...names),
         });
+        logger.parent = this;
+        return logger;
     }
 }
 
@@ -613,4 +672,67 @@ export function debounce<T extends (...args: any[]) => any>(
             }, wait);
         }
     };
+}
+
+/**
+ * 将给定值转换为可序列化对象
+ * @param val 需要序列化的值
+ * @param depth 对象序列化最大深度
+ * @param visited 自递归调用状态参数，记录哪些对象已经访问过
+ * @returns 一个可序列化对象，可以直接传入JSON.stringify
+ */
+export function safeSerialize(val: any, depth = 5, visited = new WeakSet()): any {
+    // 防止深度过深
+    if (depth <= 0) return '[Max Depth Reached]';
+
+    // 处理基本类型
+    if (val === null || typeof val !== 'object') {
+        if (typeof val === 'bigint') return val.toString() + 'n';
+        if (typeof val === 'symbol') return val.toString();
+        if (typeof val === 'function') return `[Function: ${val.name || 'anonymous'}]`;
+        return val;
+    }
+
+    // 处理循环引用
+    if (visited.has(val)) return '[Circular]';
+    if (typeof val === 'object') visited.add(val);
+
+    // 处理特殊对象
+    if (val instanceof Error) {
+        return { name: val.name, message: val.message, stack: val.stack };
+    }
+    if (val instanceof Date) return val.toISOString();
+    if (val instanceof Map) return Array.from(val.entries());
+    if (val instanceof Set) return Array.from(val.values());
+    if (val instanceof HTMLElement) {
+        const tagName = val.tagName.toLowerCase();
+
+        // 每个属性值最多展示50个字符
+        let attrList: string[] = [];
+        for (const attr of val.attributes) {
+            const value = attr.value.length > 50 ?
+                attr.value.substring(0, 50) + `[${ attr.value.length - 50 } more...]` :
+                attr.value;
+            attrList.push(`${ attr.name }=${ JSON.stringify(value) }`);
+        }
+        // 最多展示10个属性
+        const attrs = attrList.length > 10 ?
+            [...attrList.slice(0, 10), `[${ attrList.length - 10 } more...]`].join(' ') :
+            attrList.join(' ');
+        
+        return `<${ tagName } ${ attrs }>[${ val.children.length } children, ${ val.childNodes.length } child nodes]</${ tagName }>`;
+    }
+
+    // 递归处理数组或普通对象
+    if (Array.isArray(val)) {
+        return val.map(item => safeSerialize(item, depth - 1, visited));
+    }
+
+    const res: any = {};
+    for (const key in val) {
+        if (Object.prototype.hasOwnProperty.call(val, key)) {
+            res[key] = safeSerialize(val[key], depth - 1, visited);
+        }
+    }
+    return res;
 }
