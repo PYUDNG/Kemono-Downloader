@@ -64,7 +64,7 @@ type ConsoleMethods = {
 export interface LogItem {
     level: LogLevel;
     type: 'string' | 'raw';
-    logger: ConsoleMethods;
+    logger: Nullable<ConsoleMethods>;
     path: string[];
     content: any;
 }
@@ -172,26 +172,27 @@ class Logger {
      * @param content 文本消息内容
      * @returns 根据此条日志的等级和当前输出等级，此条日志最终是否被输出
      */
-    log(level: LogLevel, type: 'string', logger: ConsoleMethods, content: string): boolean
+    log(level: LogLevel, type: 'string', logger: Nullable<ConsoleMethods>, content: string): boolean
 
     /**
      * 写任意类型日志
      * @param level 此条日志的等级
      * @param type 按原样输出的任意类型数据
+     * @param logger 控制台日志输出函数名，可以为null，传入null时代表不输出到控制台
      * @param content 日志数据内容
      * @returns 根据此条日志的等级和当前输出等级，此条日志最终是否被输出
      */
-    log(level: LogLevel, type: 'raw', logger: ConsoleMethods, ...content: any[]): boolean
+    log(level: LogLevel, type: 'raw', logger: Nullable<ConsoleMethods>, ...content: any[]): boolean
 
     log(
         level: LogLevel,
         type: 'string' | 'raw',
-        logger: ConsoleMethods = 'log',
+        logger: Nullable<ConsoleMethods> = 'log',
         ...content: any[]
     ): boolean {
         // 仅当等级达到当前输出等级及以上时才输出
         const numLevel = Logger.Level[level];
-        const logToConsole = numLevel >= this.level;
+        const logToConsole = numLevel >= this.level && logger !== null;
 
         // 纯文本输出：按照预定义颜色格式化
         if (isStringLog(content)) {

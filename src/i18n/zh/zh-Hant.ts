@@ -289,12 +289,21 @@ export default {
             label: '偵錯',
             "save-logs": {
                 label: '記錄記錄檔',
-                caption: '將執行記錄儲存在指令碼儲存空間中，以便匯出',
+                caption: '將執行記錄儲存在指令碼儲存空間中，以便匯出；非必要請勿開啟，儲存過多的記錄會導致指令碼速度變慢',
             },
-            "export-log": {
+            "export-logs": {
                 label: '匯出記錄檔',
                 caption: '如需回報 Bug，請先開啟上方的「記錄記錄檔」按鈕，並在重新整理頁面後觸發一遍 Bug，最後點擊此處匯出記錄檔進行回報',
                 button: '匯出',
+            },
+            "clear-logs": {
+                label: '清除記錄檔',
+                caption: '如果不再需要已記錄的內容，可點擊這裡刪除',
+                button: '清除',
+                cleared: {
+                    summary: '記錄檔清理',
+                    detail: '已刪除所有記錄檔，釋放 {size} 空間'
+                }
             },
         },
     },

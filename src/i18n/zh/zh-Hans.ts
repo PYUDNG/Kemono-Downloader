@@ -289,12 +289,21 @@ export default {
             label: '调试',
             "save-logs": {
                 label: '记录日志',
-                caption: '将运行日志保存在脚本存储空间中，以便导出',
+                caption: '将运行日志保存在脚本存储空间中，以便导出；非必要不开启，存储过多的日志会导致脚本速度变慢',
             },
-            "export-log": {
+            "export-logs": {
                 label: '导出日志',
                 caption: '如需反馈bug，请先开启上方的“记录日志”按钮，然后在刷新页面后触发一遍bug，最后点击此处导出日志文件进行反馈',
                 button: '导出',
+            },
+            "clear-logs": {
+                label: '清空日志',
+                caption: '如果不再需要已记录的日志，可点击这里删除',
+                button: '清空',
+                cleared: {
+                    summary: '日志清理',
+                    detail: '已删除所有日志，释放 {size} 空间'
+                }
             },
         },
     },

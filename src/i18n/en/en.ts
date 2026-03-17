@@ -289,12 +289,21 @@ export default {
             label: 'Debugging',
             "save-logs": {
                 label: 'Save Logs',
-                caption: 'Save runtime logs in the script storage for later export',
+                caption: 'Save runtime logs in the script storage for later export; only enable when necessary, as excessive logs may slow down the script',
             },
-            "export-log": {
+            "export-logs": {
                 label: 'Export Logs',
                 caption: 'To report a bug, please enable the "Save Logs" button above, refresh the page to reproduce the bug, and then click here to export the log file for feedback',
                 button: 'Export',
+            },
+            "clear-logs": {
+                label: 'Clear Logs',
+                caption: 'If recorded logs are no longer needed, click here to delete them',
+                button: 'Clear',
+                cleared: {
+                    summary: 'Logs Cleared',
+                    detail: 'All logs have been deleted, freeing up {size} of space'
+                }
             },
         },
     },
