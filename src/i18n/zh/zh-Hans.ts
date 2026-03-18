@@ -294,7 +294,7 @@ export default {
     debugging: {
         name: '调试',
         settings: {
-            label: '调试',
+            "group-log": '日志',
             "save-logs": {
                 label: '记录日志',
                 caption: '将运行日志保存在脚本存储空间中，以便导出；非必要不开启，存储过多的日志会导致脚本速度变慢',
@@ -312,6 +312,21 @@ export default {
                     summary: '日志清理',
                     detail: '已删除所有日志，释放 {size} 空间'
                 }
+            },
+        },
+    },
+    self: {
+        name: '关于',
+        settings: {
+            label: '关于',
+            version: {
+                label: '版本号',
+            },
+            github: {
+                label: 'Github 仓库',
+            },
+            greasyfork: {
+                label: 'Greasyfork 脚本',
             },
         },
     },

@@ -292,7 +292,7 @@ export default {
     debugging: {
         name: '偵錯',
         settings: {
-            label: '偵錯',
+            "group-log": '記錄檔',
             "save-logs": {
                 label: '記錄記錄檔',
                 caption: '將執行記錄儲存在指令碼儲存空間中，以便匯出；非必要請勿開啟，儲存過多的記錄會導致指令碼速度變慢',
@@ -310,6 +310,21 @@ export default {
                     summary: '記錄檔清理',
                     detail: '已刪除所有記錄檔，釋放 {size} 空間'
                 }
+            },
+        },
+    },
+    self: {
+        name: '關於',
+        settings: {
+            label: '關於',
+            version: {
+                label: '版本號',
+            },
+            github: {
+                label: 'GitHub 儲存庫',
+            },
+            greasyfork: {
+                label: 'Greasyfork 指令碼',
             },
         },
     },

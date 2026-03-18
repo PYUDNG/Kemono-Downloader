@@ -1,6 +1,9 @@
 import { GM_addValueChangeListener, GM_deleteValue, GM_getValue, GM_listValues, GM_setValue, GmValueListenerId } from "$";
 import { ref, watch } from "vue";
-import { HintedString } from "../main.js";
+import type { HintedString } from "../main.js";
+import { logger as globalLogger } from "./js-utils.js"
+
+const logger = globalLogger.withPath('userscript-utils');
 
 export interface GM_Storage {
     GM_getValue: typeof GM_getValue,
@@ -16,6 +19,36 @@ type GmAddValueChangeListenerCallback<T> = (
     newValue?: T,
     remote?: boolean
 ) => void;
+
+/**
+ * 传递给升级函数的额外信息参数
+ */
+interface UpgradeInfo<
+    K extends string,
+    V extends string,
+> {
+    /**
+     * 升级的存储键
+     */
+    key: K,
+    /**
+     * 存储键中用于标识和存储该存储项当前版本号的键
+     */
+    versionKey: V,
+}
+
+export interface UpgradeFunc<
+    K extends string = string,
+    V extends string = 'storage-version',
+> {
+    /**
+     * 存储升级函数  
+     * 接收低版本值，输出高版本值
+     * @param key 
+     * @param oldVal 存储项低版本值
+     */
+    (oldVal: any, info: UpgradeInfo<K, V>): any;
+}
 
 /**
  * 用户存储管理器
@@ -236,6 +269,82 @@ export class UserscriptStorage<D extends Record<string, any>> {
      */
     default<K extends HintedString<string & keyof D>>(key: K): K extends keyof D ? D[K] : undefined {
         return this.defaultValues[key];
+    }
+
+    /**
+     * 对给定存储项进行版本升级：
+     * - 传入需要升级的存储项键和一系列升级函数
+     * - 根据存储项键取出当前值，按照当前值的版本号，从升级函数列表中对应版本的升级函数开始以此升级
+     * - 将最终得到的最新版本存储值存入存储，同时写入最新版本的版本号
+     * - 如果中途升级函数出错，就将出错函数前的存储值和对应版本写入存储
+     * @param key 升级的存储项键
+     * @param upgraders 升级函数列表；列表第0位的函数被视作从版本0升级到版本1的函数，第1位的函数被视作从版本1升级到版本2的函数，以此类推；该列表的length就是最终升级完毕后得到的存储版本号
+     * @param versionKey 存储值内部用作当前版本号标识的键，默认为'storage-version'；若值中没有此键（比如之前版本为原始值），则视作版本号为1，因此除初始版本外，任意更高版本都应为一个可序列化属性的对象
+     */
+    upgrade<
+        K extends HintedString<string & keyof D | ''>,
+        V extends string = 'storage-version',
+    >(
+        key: K,
+        upgraders: UpgradeFunc<
+            // 当前键
+            K,
+            // 版本号键
+            V
+        >[],
+        versionKey: V = 'storage-version' as V,
+    ) {
+        const self = this;
+
+        // 读取当前存储，获取版本号信息
+        let currentValue = key === '' ? getStorage() : this.storage.GM_getValue<any>(key, undefined);
+        let currentVersion = currentValue[versionKey] ?? 0;
+        const maxVersion = upgraders.length;
+
+        // 依次执行升级函数
+        while (currentVersion < maxVersion) {
+            try {
+                // 执行
+                const tempVal = structuredClone(currentValue);
+                const newVal = upgraders[currentVersion](tempVal, { key, versionKey });
+                currentValue = newVal;
+                currentValue[versionKey] = ++currentVersion;
+            } catch(err) {
+                // 出现错误时，将错误写入日志
+                logger.log('Error', 'raw', null, 'storage upgrader error', err);
+            }
+        }
+
+        // 写入存储
+        key === '' ?
+            applyStorage(currentValue) :
+            this.storage.GM_setValue(key, currentValue);
+
+        /**
+         * 将存储中的所有值导出为一个对象
+         */
+        function getStorage() {
+            const keys = self.storage.GM_listValues();
+            const data: Record<string, any> = {};
+            for (const key of keys) {
+                data[key] = self.storage.GM_getValue(key);
+            }
+            return data;
+        }
+
+        /**
+         * 使用单一数据对象覆盖当前存储空间的所有值
+         * @param data 包含所有数据的对象，可以为{@link getStorage}导出的对象
+         */
+        function applyStorage(data: Record<string, any>) {
+            // 清除全部已有键
+            self.storage.GM_listValues().forEach(key => self.storage.GM_deleteValue(key));
+
+            // 写入所有data上的键
+            for (const key of Reflect.ownKeys(data)) {
+                self.storage.GM_setValue(key as string, data[key as string]);
+            }
+        } 
     }
 }
 

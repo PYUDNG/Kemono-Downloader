@@ -56,8 +56,8 @@ export default defineConfig({
                     'self',
                     '*',
                 ],
-                supportURL: 'https://github.com/PYUDNG/Kemono-Downloader/issues',
-                homepageURL: 'https://github.com/PYUDNG/Kemono-Downloader/',
+                supportURL: pkg.meta.issues,
+                homepageURL: pkg.meta.github,
             },
             build: {
                 fileName: pkg.name + '.user.js',
@@ -105,6 +105,11 @@ export default defineConfig({
     build: {
         minify: false,
         emptyOutDir: false,
+    },
+    define: {
+        __GITHUB_URL__: JSON.stringify(pkg.meta.github),
+        __GREASYFORK_URL__: JSON.stringify(pkg.meta.greasyfork),
+        __ISSUES_URL__: JSON.stringify(pkg.meta.issues),
     },
 });
 

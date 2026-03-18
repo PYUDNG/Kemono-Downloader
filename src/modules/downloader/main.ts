@@ -108,6 +108,7 @@ registerModule({
         }) (),
         group: 'regular',
     }],
+    index: 1,
     groups: [{
         id: 'regular',
         name: t($settings.$group),

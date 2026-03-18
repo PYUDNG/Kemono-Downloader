@@ -4,7 +4,7 @@ import { DisabledGUI, SettingItem } from '../types';
 import ListItem, { ExtraCaption } from '@/components/ListItem.vue';
 import { deepEqual, getIsMobileLayout, Nullable } from '@/utils/main';
 import { useI18n } from 'vue-i18n';
-import SettingInput from './SettingInput/SettingInput.vue';
+import SettingInput, { CompType } from './SettingInput/SettingInput.vue';
 import { globalStorage } from '@/storage';
 import Dialog from '@/volt/Dialog.vue';
 import SecondaryButton from '@/volt/SecondaryButton.vue';
@@ -83,7 +83,8 @@ const helpOnInput = ref(storage.get('helpOnInput'));
 watch(helpOnInput, val => storage.set('helpOnInput', val));
 
 // 以下元素移动端界面下不使用Dialog弹出展示，直接展示在设置条目中
-const noMobilePopup = computed(() => ['switch', 'button'].includes(item.type));
+const noDialogTypes: CompType[] = ['switch', 'button', 'display'];
+const noMobilePopup = computed(() => noDialogTypes.includes(item.type));
 
 // 宽度较小时展示移动端界面：不直接展示输入元素，而是点击设置项条目后弹窗输入
 const useMobileLayout = getIsMobileLayout();
@@ -137,7 +138,10 @@ const itemValStr = computed<string>(() => {
                 :use-mobile-layout="useMobileLayout"
                 :item="item"
             />
-            <div v-else class="flex flex-row text-surface-500 dark:text-surface-400 shrink w-full">
+            <div v-else
+                class="flex flex-row shrink w-full"
+                :class="{'text-surface-500 dark:text-surface-400': !noMobilePopup}"
+            >
                 <!-- 移动端界面 -->
                 <!-- 直接展示元素 -->
                 <SettingInput v-if="noMobilePopup"

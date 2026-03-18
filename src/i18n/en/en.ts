@@ -292,7 +292,7 @@ export default {
     debugging: {
         name: 'Debugging',
         settings: {
-            label: 'Debugging',
+            "group-log": 'Logs',
             "save-logs": {
                 label: 'Save Logs',
                 caption: 'Save runtime logs in the script storage for later export; only enable when necessary, as excessive logs may slow down the script',
@@ -310,6 +310,21 @@ export default {
                     summary: 'Logs Cleared',
                     detail: 'All logs have been deleted, freeing up {size} of space'
                 }
+            },
+        },
+    },
+    self: {
+        name: 'About',
+        settings: {
+            label: 'About',
+            version: {
+                label: 'Version',
+            },
+            github: {
+                label: 'GitHub Repository',
+            },
+            greasyfork: {
+                label: 'Greasyfork Script',
             },
         },
     },

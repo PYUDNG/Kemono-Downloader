@@ -1,9 +1,10 @@
 import i18n, { i18nKeys } from "@/i18n/main";
 import { defineModule } from "../types";
-import { registerModule } from "../settings/main";
+import { onModuleRegistered, registerGroup, registerItem } from "../settings/main";
 import { globalStorage, makeStorageRef } from "@/storage";
 import FileEditIcon from '~icons/prime/file-edit'
 import FileExportIcon from '~icons/prime/file-export'
+import TrashIcon from '~icons/prime/trash'
 import { ref } from "vue";
 import { logger as globalLogger, LogItem, safeSerialize, saveAs, stringifyBytes, toast } from "@/utils/main";
 import { GM_info } from "$";
@@ -29,10 +30,15 @@ const MAX_LOG_PAGES = 3;
 const MAX_LOG_ITEMS = 20;
 const saveLogs = makeStorageRef('saveLogs', storage);
 
-registerModule({
-    id: 'debugging',
-    name: t($settings.$label),
-    items: [{
+// 设置
+// debugging设置存储在debugging键下，但是GUI中注册在self（关于模块）下
+onModuleRegistered('self', () => {
+    registerGroup('self', {
+        id: 'log',
+        name: t($settings.$groupLog),
+        index: 1,
+    });
+    registerItem('self', [{
         id: 'saveLogs',
         type: 'switch',
         label: t($settings.$saveLogs.$label),
@@ -41,6 +47,7 @@ registerModule({
         value: saveLogs,
         // 虽然实时生效，但是最好刷新页面后再重新记录日志，这样日志才比较完整
         reload: true,
+        group: 'log',
     }, {
         id: 'exportLogs',
         type: 'button',
@@ -52,19 +59,31 @@ registerModule({
         // },
         props: {
             async onClick(_e: PointerEvent) {
-                const logText = JSON.stringify(storage.get('logs'));
+                const logList = storage.get('logs');
+                const data = {
+                    env: {
+                        userAgent: navigator.userAgent,
+                        GM_info: safeSerialize(GM_info, 10),
+                        i18n: navigator.language,
+                    },
+                    timeExported: Date.now(),
+                    exportUrl: location.href,
+                    logs: logList,
+                };
+                const logText = JSON.stringify(data);
                 await saveAs(logText, `${ GM_info.script.name } - ${ new Date().toLocaleString() }.json`);
             }
         },
         value: ref(t($settings.$exportLogs.$button)),
+        group: 'log',
     }, {
         id: 'clearLogs',
         type: 'button',
         label: t($settings.$clearLogs.$label),
         caption: t($settings.$clearLogs.$caption),
-        icon: FileExportIcon,
+        icon: TrashIcon,
         // slots: {
-        //     icon: FileExportIcon,
+        //     icon: TrashIcon,
         // },
         props: {
             async onClick(_e: PointerEvent) {
@@ -83,7 +102,8 @@ registerModule({
             }
         },
         value: ref(t($settings.$clearLogs.$button)),
-    }],
+        group: 'log',
+    }]);
 });
 
 // 写入日志到存储

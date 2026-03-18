@@ -8,6 +8,7 @@ import Button from './components/Button.vue';
 import { SettingItem } from '../../types';
 import { ComponentProps } from 'vue-component-type-helpers';
 import Password from './components/Password.vue';
+import Display from './components/Display.vue';
 
 // props
 const { type, props } = defineProps<{
@@ -52,6 +53,7 @@ const componentsMap = {
     select: Select,
     button: Button,
     password: Password,
+    display: Display,
 };
 /** 可用的组件类型 */
 export type CompType = keyof typeof componentsMap;

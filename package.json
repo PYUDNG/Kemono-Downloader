@@ -31,6 +31,7 @@
     },
     "devDependencies": {
         "@iconify-json/prime": "^1.2.4",
+        "@iconify-json/simple-icons": "^1.2.74",
         "@types/node": "^25.0.3",
         "@types/wicg-file-system-access": "^2023.10.7",
         "@vitejs/plugin-vue": "^6.0.1",
@@ -46,5 +47,10 @@
         "vite-plugin-monkey": "^7.1.9",
         "vue-component-type-helpers": "^3.2.4",
         "vue-tsc": "^3.0.6"
+    },
+    "meta": {
+        "greasyfork": "https://greasyfork.org/scripts/",
+        "github": "https://github.com/PYUDNG/Kemono-Downloader",
+        "issues": "https://github.com/PYUDNG/Kemono-Downloader/issues"
     }
 }

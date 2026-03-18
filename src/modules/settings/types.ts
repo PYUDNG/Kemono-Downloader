@@ -147,6 +147,12 @@ export interface SettingModule {
     items: SettingItem[];
 
     /**
+     * 设置模块的排序位置，数值越小越靠前  
+     * 此值应该是一个整数，且建议大于0
+     */
+    index: number;
+
+    /**
      * 分组配置  
      * - 必须包含所有设置项所使用的组
      * - 如果某组没有设置项将在UI中创建空组

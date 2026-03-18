@@ -12,9 +12,13 @@ import { i18nKeys } from '@/i18n/utils';
 const { t } = useI18n();
 
 // props
-const { modules } = defineProps<{
+const props = defineProps<{
     modules: Ref<UnwrapNestedRefs<SettingModule[]>>,
 }>();
+
+const modules = computed(() => {
+    return props.modules.value.slice().sort((m1, m2) => m1.index - m2.index);
+})
 
 /** 根据传入modules合成ListBox.options */
 const options = computed(() => modules.value.map(module => ({
@@ -54,7 +58,7 @@ defineExpose({ visible });
             option-value="id"
         >
             <TabPanel 
-                v-for="module of modules.value" 
+                v-for="module of modules" 
                 :name="module.id" 
                 class="w-full h-full"
             >
