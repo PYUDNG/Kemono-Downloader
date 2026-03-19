@@ -297,9 +297,9 @@ export class UserscriptStorage<D extends Record<string, any>> {
         const self = this;
 
         // 读取当前存储，获取版本号信息
-        let currentValue = key === '' ? getStorage() : this.storage.GM_getValue<any>(key, undefined);
-        let currentVersion = currentValue[versionKey] ?? 0;
         const maxVersion = upgraders.length;
+        let currentValue = key === '' ? getStorage() : this.storage.GM_getValue<any>(key, undefined);
+        let currentVersion = currentValue[versionKey] ?? (isEmpty(currentValue) ? maxVersion : 0);
 
         // 依次执行升级函数
         while (currentVersion < maxVersion) {
@@ -344,7 +344,13 @@ export class UserscriptStorage<D extends Record<string, any>> {
             for (const key of Reflect.ownKeys(data)) {
                 self.storage.GM_setValue(key as string, data[key as string]);
             }
-        } 
+        }
+
+        function isEmpty(val: any) {
+            if (typeof val === 'undefined') return true;
+            if (typeof val === 'object' && val !== null)
+                return Reflect.ownKeys(val).length === 0;
+        }
     }
 }
 
