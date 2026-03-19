@@ -31,3 +31,6 @@ dist-ssr
 
 # OS files
 desktop.ini
+
+# translate config & keys
+scripts/readme-builder/openai.config.ts

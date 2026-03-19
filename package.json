@@ -9,7 +9,8 @@
     "scripts": {
         "dev": "vite",
         "build": "vue-tsc -b && vite build && node scripts/post-compress.js",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "readme": "npx tsx scripts/readme-builder/main.ts"
     },
     "dependencies": {
         "@primeuix/themes": "^2.0.2",
@@ -35,7 +36,9 @@
         "@types/node": "^25.0.3",
         "@types/wicg-file-system-access": "^2023.10.7",
         "@vitejs/plugin-vue": "^6.0.1",
+        "axios": "^1.13.6",
         "cssnano": "^7.1.2",
+        "fs-extra": "^11.3.4",
         "postcss": "^8.5.6",
         "postcss-rem-to-responsive-pixel": "^7.0.1",
         "prettier": "3.8.1",
@@ -54,3 +57,4 @@
         "issues": "https://github.com/PYUDNG/Kemono-Downloader/issues"
     }
 }
+

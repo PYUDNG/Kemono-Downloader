@@ -1,0 +1,27 @@
+export default {
+    /**
+     * API key
+     */
+    key: 'sk-********************************',
+
+    /**
+     * Base URL  
+     */
+    base: 'https://api.openai.com/v1',
+
+    /**
+     * Model
+     */
+    model: 'gpt-4o',
+
+    /**
+     * Translate source language  
+     * This should match the language of README.src.md
+     */
+    source: 'zh-Hans',
+
+    /**
+     * Target language
+     */
+    target: ['en', 'zh-Hant'],
+};
