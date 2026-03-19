@@ -47,7 +47,7 @@ watch(groups, (groups, oldGroups) => {
 <template>
     <div class="flex flex-col gap-4 w-full h-full p-2">
         <!-- 未分组的模块设置项 -->
-        <div>
+        <div v-if="standaloneItems.length > 0">
             <SettingItem
                 v-for="(item, i) of standaloneItems"
                 :item="item"
