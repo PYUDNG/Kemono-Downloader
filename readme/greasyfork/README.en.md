@@ -1,8 +1,6 @@
 # Kemono Downloader
 
-[English](/readme/README.en.md) [简体中文](/readme/README.zh-Hans.md) [繁體中文](/readme/README.zh-Hant.md)
-
-A modern Kemono downloader user script, featuring a beautiful UI, multiple downloader options, and highly customizable functionality.
+A modern Kemono downloader user script featuring a beautiful UI, multiple downloader options, and highly customizable functionality.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Vue 3](https://img.shields.io/badge/Vue-3-42b883?logo=vue.js)](https://vuejs.org/)
@@ -15,7 +13,7 @@ A modern Kemono downloader user script, featuring a beautiful UI, multiple downl
 
 ### 🎨 Modern Interface
 - Modern UI design based on PrimeVue and Tailwind CSS
-- Responsive layout supporting desktop and mobile devices
+- Responsive layout supporting desktop and mobile
 - Dark/Light theme support
 - Multi-language support
 
@@ -28,7 +26,7 @@ A modern Kemono downloader user script, featuring a beautiful UI, multiple downl
 
 ### ⚙️ Customizable Settings
 - Customization for different downloaders
-- Customizable filenames (supports creating directory structures)
+- Custom filenames (supports creating directory structures)
 
 ### 🔧 Technical Features
 - Modular architecture design
@@ -50,7 +48,7 @@ This project is licensed under the [GPL-3.0](https://spdx.org/licenses/GPL-3.0-o
 ## 🙏 Acknowledgments
 
 - [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey) - Vite plugin for building user scripts
-- [Pixiv Downloader](https://github.com/drunkg00se/Pixiv-Downloader/) - A downloader for multiple sites including Pixiv
+- [Pixiv Downloader](https://github.com/drunkg00se/Pixiv-Downloader/) - Downloader for multiple sites including Pixiv
 - [Vue.js](https://vuejs.org/) - The Progressive JavaScript Framework
 - [PrimeVue](https://primevue.org/) - Next-Gen Vue UI Component Library
 - [Tailwind CSS](https://tailwindcss.com/) - A utility-first CSS framework
@@ -60,11 +58,11 @@ This project is licensed under the [GPL-3.0](https://spdx.org/licenses/GPL-3.0-o
 
 ## ✉️ Issues & Feedback
 
-Welcome to contribute via the following channels:
+Welcome to reach out via:
 
-- Submit a [GitHub Issue](https://github.com/Kemono-Downloader/issues)
-- Submit a [Pull Request](https://github.com/PYUDNG/Kemono-Downloader/pulls)
-- Submit a [Greasyfork Discussion](https://greasyfork.org/scripts/570258/feedback)
+- Submitting a [GitHub Issue](https://github.com/Kemono-Downloader/issues)
+- Submitting a [Pull Request](https://github.com/PYUDNG/Kemono-Downloader/pulls)
+- Submitting a [Greasyfork Discussion](https://greasyfork.org/scripts/570258/feedback)
 
 ---
 

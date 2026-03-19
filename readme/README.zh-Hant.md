@@ -53,7 +53,7 @@
 ### 自行建置
 #### 環境要求
 > 本專案使用npm作為套件管理器開發，其他套件管理器請自行嘗試
-- Node.js 18+
+- Node.js 18+ 
 - npm 或 yarn
 
 #### 開發環境設定
@@ -129,19 +129,19 @@ kemono-downloader/
 - **使用者腳本**: vite-plugin-monkey
 - **狀態管理**: Vue Composition API
 - **國際化**: vue-i18n
-- **工具庫**: mitt, uuid, dedent## 📦 構建與部署
+- **工具庫**: mitt, uuid, dedent## 📦 建置與部署
 
 ### 開發測試
 ```bash
 npm run dev
 ```
 
-### 生產構建
+### 生產建置
 ```bash
 npm run build
 ```
 
-生產構建的產物將在`/dist/`中建立
+生產建置的產物將在`/dist/`中建立
 
 ## 🤝 貢獻指南
 
@@ -153,7 +153,7 @@ npm run build
 - 包含相關截圖或日誌
 
 ### 提交 Pull Request
-1. Fork 專案倉庫
+1. Fork 專案儲存庫
 2. 建立功能分支
 3. 提交程式碼變更
 4. 編寫清晰的提交訊息
@@ -194,18 +194,18 @@ commit 訊息範例：
 
 以上 commit 訊息僅作範例。實際 commit 中，對於如此多的更新內容，應當盡量分多次 commit 提交
 
-## 📄 授權許可
+## 📄 授權條款
 
-本專案採用 [GPL-3.0](https://spdx.org/licenses/GPL-3.0-or-later.html) 授權許可。
+本專案採用 [GPL-3.0](https://spdx.org/licenses/GPL-3.0-or-later.html) 授權條款。
 
 ## 🙏 致謝
 
-- [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey) - 用於構建使用者腳本的 Vite 外掛
+- [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey) - 用於建置使用者腳本的 Vite 外掛
 - [Pixiv Downloader](https://github.com/drunkg00se/Pixiv-Downloader/) - 適用於包括 Pixiv 在內的多站點的下載器
 - [Vue.js](https://vuejs.org/) - 漸進式 JavaScript 框架
 - [PrimeVue](https://primevue.org/) - 下一代 Vue UI 元件庫
 - [Tailwind CSS](https://tailwindcss.com/) - 實用優先的 CSS 框架
-- [Vite](https://vitejs.dev/) - 下一代前端構建工具
+- [Vite](https://vitejs.dev/) - 下一代前端建置工具
 - [Tampermonkey](https://www.tampermonkey.net/) - 流行的使用者腳本管理器
 - [Violentmonkey](https://violentmonkey.github.io/) - 開源的使用者腳本管理器
 

@@ -1,5 +1,5 @@
 # Kemono Downloader
-<!-- condition:platform=Github -->
+<!-- condition:platform=github -->
 [English](/readme/README.en.md) [简体中文](/readme/README.zh-Hans.md) [繁體中文](/readme/README.zh-Hant.md)
 
 <!-- /condition -->
