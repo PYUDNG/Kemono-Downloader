@@ -1,33 +1,75 @@
 import { loadConfig } from './config.js';
-import { processSourceReadme, saveProcessedContent, copyEnglishReadme } from './fileProcessor.js';
-import { translateFile } from './translator.js';
-import { getProjectRoot, formatProgress, copyFile, readFile } from './utils.js';
+import { processSourceReadme, copyEnglishReadmeToRoot } from './fileProcessor.js';
+import { translateText } from './translator.js';
+import { getProjectRoot, formatProgress, readFile, writeFile } from './utils.js';
 import { join } from 'path';
 
 /**
- * Copy English README from greasyfork to root if GitHub version failed
+ * 翻译单个文件
  */
-async function copyEnglishReadmeFromGreasyfork(): Promise<void> {
-    const projectRoot = getProjectRoot();
-    const sourcePath = join(projectRoot, 'readme', 'greasyfork', 'README.en.md');
-    const destPath = join(projectRoot, 'README.md');
-    
-    console.log('   📋 Copying English README from GreasyFork version to root...');
-    await copyFile(sourcePath, destPath);
-    console.log('   ✅ English README copied to root');
+async function translateSingleFile(
+    sourceFilePath: string,
+    targetFilePath: string,
+    sourceLang: string,
+    targetLang: string,
+    config: any,
+    onProgress?: (info: any) => void
+): Promise<{ success: boolean; error?: string }> {
+    try {
+        onProgress?.({
+            current: 1,
+            total: 2,
+            message: `Reading source file for translation`,
+            filePath: sourceFilePath
+        });
+        
+        // 读取源文件
+        const sourceContent = await readFile(sourceFilePath);
+        
+        onProgress?.({
+            current: 2,
+            total: 2,
+            message: `Translating from ${sourceLang} to ${targetLang}`,
+            filePath: targetFilePath
+        });
+        
+        // 翻译文本
+        const result = await translateText({
+            text: sourceContent,
+            sourceLang,
+            targetLang,
+            config
+        });
+        
+        if (result.success && result.translatedText) {
+            // 保存翻译后的文件
+            await writeFile(targetFilePath, result.translatedText);
+            return { success: true };
+        } else {
+            return { 
+                success: false, 
+                error: result.error || 'Translation failed' 
+            };
+        }
+        
+    } catch (error) {
+        return { 
+            success: false, 
+            error: error instanceof Error ? error.message : String(error) 
+        };
+    }
 }
 
 /**
- * Main function
+ * 主函数
  */
 async function main() {
     console.log('🚀 Starting README builder...\n');
     
     let allErrors: string[] = [];
-    let githubEnglishTranslated = true;
     
     try {
-        // Step 1: Load configuration
+        // 步骤1: 加载配置
         console.log('📋 Loading configuration...');
         const config = await loadConfig();
         console.log(`✅ Configuration loaded:`);
@@ -36,131 +78,166 @@ async function main() {
         console.log(`   Model: ${config.model}`);
         console.log(`   API Base: ${config.base}\n`);
         
-        // Step 2: Process source README
-        console.log('📄 Processing source README...');
-        const { githubContent, greasyforkContent } = await processSourceReadme(
-            (info) => console.log(`   ${formatProgress(info.current, info.total, info.message)}`)
-        );
-        console.log('✅ Source README processed\n');
+        const platforms = ['github', 'greasyfork'];
+        const allLanguages = [config.source, ...config.target];
         
-        // Step 3: Save processed content
-        console.log('💾 Saving processed content...');
-        await saveProcessedContent(
-            githubContent,
-            greasyforkContent,
-            config.source,
-            (info) => console.log(`   ${formatProgress(info.current, info.total, info.message)}`)
-        );
-        console.log('✅ Processed content saved\n');
+        // 步骤2: 为每个平台和语言处理源文件（条件过滤）
+        console.log('📄 Processing source README for all platforms and languages...');
         
-        const projectRoot = getProjectRoot();
+        const processedFiles: Array<{
+            platform: string;
+            language: string;
+            filePath: string;
+            isSourceLanguage: boolean;
+        }> = [];
         
-        // Step 4: Translate GitHub version
-        console.log('🌐 Translating GitHub version...');
-        const githubFilePath = join(projectRoot, 'readme', `README.${config.source}.md`);
-        const githubResult = await translateFile(
-            githubFilePath,
-            config.source,
-            config.target,
-            config,
-            (info) => console.log(`   ${formatProgress(info.current, info.total, info.message)}`)
-        );
-        
-        if (githubResult.success) {
-            console.log('✅ GitHub version translated successfully\n');
-        } else {
-            console.log('⚠️  GitHub version translation had errors:');
-            githubResult.errors.forEach(error => console.log(`   - ${error}`));
-            allErrors.push(...githubResult.errors);
-            
-            // Check if English translation failed
-            if (githubResult.errors.some(err => err.includes('translate to en'))) {
-                githubEnglishTranslated = false;
-                console.log('   ℹ️  English translation for GitHub version failed\n');
-            } else {
-                console.log();
+        for (const platform of platforms) {
+            for (const language of allLanguages) {
+                console.log(`\n   Processing ${platform}/${language}...`);
+                
+                try {
+                    // 处理源文件（条件过滤）
+                    const content = await processSourceReadme(
+                        platform,
+                        language,
+                        (info) => console.log(`     ${formatProgress(info.current, info.total, info.message)}`)
+                    );
+                    
+                    // 确定文件路径
+                    let filePath: string;
+                    if (platform === 'github') {
+                        filePath = join(getProjectRoot(), 'readme', `README.${language}.md`);
+                    } else {
+                        filePath = join(getProjectRoot(), 'readme', 'greasyfork', `README.${language}.md`);
+                    }
+                    
+                    // 保存处理后的文件
+                    await writeFile(filePath, content);
+                    
+                    console.log(`   ✅ ${platform}/${language} processed and saved`);
+                    
+                    // 记录处理后的文件信息
+                    processedFiles.push({
+                        platform,
+                        language,
+                        filePath,
+                        isSourceLanguage: language === config.source
+                    });
+                    
+                } catch (error) {
+                    const errorMsg = `Failed to process ${platform}/${language}: ${error instanceof Error ? error.message : String(error)}`;
+                    console.error(`   ❌ ${errorMsg}`);
+                    allErrors.push(errorMsg);
+                }
             }
         }
         
-        // Step 5: Translate GreasyFork version
-        console.log('🌐 Translating GreasyFork version...');
-        const greasyforkFilePath = join(projectRoot, 'readme', 'greasyfork', `README.${config.source}.md`);
-        const greasyforkResult = await translateFile(
-            greasyforkFilePath,
-            config.source,
-            config.target,
-            config,
-            (info) => console.log(`   ${formatProgress(info.current, info.total, info.message)}`)
-        );
+        console.log('\n✅ All source files processed (condition filtering completed)\n');
         
-        if (greasyforkResult.success) {
-            console.log('✅ GreasyFork version translated successfully\n');
-        } else {
-            console.log('⚠️  GreasyFork version translation had errors:');
-            greasyforkResult.errors.forEach(error => console.log(`   - ${error}`));
-            allErrors.push(...greasyforkResult.errors);
-            console.log();
+        // 步骤3: 翻译非源语言文件
+        console.log('🌐 Translating non-source language files...');
+        
+        const translationTasks: Array<{
+            sourceFile: string;
+            targetFile: string;
+            sourceLang: string;
+            targetLang: string;
+            platform: string;
+        }> = [];
+        
+        // 准备翻译任务
+        for (const sourceFile of processedFiles) {
+            if (sourceFile.isSourceLanguage) {
+                // 为每个目标语言创建翻译任务
+                for (const targetLang of config.target) {
+                    // 跳过源语言自身
+                    if (targetLang === config.source) continue;
+                    
+                    // 确定目标文件路径
+                    let targetFilePath: string;
+                    if (sourceFile.platform === 'github') {
+                        targetFilePath = join(getProjectRoot(), 'readme', `README.${targetLang}.md`);
+                    } else {
+                        targetFilePath = join(getProjectRoot(), 'readme', 'greasyfork', `README.${targetLang}.md`);
+                    }
+                    
+                    // 就地翻译：目标文件已经写入了经过解析和过滤的未翻译内容，应基于此内容进行翻译
+                    translationTasks.push({
+                        sourceFile: targetFilePath,
+                        targetFile: targetFilePath,
+                        sourceLang: config.source,
+                        targetLang,
+                        platform: sourceFile.platform
+                    });
+                }
+            }
         }
         
-        // Step 6: Copy English README to root
-        console.log('📋 Copying English README to root...');
+        console.log(`   Found ${translationTasks.length} translation tasks\n`);
         
-        if (githubEnglishTranslated) {
-            // Use GitHub English version
-            await copyEnglishReadme(
+        // 并行执行翻译任务
+        let completedTranslations = 0;
+        await Promise.allSettled(translationTasks.map(async task => {
+            console.log(`   Translating ${task.platform}/${task.targetLang}...`);
+            
+            const result = await translateSingleFile(
+                task.sourceFile,
+                task.targetFile,
+                task.sourceLang,
+                task.targetLang,
+                config,
+                (info) => console.log(`     ${formatProgress(info.current, info.total, info.message)}`)
+            );
+            
+            if (result.success) {
+                console.log(`   ✅ ${task.platform}/${task.targetLang} translated successfully`);
+                completedTranslations++;
+            } else {
+                const errorMsg = `Failed to translate ${task.platform}/${task.targetLang}: ${result.error}`;
+                console.error(`   ❌ ${errorMsg}`);
+                allErrors.push(errorMsg);
+            }
+            
+            console.log(); // 空行分隔
+        })).catch(err => { throw err; });
+        
+        console.log(`✅ Translation completed: ${completedTranslations}/${translationTasks.length} successful\n`);
+        
+        // 步骤4: 复制GitHub英文README到根目录
+        console.log('📋 Copying GitHub English README to root...');
+        
+        try {
+            await copyEnglishReadmeToRoot(
+                'github',
                 (info) => console.log(`   ${formatProgress(info.current, info.total, info.message)}`)
             );
-            console.log('✅ English README (GitHub version) copied to root\n');
-        } else {
-            // Fallback to GreasyFork English version
-            await copyEnglishReadmeFromGreasyfork();
-            console.log('✅ English README (GreasyFork version) copied to root\n');
+            console.log('✅ English README copied to root\n');
+        } catch (error) {
+            const errorMsg = `Failed to copy English README to root: ${error instanceof Error ? error.message : String(error)}`;
+            console.error(`   ❌ ${errorMsg}`);
+            allErrors.push(errorMsg);
         }
         
-        // Summary
-        console.log('📊 Summary:');
-        console.log(`   Source files created: 2 (${config.source})`);
-        
-        // Count successfully translated files
-        const githubEnPath = join(projectRoot, 'readme', 'README.en.md');
-        const githubZhHantPath = join(projectRoot, 'readme', 'README.zh-Hant.md');
-        const greasyforkEnPath = join(projectRoot, 'readme', 'greasyfork', 'README.en.md');
-        const greasyforkZhHantPath = join(projectRoot, 'readme', 'greasyfork', 'README.zh-Hant.md');
-        
-        const files = [
-            { path: githubEnPath, lang: 'en', type: 'GitHub' },
-            { path: githubZhHantPath, lang: 'zh-Hant', type: 'GitHub' },
-            { path: greasyforkEnPath, lang: 'en', type: 'GreasyFork' },
-            { path: greasyforkZhHantPath, lang: 'zh-Hant', type: 'GreasyFork' }
-        ];
-        
-        let translatedCount = 0;
-        for (const file of files) {
-            try {
-                await readFile(file.path);
-                translatedCount++;
-            } catch {
-                // File doesn't exist or can't be read
-            }
-        }
-        
-        console.log(`   Translated files created: ${translatedCount}/${config.target.length * 2}`);
-        console.log(`   Total files processed: ${2 + translatedCount}`);
+        // 步骤5: 最终统计
+        console.log('📊 Final Summary:');
+        console.log(`   Platforms processed: ${platforms.length} (${platforms.join(', ')})`);
+        console.log(`   Languages processed: ${allLanguages.length} (${allLanguages.join(', ')})`);
+        console.log(`   Total files generated: ${platforms.length * allLanguages.length}`);
+        console.log(`   Source language files: ${platforms.length}`);
+        console.log(`   Translated files: ${translationTasks.length}`);
+        console.log(`   Successful translations: ${completedTranslations}`);
+        console.log(`   Failed translations: ${translationTasks.length - completedTranslations}`);
         
         if (allErrors.length > 0) {
             console.log(`\n⚠️  Completed with ${allErrors.length} error(s):`);
             allErrors.forEach((error, index) => {
                 console.log(`   ${index + 1}. ${error}`);
             });
-            
-            if (!githubEnglishTranslated) {
-                console.log('\nℹ️  Note: Used GreasyFork English version as fallback for root README.md');
-            }
-            
-            console.log('\n⚠️  Some translations may be incomplete. Check the generated files.');
+            console.log('\n⚠️  Some files may be incomplete. Check the generated files.');
         } else {
             console.log('\n🎉 README builder completed successfully!');
-            console.log('   You can now run: npm run build');
+            console.log('   All files have been generated in the /readme/ directory.');
+            console.log('   Root README.md has been updated with GitHub English version.');
         }
         
     } catch (error) {
@@ -176,5 +253,5 @@ async function main() {
     }
 }
 
-// Run main function
+// 运行主函数
 main();

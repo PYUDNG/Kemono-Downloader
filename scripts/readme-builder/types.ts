@@ -31,3 +31,17 @@ export interface ProgressInfo {
     message: string;
     filePath?: string;
 }
+
+// 新的条件标记类型
+export interface Condition {
+    platform?: 'github' | 'greasyfork';
+    language?: string;
+}
+
+export interface ConditionNode {
+    startIndex: number;
+    endIndex: number;
+    conditions: Condition;
+    children: ConditionNode[];
+    content: string;
+}

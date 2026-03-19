@@ -1,8 +1,8 @@
 # Kemono Downloader
-<!-- Github -->
+<!-- condition:platform=Github -->
 [English](/readme/README.en.md) [简体中文](/readme/README.zh-Hans.md) [繁體中文](/readme/README.zh-Hant.md)
 
-<!-- /Github -->
+<!-- /condition -->
 一个现代化的Kemono下载器用户脚本，提供美观的UI界面、多种下载器和高度自定义功能。
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
@@ -38,7 +38,24 @@
 - 自动化的构建流程
 - 开发服务器支持HTTPS
 
-<!-- Github -->
+## 截图
+<!-- condition:language=en -->
+![](https://p.sda1.dev/31/9e6b83d1812f98eb2ded188a84d94b24/PostSelector.jpg)
+![](https://p.sda1.dev/31/55a983d7d8e4c7957e9cbbb02068c23c/Manager.jpg)
+![](https://p.sda1.dev/31/d922777e076a727ec4dc32944c3fb941/Settings.jpg)
+<!-- /condition -->
+<!-- condition:language=zh-Hans -->
+![](https://p.sda1.dev/31/ef19e9ffdd4262926f7d6c31c8365f1d/PostSelector.jpg)
+![](https://p.sda1.dev/31/3e69318e23ec13093a501c07796c6777/Manager.jpg)
+![](https://p.sda1.dev/31/57289b3c3a6dae2626c0df91fcd4cf7f/Settings.jpg)
+<!-- /condition -->
+<!-- condition:language=zh-Hant -->
+![](https://p.sda1.dev/31/fd55d9dcd9e8e619012b25725900572a/PostSelector.jpg)
+![](https://p.sda1.dev/31/603cc320752a6167a58473768c553274/Manager.jpg)
+![](https://p.sda1.dev/31/d16bee941f34ae4abe025201b86e9dc5/Settings.jpg)
+<!-- /condition -->
+
+<!-- condition:platform=github -->
 ## 🚀 快速开始
 
 ### 直接安装使用（适合大多数用户）
@@ -191,7 +208,7 @@ commit消息示例：
 ```
 
 以上commit消息仅作示例。实际commit中，对于如此多的更新内容，应当尽量分多次commit提交
-<!-- /Github -->
+<!-- /condition -->
 
 ## 📄 许可证
 

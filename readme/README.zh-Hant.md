@@ -1,8 +1,7 @@
 # Kemono Downloader
-<!-- Github -->
+
 [English](/readme/README.en.md) [简体中文](/readme/README.zh-Hans.md) [繁體中文](/readme/README.zh-Hant.md)
 
-<!-- /Github -->
 一個現代化的Kemono下載器使用者腳本，提供美觀的UI介面、多種下載器和高度自訂功能。
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
@@ -38,7 +37,12 @@
 - 自動化的建置流程
 - 開發伺服器支援HTTPS
 
-<!-- Github -->
+## 截圖
+
+![](https://p.sda1.dev/31/fd55d9dcd9e8e619012b25725900572a/PostSelector.jpg)
+![](https://p.sda1.dev/31/603cc320752a6167a58473768c553274/Manager.jpg)
+![](https://p.sda1.dev/31/d16bee941f34ae4abe025201b86e9dc5/Settings.jpg)
+
 ## 🚀 快速開始
 
 ### 直接安裝使用（適合大多數使用者）
@@ -83,7 +87,7 @@ yarn build
 
 #### 安裝使用者腳本
 
-建置完成後，會在專案`/dist/`目錄產生 `kemono-downloader.(min|greasyfork)?.user.js` 檔案，可以透過以下步驟安裝：
+建置完成後，會在專案`/dist/`目錄生成 `kemono-downloader.(min|greasyfork)?.user.js` 檔案，可以透過以下步驟安裝：
 - 開啟任一建置產物，複製其中全部程式碼內容
 - 安裝Tampermonkey或Violentmonkey瀏覽器擴充功能
 - 在擴充功能管理器中點擊"新增新腳本"
@@ -95,7 +99,7 @@ yarn build
 kemono-downloader/
 ├── src/
 │   ├── components/         # 公用Vue元件
-│   │   ├── ListItem.vue    # 單行列項目元件
+│   │   ├── ListItem.vue    # 單行列表項元件
 │   │   ├── PostsSelector/  # 貼文選擇器元件
 │   │   └── TabLayout/      # 標籤頁佈局元件
 │   ├── modules/            # 功能模組
@@ -125,21 +129,21 @@ kemono-downloader/
 - **使用者腳本**: vite-plugin-monkey
 - **狀態管理**: Vue Composition API
 - **國際化**: vue-i18n
-- **工具庫**: mitt, uuid, dedent
-
-## 📦 建置與部署
+- **工具庫**: mitt, uuid, dedent## 📦 構建與部署
 
 ### 開發測試
 ```bash
 npm run dev
 ```
 
-### 生產建置
+### 生產構建
 ```bash
 npm run build
 ```
 
-生產建置的產物將在`/dist/`中建立## 🤝 貢獻指南
+生產構建的產物將在`/dist/`中建立
+
+## 🤝 貢獻指南
 
 您可以透過提交 Issue 和 Pull Request 參與到本專案中
 
@@ -189,23 +193,21 @@ commit 訊息範例：
 ```
 
 以上 commit 訊息僅作範例。實際 commit 中，對於如此多的更新內容，應當盡量分多次 commit 提交
-<!-- /Github -->
 
-## 📄 授權條款
+## 📄 授權許可
 
-本專案採用 [GPL-3.0](https://spdx.org/licenses/GPL-3.0-or-later.html) 授權條款。
+本專案採用 [GPL-3.0](https://spdx.org/licenses/GPL-3.0-or-later.html) 授權許可。
 
 ## 🙏 致謝
 
-- [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey) - 用於建置使用者腳本的 Vite 外掛
+- [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey) - 用於構建使用者腳本的 Vite 外掛
 - [Pixiv Downloader](https://github.com/drunkg00se/Pixiv-Downloader/) - 適用於包括 Pixiv 在內的多站點的下載器
 - [Vue.js](https://vuejs.org/) - 漸進式 JavaScript 框架
 - [PrimeVue](https://primevue.org/) - 下一代 Vue UI 元件庫
 - [Tailwind CSS](https://tailwindcss.com/) - 實用優先的 CSS 框架
-- [Vite](https://vitejs.dev/) - 下一代前端建置工具
+- [Vite](https://vitejs.dev/) - 下一代前端構建工具
 - [Tampermonkey](https://www.tampermonkey.net/) - 流行的使用者腳本管理器
 - [Violentmonkey](https://violentmonkey.github.io/) - 開源的使用者腳本管理器
-
 
 ## ✉️ 問題與回饋
 

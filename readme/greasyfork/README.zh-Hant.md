@@ -1,18 +1,21 @@
 # Kemono Downloader
-一個現代化的 Kemono 下載器使用者腳本，提供美觀的 UI 介面、多種下載器和高度自訂功能。
+
+[English](/readme/README.en.md) [简体中文](/readme/README.zh-Hans.md) [繁體中文](/readme/README.zh-Hant.md)
+
+一個現代化的Kemono下載器使用者腳本，提供美觀的UI介面、多種下載器和高度自訂功能。
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Vue 3](https://img.shields.io/badge/Vue-3-42b883?logo=vue.js)](https://vuejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-7.1-646cff?logo=vite)](https://vitejs.dev/)
 
-> 目前專案剛剛發布，仍有可能包含未發現的 bug，遇到錯誤請 [提出 issue](https://github.com/PYUDNG/Kemono-Downloader/issues) 共同討論解決
+> 目前專案剛剛發布，仍有可能包含未發現的bug，遇到錯誤請 [提出issue](https://github.com/PYUDNG/Kemono-Downloader/issues) 共同討論解決
 
 ## ✨ 功能特性
 
 ### 🎨 現代化介面
-- 基於 PrimeVue 和 Tailwind CSS 的現代化 UI 設計
-- 響應式佈局，支援桌面和行動裝置
+- 基於PrimeVue和Tailwind CSS的現代化UI設計
+- 響應式佈局，支援桌面和行動端
 - 深色/淺色主題支援
 - 多語言支援
 
@@ -29,11 +32,16 @@
 
 ### 🔧 技術特性
 - 模組化架構設計
-- 型別安全的 TypeScript 開發
-- 現代化的 Vue 3 Composition API
+- 類型安全的TypeScript開發
+- 現代化的Vue 3 Composition API
 - 自動化的建置流程
-- 開發伺服器支援 HTTPS
+- 開發伺服器支援HTTPS
 
+## 截圖
+
+![](https://p.sda1.dev/31/fd55d9dcd9e8e619012b25725900572a/PostSelector.jpg)
+![](https://p.sda1.dev/31/603cc320752a6167a58473768c553274/Manager.jpg)
+![](https://p.sda1.dev/31/d16bee941f34ae4abe025201b86e9dc5/Settings.jpg)
 
 ## 📄 授權許可
 
@@ -41,15 +49,14 @@
 
 ## 🙏 致謝
 
-- [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey) - 用於建置使用者腳本的 Vite 外掛
-- [Pixiv Downloader](https://github.com/drunkg00se/Pixiv-Downloader/) - 適用於包括 Pixiv 在內的多站點的下載器
-- [Vue.js](https://vuejs.org/) - 漸進式 JavaScript 框架
-- [PrimeVue](https://primevue.org/) - 下一代 Vue UI 元件庫
-- [Tailwind CSS](https://tailwindcss.com/) - 實用優先的 CSS 框架
+- [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey) - 用於建置使用者腳本的Vite外掛
+- [Pixiv Downloader](https://github.com/drunkg00se/Pixiv-Downloader/) - 適用於包括Pixiv在內的多站點的下載器
+- [Vue.js](https://vuejs.org/) - 漸進式JavaScript框架
+- [PrimeVue](https://primevue.org/) - 下一代Vue UI元件庫
+- [Tailwind CSS](https://tailwindcss.com/) - 實用優先的CSS框架
 - [Vite](https://vitejs.dev/) - 下一代前端建置工具
 - [Tampermonkey](https://www.tampermonkey.net/) - 流行的使用者腳本管理器
 - [Violentmonkey](https://violentmonkey.github.io/) - 開源的使用者腳本管理器
-
 
 ## ✉️ 問題與回饋
 

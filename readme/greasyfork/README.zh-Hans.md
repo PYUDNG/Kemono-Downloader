@@ -1,4 +1,7 @@
 # Kemono Downloader
+
+[English](/readme/README.en.md) [简体中文](/readme/README.zh-Hans.md) [繁體中文](/readme/README.zh-Hant.md)
+
 一个现代化的Kemono下载器用户脚本，提供美观的UI界面、多种下载器和高度自定义功能。
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
@@ -34,6 +37,11 @@
 - 自动化的构建流程
 - 开发服务器支持HTTPS
 
+## 截图
+
+![](https://p.sda1.dev/31/ef19e9ffdd4262926f7d6c31c8365f1d/PostSelector.jpg)
+![](https://p.sda1.dev/31/3e69318e23ec13093a501c07796c6777/Manager.jpg)
+![](https://p.sda1.dev/31/57289b3c3a6dae2626c0df91fcd4cf7f/Settings.jpg)
 
 ## 📄 许可证
 
@@ -49,7 +57,6 @@
 - [Vite](https://vitejs.dev/) - 下一代前端构建工具
 - [Tampermonkey](https://www.tampermonkey.net/) - 流行的用户脚本管理器
 - [Violentmonkey](https://violentmonkey.github.io/) - 开源的用户脚本管理器
-
 
 ## ✉️ 问题与反馈
 

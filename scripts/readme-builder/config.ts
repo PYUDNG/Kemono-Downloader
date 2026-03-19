@@ -1,15 +1,12 @@
-import type { Config } from './types.js';
+import { Config } from './types.js';
 
-/**
- * Load and validate configuration from openai.config.ts
- */
 export async function loadConfig(): Promise<Config> {
     try {
-        // Dynamic import of config file
+        // 动态导入配置文件
         const configModule = await import('./openai.config.js');
         const config = configModule.default;
         
-        // Validate required fields
+        // 验证必填字段
         if (!config.key) {
             throw new Error('API key is required in openai.config.ts');
         }
@@ -30,7 +27,7 @@ export async function loadConfig(): Promise<Config> {
             throw new Error('Target languages array is required in openai.config.ts');
         }
         
-        // Ensure base URL doesn't end with slash
+        // 确保基础URL不以斜杠结尾
         const baseUrl = config.base.endsWith('/') ? config.base.slice(0, -1) : config.base;
         
         return {
@@ -51,7 +48,7 @@ export async function loadConfig(): Promise<Config> {
 }
 
 /**
- * Get API endpoint for chat completions
+ * 获取API端点
  */
 export function getApiEndpoint(config: Config): string {
     return `${config.base}/chat/completions`;
