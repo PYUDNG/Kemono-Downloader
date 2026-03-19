@@ -33,6 +33,7 @@
     "devDependencies": {
         "@iconify-json/prime": "^1.2.4",
         "@iconify-json/simple-icons": "^1.2.74",
+        "@types/fs-extra": "^11.0.4",
         "@types/node": "^25.0.3",
         "@types/wicg-file-system-access": "^2023.10.7",
         "@vitejs/plugin-vue": "^6.0.1",
@@ -57,4 +58,3 @@
         "issues": "https://github.com/PYUDNG/Kemono-Downloader/issues"
     }
 }
-
