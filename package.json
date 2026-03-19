@@ -53,7 +53,7 @@
         "vue-tsc": "^3.0.6"
     },
     "meta": {
-        "greasyfork": "https://greasyfork.org/scripts/",
+        "greasyfork": "https://greasyfork.org/scripts/570258",
         "github": "https://github.com/PYUDNG/Kemono-Downloader",
         "issues": "https://github.com/PYUDNG/Kemono-Downloader/issues"
     }

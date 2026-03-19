@@ -6,13 +6,13 @@ A modern Kemono downloader user script featuring a beautiful UI, multiple downlo
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-7.1-646cff?logo=vite)](https://vitejs.dev/)
 
-> The project is currently in active development. Expected phenomena include, but are not limited to, *bugs everywhere* and *sporadic functionality*. If you encounter errors, please [submit an issue](https://github.com/PYUDNG/Kemono-Downloader/issues) to discuss and resolve them together.
+> The project has just been released and may still contain undiscovered bugs. If you encounter any errors, please [submit an issue](https://github.com/PYUDNG/Kemono-Downloader/issues) to discuss and resolve them together.
 
 ## ✨ Features
 
 ### 🎨 Modern Interface
 - Modern UI design based on PrimeVue and Tailwind CSS
-- Responsive layout supporting desktop and mobile
+- Responsive layout supporting desktop and mobile devices
 - Dark/Light theme support
 - Multi-language support
 
@@ -25,7 +25,7 @@ A modern Kemono downloader user script featuring a beautiful UI, multiple downlo
 
 ### ⚙️ Customizable Settings
 - Customization for different downloaders
-- Custom filenames (supports creating directory structures)
+- Customizable filenames (supports creating directory structures)
 
 ### 🔧 Technical Features
 - Modular architecture design
@@ -42,7 +42,7 @@ This project is licensed under the [GPL-3.0](https://spdx.org/licenses/GPL-3.0-o
 
 - [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey) - Vite plugin for building user scripts
 - [Pixiv Downloader](https://github.com/drunkg00se/Pixiv-Downloader/) - Downloader for multiple sites including Pixiv
-- [Vue.js](https://vuejs.org/) - The Progressive JavaScript Framework
+- [Vue.js](https://vuejs.org/) - Progressive JavaScript Framework
 - [PrimeVue](https://primevue.org/) - Next-Gen Vue UI Component Library
 - [Tailwind CSS](https://tailwindcss.com/) - A utility-first CSS framework
 - [Vite](https://vitejs.dev/) - Next Generation Frontend Tooling
@@ -51,11 +51,11 @@ This project is licensed under the [GPL-3.0](https://spdx.org/licenses/GPL-3.0-o
 
 ## ✉️ Issues & Feedback
 
-Welcome to contribute via the following channels:
+Welcome to reach out via:
 
-- Submit a [GitHub Issue](https://github.com/Kemono-Downloader/issues)
-- Submit a [Pull Request](https://github.com/PYUDNG/Kemono-Downloader/pulls)
-- Submit <del> [Greasyfork Discussion](#)</del> (Greasyfork version not yet uploaded)
+- Submitting a [GitHub Issue](https://github.com/Kemono-Downloader/issues)
+- Submitting a [Pull Request](https://github.com/PYUDNG/Kemono-Downloader/pulls)
+- Submitting a [Greasyfork Discussion](https://greasyfork.org/scripts/570258/feedback)
 
 ---
 

@@ -10,7 +10,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-7.1-646cff?logo=vite)](https://vitejs.dev/)
 
-> 目前项目依然处于积极开发阶段，包括但不限于 *bug满天飞*、*时灵时不灵* 等等都是预期现象，遇到错误请 [提出issue](https://github.com/PYUDNG/Kemono-Downloader/issues) 共同讨论解决
+> 目前项目刚刚发布，仍有可能包含未发现的bug，遇到错误请 [提出issue](https://github.com/PYUDNG/Kemono-Downloader/issues) 共同讨论解决
 
 ## ✨ 功能特性
 
@@ -44,7 +44,7 @@
 ### 直接安装使用（适合大多数用户）
 您可以选择以下任一方式安装
 - [Github Release](https://github.com/PYUDNG/Kemono-Downloader/releases)
-- <del>[Greasyfork](#)</del> Greasyfork版尚未上传
+- [Greasyfork](https://greasyfork.org/scripts/570258)
 
 ### 自行构建
 #### 环境要求
@@ -215,7 +215,7 @@ commit消息示例：
 
 - 提交 [GitHub Issue](https://github.com/Kemono-Downloader/issues)
 - 提交 [Pull Request](https://github.com/PYUDNG/Kemono-Downloader/pulls)
-- 提交<del> [Greasyfork Discussion](#)</del>（Greasyfork版本尚未上传）
+- 提交 [Greasyfork Discussion](https://greasyfork.org/scripts/570258/feedback)
 
 ---
 

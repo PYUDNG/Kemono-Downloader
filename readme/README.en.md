@@ -3,14 +3,14 @@
 [English](/readme/README.en.md) [简体中文](/readme/README.zh-Hans.md) [繁體中文](/readme/README.zh-Hant.md)
 
 <!-- /Github -->
-A modern Kemono downloader user script, featuring a beautiful UI, multiple downloader options, and highly customizable functionality.
+A modern Kemono downloader user script featuring a beautiful UI, multiple downloader options, and highly customizable functionality.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Vue 3](https://img.shields.io/badge/Vue-3-42b883?logo=vue.js)](https://vuejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-7.1-646cff?logo=vite)](https://vitejs.dev/)
 
-> The project is currently in active development. Expected phenomena include, but are not limited to, *bugs everywhere* and *unreliable functionality*. If you encounter errors, please [submit an issue](https://github.com/PYUDNG/Kemono-Downloader/issues) to discuss and resolve them together.
+> The project has just been released and may still contain undiscovered bugs. If you encounter any errors, please [submit an issue](https://github.com/PYUDNG/Kemono-Downloader/issues) to discuss and resolve them together.
 
 ## ✨ Features
 
@@ -20,7 +20,7 @@ A modern Kemono downloader user script, featuring a beautiful UI, multiple downl
 - Dark/Light theme support
 - Multi-language support
 
-### 📥 Download Features
+### 📥 Download Functionality
 - Batch download support
 - Multiple downloader options
 - Intelligent filename handling
@@ -41,10 +41,10 @@ A modern Kemono downloader user script, featuring a beautiful UI, multiple downl
 <!-- Github -->
 ## 🚀 Quick Start
 
-### Direct Installation (Recommended for Most Users)
+### Direct Installation (Recommended for most users)
 You can choose any of the following methods to install:
 - [Github Release](https://github.com/PYUDNG/Kemono-Downloader/releases)
-- <del>[Greasyfork](#)</del> Greasyfork version not yet uploaded
+- [Greasyfork](https://greasyfork.org/scripts/570258)
 
 ### Build from Source
 #### Prerequisites
@@ -54,27 +54,27 @@ You can choose any of the following methods to install:
 
 #### Development Environment Setup
 
-1. **Clone the Repository**
+1. **Clone the repository**
 ```bash
 git clone https://github.com/PYUDNG/Kemono-Downloader.git
 cd kemono-downloader
 ```
 
-2. **Install Dependencies**
+2. **Install dependencies**
 ```bash
 npm install
 # or
 yarn install
 ```
 
-3. **Start the Development Server**
+3. **Start the development server**
 ```bash
 npm run dev
 # or
 yarn dev
 ```
 
-4. **Build the User Script**
+4. **Build the user script**
 ```bash
 npm run build
 # or
@@ -84,7 +84,7 @@ yarn build
 #### Installing the User Script
 
 After building, the `kemono-downloader.(min|greasyfork)?.user.js` file will be generated in the project's `/dist/` directory. You can install it by following these steps:
-- Open any build artifact and copy all its code content.
+- Open any of the build artifacts and copy all the code content.
 - Install the Tampermonkey or Violentmonkey browser extension.
 - Click "Add new script" in the extension manager.
 - Paste the content of the built user script.
@@ -94,26 +94,26 @@ After building, the `kemono-downloader.(min|greasyfork)?.user.js` file will be g
 ```
 kemono-downloader/
 ├── src/
-│   ├── components/         # Common Vue Components
-│   │   ├── ListItem.vue    # Single List Item Component
-│   │   ├── PostsSelector/  # Posts Selector Component
-│   │   └── TabLayout/      # Tab Layout Component
-│   ├── modules/            # Functional Modules
-│   │   ├── api/            # API Module
-│   │   ├── creator/        # Creator Page Module
-│   │   ├── downloader/     # Downloader Module
-│   │   ├── post/           # Post Page Module
-│   │   └── settings/       # Settings Module
-│   ├── utils/              # Utility Functions
-│   ├── volt/               # PrimeVue Component Wrappers
-│   ├── main.ts             # Application Entry Point
-│   └── loader.ts           # Module Loader
-├── build-utils/            # Build Tools
-├── scripts/                # Build Scripts
-├── server/                 # Development Server Configuration
-├── package.json            # Project Configuration
-├── vite.config.ts          # Vite Configuration
-└── tsconfig.json           # TypeScript Configuration
+│   ├── components/         # Common Vue components
+│   │   ├── ListItem.vue    # Single list item component
+│   │   ├── PostsSelector/  # Post selector component
+│   │   └── TabLayout/      # Tab layout component
+│   ├── modules/            # Functional modules
+│   │   ├── api/            # API module
+│   │   ├── creator/        # Creator page module
+│   │   ├── downloader/     # Downloader module
+│   │   ├── post/           # Post page module
+│   │   └── settings/       # Settings module
+│   ├── utils/              # Utility functions
+│   ├── volt/               # PrimeVue component wrappers
+│   ├── main.ts             # Application entry point
+│   └── loader.ts           # Module loader
+├── build-utils/            # Build utilities
+├── scripts/                # Build scripts
+├── server/                 # Development server configuration
+├── package.json            # Project configuration
+├── vite.config.ts          # Vite configuration
+└── tsconfig.json           # TypeScript configuration
 ```
 
 ## 🛠️ Tech Stack
@@ -157,23 +157,23 @@ You can participate in this project by submitting Issues and Pull Requests.
 
 ### PR Guidelines
 #### Code Guidelines
-This project does not have strict code style requirements, but please ensure your code at least meets the following:
+This project does not have strict code style requirements, but please ensure your code at least:
 - Contains appropriate comments.
 - Passes TypeScript type checking.
 
 #### Commit Guidelines
 A single commit can contain multiple updates. Each update should be written as a list item.  
-Each update item should begin with the update type, followed by an English colon and a space (`: `):
-| Update Type      | Description                                                                 |
-| :--------------- | :-------------------------------------------------------------------------- |
-| `feat`           | New feature addition                                                        |
-| `improvement`    | Improvement to an existing feature                                          |
-| `code`           | Code-only changes (including comments) with no functional change (e.g., code optimization) |
-| `performance`    | Performance improvements with no functional change                          |
-| `bug fix`        | Bug fix                                                                     |
-| `i18n`           | Language pack updates only, no code changes                                 |
-| `maintainence`   | Other non-code updates, e.g., TODO list updates, dependency updates, etc.   |
-| `refactor`       | Code rewrite (refactoring) with no functional change                        |
+Each update item should start with the update type, followed by an English colon and a space (`: `):
+| Update Type     | Description                                                                 |
+| :-------------- | :-------------------------------------------------------------------------- |
+| `feat`          | New feature addition                                                        |
+| `improvement`   | Improvement to an existing feature                                          |
+| `code`          | Code-only changes (including comments) with no functional change (e.g., optimizations) |
+| `performance`   | Performance improvements with no functional change                          |
+| `bug fix`       | Bug fix                                                                     |
+| `i18n`          | Language pack updates only, no code changes                                 |
+| `maintainence`  | Other non-code updates (e.g., TODO list updates, dependency updates)        |
+| `refactor`      | Code rewrite (refactoring) with no functional change                        |
 
 If an update corresponds to multiple types, use the primary type.  
 Commit messages should be written in English.
@@ -193,7 +193,7 @@ The above commit message is for example only. In practice, for this many updates
 
 ## 📄 License
 
-This project is licensed under the [GPL-3.0](https://spdx.org/licenses/GPL-3.0-or-later.html) License.
+This project is licensed under the [GPL-3.0](https://spdx.org/licenses/GPL-3.0-or-later.html) license.
 
 ## 🙏 Acknowledgments
 
@@ -210,9 +210,9 @@ This project is licensed under the [GPL-3.0](https://spdx.org/licenses/GPL-3.0-o
 
 Welcome to reach out via:
 
-- Submitting a [GitHub Issue](https://github.com/Kemono-Downloader/issues)
-- Submitting a [Pull Request](https://github.com/PYUDNG/Kemono-Downloader/pulls)
-- Submitting <del> [Greasyfork Discussion](#)</del> (Greasyfork version not yet uploaded)
+- Submit a [GitHub Issue](https://github.com/Kemono-Downloader/issues)
+- Submit a [Pull Request](https://github.com/PYUDNG/Kemono-Downloader/pulls)
+- Submit a [Greasyfork Discussion](https://greasyfork.org/scripts/570258/feedback)
 
 ---
 

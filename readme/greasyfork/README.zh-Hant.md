@@ -6,13 +6,13 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-7.1-646cff?logo=vite)](https://vitejs.dev/)
 
-> 目前專案依然處於積極開發階段，包括但不限於 *bug滿天飛*、*時靈時不靈* 等等都是預期現象，遇到錯誤請 [提出 issue](https://github.com/PYUDNG/Kemono-Downloader/issues) 共同討論解決
+> 目前專案剛剛發布，仍有可能包含未發現的 bug，遇到錯誤請 [提出 issue](https://github.com/PYUDNG/Kemono-Downloader/issues) 共同討論解決
 
 ## ✨ 功能特性
 
 ### 🎨 現代化介面
 - 基於 PrimeVue 和 Tailwind CSS 的現代化 UI 設計
-- 響應式佈局，支援桌面和行動端
+- 響應式佈局，支援桌面和行動裝置
 - 深色/淺色主題支援
 - 多語言支援
 
@@ -57,7 +57,7 @@
 
 - 提交 [GitHub Issue](https://github.com/Kemono-Downloader/issues)
 - 提交 [Pull Request](https://github.com/PYUDNG/Kemono-Downloader/pulls)
-- 提交<del> [Greasyfork Discussion](#)</del>（Greasyfork 版本尚未上傳）
+- 提交 [Greasyfork Discussion](https://greasyfork.org/scripts/570258/feedback)
 
 ---
 
