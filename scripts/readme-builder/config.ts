@@ -6,7 +6,7 @@ import type { Config } from './types.js';
 export async function loadConfig(): Promise<Config> {
     try {
         // Dynamic import of config file
-        const configModule = await import('./openai.config.ts');
+        const configModule = await import('./openai.config.js');
         const config = configModule.default;
         
         // Validate required fields
