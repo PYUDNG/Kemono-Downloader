@@ -3,7 +3,6 @@ import { processSourceReadme, saveProcessedContent, copyEnglishReadme } from './
 import { translateFile } from './translator.js';
 import { getProjectRoot, formatProgress, copyFile, readFile } from './utils.js';
 import { join } from 'path';
-import type { ProgressInfo } from './types.js';
 
 /**
  * Copy English README from greasyfork to root if GitHub version failed
