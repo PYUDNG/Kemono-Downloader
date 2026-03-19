@@ -82,7 +82,7 @@ export function makeStorageRef<
 
     storage.watch(key, (_key, _oldVal, newVal, _remote) => {
         // 仅当存储和变量确实不再同步时，才更新变量值
-        if (deepEqual(val.value, newVal)) {
+        if (!deepEqual(val.value, newVal)) {
             // 接收到的新值有可能确实是存储中的实际值，也有可能在存储中此键已不存在，此时回调的值为默认值
             if (storage.has(key) || useDefaultValue) {
                 // 是实际值 或者 指定了使用默认值
