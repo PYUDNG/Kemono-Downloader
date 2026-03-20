@@ -374,7 +374,7 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
 
 export default class BrowserDownloadProvider extends BaseDownloadProvider implements IDownloadProvider {
     public name: ProviderType = 'browser';
-    static features: Feature[] = ['concurrent'];
+    static features: Feature[] = [];
 
     /**
      * 下载单Post
