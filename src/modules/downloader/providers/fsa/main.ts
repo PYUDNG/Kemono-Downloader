@@ -21,7 +21,7 @@ import KeyIcon from '~icons/prime/key'
 
 const t = i18n.global.t;
 const logger = globalLogger.withPath('downloader', 'provider', 'browser');
-const storage = globalStorage.withKeys('downloader').withKeys('providerSettings').withKeys('fsa');
+const storage = globalStorage.withKeys('downloader');
 
 // 设置
 const $settings = i18nKeys.$downloader.$provider.$fsa.$settings;

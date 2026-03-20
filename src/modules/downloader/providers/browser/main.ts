@@ -17,7 +17,7 @@ import i18n, { i18nKeys } from "@/i18n/main.js";
 
 const t = i18n.global.t;
 const logger = globalLogger.withPath('downloader', 'provider', 'browser');
-const storage = globalStorage.withKeys('downloader').withKeys('providerSettings').withKeys('browser');
+const storage = globalStorage.withKeys('downloader');
 
 /**
  * BrowserProvider 全局共享API访问队列
@@ -374,7 +374,7 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
 
 export default class BrowserDownloadProvider extends BaseDownloadProvider implements IDownloadProvider {
     public name: ProviderType = 'browser';
-    static features: Feature[] = [];
+    static features: Feature[] = ['concurrent'];
 
     /**
      * 下载单Post

@@ -24,13 +24,14 @@ import ClockIcon from '~icons/prime/clock'
 
 const t = i18n.global.t;
 const logger = globalLogger.withPath('downloader', 'provider', 'aria2');
-const storage = globalStorage.withKeys('downloader').withKeys('providerSettings').withKeys('aria2');
+const storage = globalStorage.withKeys('downloader');
+const providerStorage = globalStorage.withKeys('downloader').withKeys('providerSettings').withKeys('aria2');
 
 /**
  * 轮询操作的时间周期（毫秒）
  * @todo 实现对此常量的用户设置
  */
-const ARIA2_INTERVAL = storage.get('interval') * 1000;
+const ARIA2_INTERVAL = providerStorage.get('interval') * 1000;
 const manager = new Aria2IntervalCallsManager(null, ARIA2_INTERVAL);
 
 /**
@@ -58,9 +59,9 @@ onModuleRegistered('downloader', () => {
         caption: t($settings.$endpoint.$caption),
         icon: ServerIcon,
         props: {
-            placeholder: storage.default('endpoint'),
+            placeholder: providerStorage.default('endpoint'),
         },
-        value: makeStorageRef('endpoint', storage, true, false),
+        value: makeStorageRef('endpoint', providerStorage, true, false),
         group: 'aria2',
     }, {
         id: 'secret',
@@ -71,7 +72,7 @@ onModuleRegistered('downloader', () => {
         props: {
             feedback: false,
         },
-        value: makeStorageRef('secret', storage, true, false),
+        value: makeStorageRef('secret', providerStorage, true, false),
         group: 'aria2',
     }, {
         id: 'dir',
@@ -80,7 +81,7 @@ onModuleRegistered('downloader', () => {
         caption: t($settings.$dir.$caption),
         help: t($settings.$dir.$help),
         icon: FolderIcon,
-        value: makeStorageRef('dir', storage, true, false),
+        value: makeStorageRef('dir', providerStorage, true, false),
         group: 'aria2',
     }, {
         id: 'interval',
@@ -88,9 +89,9 @@ onModuleRegistered('downloader', () => {
         label: t($settings.$interval.$label),
         caption: t($settings.$interval.$caption),
         icon: ClockIcon,
-        value: makeStorageRef('interval', storage, true, false),
+        value: makeStorageRef('interval', providerStorage, true, false),
         props: {
-            placeholder: storage.default('interval').toString(),
+            placeholder: providerStorage.default('interval').toString(),
             maxFractionDigits: 3,
         },
         group: 'aria2',
@@ -148,14 +149,14 @@ onModuleRegistered('downloader', () => {
     }, ]);
 });
 
-storage.watch('interval', (_key, _oldVal, newVal, _remote) => {
+providerStorage.watch('interval', (_key, _oldVal, newVal, _remote) => {
     newVal && manager.setInterval(newVal * 1000);
 });
 
 // 连接Aria2服务端，并开启Aria2周期任务循环
 const currentProvider = makeStorageRef('provider', globalStorage.withKeys('downloader'));
-const serverUrl = makeStorageRef('endpoint', storage);
-const secret = makeStorageRef('secret', storage);
+const serverUrl = makeStorageRef('endpoint', providerStorage);
+const secret = makeStorageRef('secret', providerStorage);
 
 /**
  * Aria2实例
@@ -244,7 +245,7 @@ class Aria2FileDownloadTask extends BaseFileDownloadTask implements IFileDownloa
         const { resolve, promise } = Promise.withResolvers<void>();
         
         // 创建Aria2任务
-        const userDir = storage.get('dir');
+        const userDir = providerStorage.get('dir');
         const fullPath = buildPath(userDir, this.file.path);
         const { dir, file: out } = path2DirFile(fullPath);
         const gid: string = await aria2.sendRequest(

@@ -88,8 +88,8 @@ export class UserscriptStorage<D extends Record<string, any>> {
             K extends keyof D ?
                 // 默认值对象中存在此键，返回值类型为默认值对象中此键的值
                 D[K] :
-                // 默认值对象中无此键时，返回值类型为any（取决于实际已存储的值）
-                any :
+                // 默认值对象中无此键时，返回值类型为unknown（取决于实际已存储的值）
+                unknown :
             // 本地调用提供了默认值时，返回值类型为本次提供的默认值的类型
             T
     {
@@ -178,7 +178,7 @@ export class UserscriptStorage<D extends Record<string, any>> {
         K extends HintedString<string & keyof D>
     >(
         name: K,
-        callback: GmAddValueChangeListenerCallback<K extends keyof D ? D[K] : any>
+        callback: GmAddValueChangeListenerCallback<K extends keyof D ? D[K] : unknown>
     ): GmValueListenerId {
         return this.storage.GM_addValueChangeListener(name, callback);
     }
@@ -196,7 +196,7 @@ export class UserscriptStorage<D extends Record<string, any>> {
         const self = this;
         const isObject = (val: any): val is Record<string, any> => typeof val === 'object' && val !== null;
         const getStorageObject = () => {
-            const obj = self.get(key);
+            const obj = self.get(key) as any;
             if (!isObject(obj))
                 throw new TypeError(`substorage with key ${key} is not an object`);
             return obj;
@@ -236,8 +236,8 @@ export class UserscriptStorage<D extends Record<string, any>> {
                         // 如果更新前后存储空间值均不是object，则均视为默认值，两默认值一定相等无更改，无需callback
                         if (!isObject(oldVal) && !isObject(newVal)) return;
                         // 无论更新前还是更新后不是object，均视为默认值
-                        if (!isObject(oldVal)) oldVal = self.get(key);
-                        if (!isObject(newVal)) newVal = self.get(key);
+                        if (!isObject(oldVal)) oldVal = self.get(key) as T;
+                        if (!isObject(newVal)) newVal = self.get(key) as T;
                         // 如果使用默认值后依然有值不是object（比如未提供默认值的情况），则报错
                         if (!isObject(oldVal) || !isObject(newVal))
                             throw new TypeError(`substorage with key ${key} is not an object`);
