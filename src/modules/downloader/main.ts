@@ -130,7 +130,7 @@ registerModule({
                         props: {
                             class: 'text-yellow-500'
                         },
-                        value: 114514,
+                        value: -1,
                     } satisfies DisabledGUI)
             );
         }) (),
