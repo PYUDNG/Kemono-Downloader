@@ -7,6 +7,7 @@ import { PromiseOrRaw } from "@/utils/main.js";
 export const features = [
     'pause',
     'abortFiles',
+    'concurrent',
 ] as const;
 export type Feature = typeof features[number];
 

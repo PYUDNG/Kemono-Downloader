@@ -449,6 +449,30 @@ export class Queue {
     }
 
     /**
+     * 更新队列配置
+     * @param newConfig 新的配置项，可以只更新部分配置
+     * @returns 更新后的完整配置
+     */
+    updateConfig(newConfig: Partial<QueueConfig>): QueueConfig {
+        // 更新配置
+        Object.assign(this.config, newConfig);
+        
+        // 如果 max 被修改，检查是否有更多任务可以执行
+        if (newConfig.max !== undefined) {
+            this.checkTask();
+        }
+        
+        return { ...this.config };
+    }
+
+    /**
+     * 获取当前队列配置
+     */
+    getConfig(): QueueConfig {
+        return { ...this.config };
+    }
+
+    /**
      * 将给定函数/方法排队执行，以限制并发数和执行频率
      * @param func 排队执行的函数/方法
      * @param signal 一个{@link AbortSignal}，当被abort时从队列移除此任务（如果任务已在执行中或已执行完毕，仍可从队列中移除，但无法终止任务）

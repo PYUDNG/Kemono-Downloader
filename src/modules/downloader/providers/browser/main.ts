@@ -31,9 +31,10 @@ const queueApi = new Queue({
  * BrowserProvider 全局共享文件下载队列
  */
 const queueFile = new Queue({
-    max: 5,
+    max: storage.get('concurrent'),
     sleep: 0,
 });
+storage.watch('concurrent', (_key, _oldVal, newVal, _remote) => queueFile.updateConfig({ max: newVal }));
 
 // 设置
 const $settings = i18nKeys.$downloader.$provider.$browser.$settings;
@@ -374,7 +375,7 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
 
 export default class BrowserDownloadProvider extends BaseDownloadProvider implements IDownloadProvider {
     public name: ProviderType = 'browser';
-    static features: Feature[] = [];
+    static features: Feature[] = ['concurrent'];
 
     /**
      * 下载单Post

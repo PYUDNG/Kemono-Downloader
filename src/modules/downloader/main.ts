@@ -21,6 +21,7 @@ import DownloadIcon from '~icons/prime/download';
 import FileEditIcon from '~icons/prime/file-edit';
 import ImageIcon from '~icons/prime/image';
 import FolderIcon from '~icons/prime/folder';
+import ARALIcon from '~icons/prime/arrow-right-arrow-left';
 
 const t = i18n.global.t;
 const storage = globalStorage.withKeys('downloader');
@@ -103,6 +104,33 @@ registerModule({
                             class: 'text-yellow-500'
                         },
                         value: 'preserve',
+                    } satisfies DisabledGUI)
+            );
+        }) (),
+        group: 'regular',
+    }, {
+        id: 'concurrent',
+        type: 'number',
+        icon: ARALIcon,
+        label: t($settings.$concurrent.$label),
+        caption: t($settings.$concurrent.$caption),
+        props: {
+            placeholder: storage.default('concurrent').toString(),
+        },
+        value: makeStorageRef('concurrent', storage, true, false),
+        disabled: (function() {
+            const provider = makeStorageRef('provider', storage);
+            return computed(() => 
+                providers[provider.value].features.includes('concurrent') ?
+                    false :
+                    ({
+                        text: t($settings.$concurrent.$featureNotSupported + '.' + provider.value, {
+                            provider: t($settings.$provider.$options + '.' + provider.value),
+                        }),
+                        props: {
+                            class: 'text-yellow-500'
+                        },
+                        value: 114514,
                     } satisfies DisabledGUI)
             );
         }) (),

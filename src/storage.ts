@@ -32,6 +32,11 @@ export const globalStorage = new UserscriptStorage(
             abortFiles: 'prompt' as 'prompt' | 'delete' | 'preserve',
 
             /**
+             * 并行下载数量
+             */
+            concurrent: 5 as number,
+
+            /**
              * 不同provider自己的设置空间
              */
             providerSettings: {

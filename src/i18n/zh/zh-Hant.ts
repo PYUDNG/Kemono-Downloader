@@ -189,6 +189,15 @@ export default {
                     preserve: '保留',
                 },
             },
+            concurrent: {
+                label: '最大並行下載數量',
+                caption: '最多同時下載幾個檔案',
+                "feature-not-supported": {
+                    browser: '當前下載器（{provider}）不支援修改此設定',
+                    fsa: '當前下載器（{provider}）不支援修改此設定',
+                    aria2: '您當前的下載器是 {provider}，請透過伺服端設定檔或專業 Aria2 介面調整此設定',
+                },
+            },
             group: '常規設定',
         },
         provider: {

@@ -189,6 +189,15 @@ export default {
                     preserve: 'Keep downloaded files',
                 },
             },
+            concurrent: {
+                label: 'Max Concurrent Downloads',
+                caption: 'Maximum number of files to download simultaneously',
+                "feature-not-supported": {
+                    browser: 'The current downloader ({provider}) does not support modifying this setting',
+                    fsa: 'The current downloader ({provider}) does not support modifying this setting',
+                    aria2: 'Your current downloader is {provider}; please adjust this setting via the server configuration file or a professional Aria2 interface',
+                },
+            },
             group: 'General Settings',
         },
         provider: {

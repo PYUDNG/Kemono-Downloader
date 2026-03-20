@@ -191,6 +191,15 @@ export default {
                     preserve: '保留',
                 },
             },
+            concurrent: {
+                label: '最大并行下载数量',
+                caption: '最多同时下载几个文件',
+                "feature-not-supported": {
+                    browser: '当前下载器（{provider}）不支持修改此设置',
+                    fsa: '当前下载器（{provider}）不支持修改此设置',
+                    aria2: '您当前的下载器是{provider}，请通过服务端配置文件或者专业Aria2界面调整此设置',
+                },
+            },
             group: '常规设置',
         },
         provider: {
