@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Select from '@/volt/Select.vue';
-import { computed, getCurrentInstance, UnwrapNestedRefs } from 'vue';
+import { computed, getCurrentInstance, UnwrapNestedRefs, useTemplateRef } from 'vue';
 import { eggExpectedModification } from './utils';
 import { SettingItem } from '@/modules/settings/types';
 import ListBox from '@/volt/ListBox.vue';
@@ -27,9 +27,17 @@ defineEmits<{
     focus: [e: Event];
     blur: [e: Event];
 }>();
+
+// 点击外层label时展开Select
+const select = useTemplateRef('select');
+function onClick() {
+    select.value?.$el?.click();
+}
 </script>
 
 <template>
+    <!-- 使用隐藏的checkbox与外层label关联触发 -->
+    <input class="hidden" type="checkbox" @click="onClick">
     <ListBox v-if="useMobileLayout"
         v-model="displayValue"
         v-bind="$attrs"
@@ -37,6 +45,7 @@ defineEmits<{
         @mouseleave="(e: Event) => $emit('blur', e)"
     />
     <Select v-else
+        ref="select"
         :appendTo="overlayParent"
         v-model="displayValue"
         v-bind="$attrs"

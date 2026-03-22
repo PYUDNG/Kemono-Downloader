@@ -222,7 +222,11 @@ const itemValStr = computed<string>(() => {
         <template v-if="item.help && !useMobileLayout" #text-extension>
             <div
                 class="cursor-pointer p-2 text-xl"
-                @click="toggleHelpText"
+                @click="e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleHelpText();
+                }"
             >
                 <QuestionCircleIcon />
             </div>

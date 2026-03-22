@@ -120,3 +120,4 @@ TODO
   - [x] 设置项
   - [x] 不同provider兼容数据
   - [x] provider逻辑实现
+- [x] select类型设置项也支持点击label展开/关闭
