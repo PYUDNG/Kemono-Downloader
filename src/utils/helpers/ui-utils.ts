@@ -87,6 +87,9 @@ export function createShadowApp<
     // 使用自定义的rem单位大小
     appElm.classList.add('text-base');
 
+    // 滚动条样式
+    appElm.classList.add('scrollbar-light', 'dark:scrollbar-dark');
+
     // 屏蔽Shadown DOM内常见事件冒泡，预防性阻止Shadow DOM和页面互相干扰
     // 例如：在Dialog的InputText内按下左右箭头时，不触发页面翻页
     // 已知缺陷：当Dialog打开但未focus在任一输入元素上时，按下左右键依然会触发翻页

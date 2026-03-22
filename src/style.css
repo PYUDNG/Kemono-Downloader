@@ -271,3 +271,44 @@
 :host {
     interpolate-size: allow-keywords;
 }
+
+/* 滚动条 */
+@utility scrollbar-light {
+    scrollbar-color: var(--p-surface-300) var(--p-surface-100);
+    scrollbar-width: thin;
+
+    &::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    &::-webkit-scrollbar-track {
+        background: var(--p-surface-100);
+    }
+    &::-webkit-scrollbar-thumb {
+        background: var(--p-surface-300);
+        border-radius: 9999px;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+        background: var(--p-surface-400);
+    }
+}
+
+@utility scrollbar-dark {
+    scrollbar-color: var(--p-surface-600) var(--p-surface-800);
+    scrollbar-width: thin;
+
+    &::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    &::-webkit-scrollbar-track {
+        background: var(--p-surface-800);
+    }
+    &::-webkit-scrollbar-thumb {
+        background: var(--p-surface-600);
+        border-radius: 9999px;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+        background: var(--p-surface-500);
+    }
+}

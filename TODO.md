@@ -121,3 +121,5 @@ TODO
   - [x] 不同provider兼容数据
   - [x] provider逻辑实现
 - [x] select类型设置项也支持点击label展开/关闭
+- [x] 滚动条样式优化
+- [ ] PostSelector数量角标展示实际下载文件数
