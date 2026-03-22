@@ -300,24 +300,58 @@ export function isMobileAgent() {
     return /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(navigator.userAgent)
 }
 
+export interface PopoverLogicOptions<
+    P extends any[],
+> {
+    /**
+     * 防抖时长（单位：毫秒）  
+     * 在显示Popover前后的防抖时段区间内，所有隐藏调用都会失效
+     * @default 100
+     */
+    debounce?: number;
+
+    /**
+     * 在调用popover.show之前的hook回调，可以拦截show调用  
+     * 如果在调用事件处理器函数时，在事件对象后添加了自定义的参数，将会传递到这里来
+     * @param e 触发show调用的事件
+     * @param params 自定义参数
+     * @returns false表示取消show调用，任意其他值表示正常执行show
+     */
+    beforeShow?(e: Event, ...params: P): any;
+
+    /**
+     * 在调用popover.hide之前的hook回调，可以拦截hide调用
+     * @param e 触发hide调用的事件
+     * @returns false表示取消hide调用，任意其他值表示正常执行hide
+     */
+    beforeHide?(e: Event): any;
+}
+
 /**
  * 统筹Volt Popover组件的展示与隐藏逻辑  
  * 支持光标和触屏点击
  * @param popover Popover组件实例
- * @param debounce 防抖时长；在显示Popover前后的防抖时段区间内，所有隐藏调用都会失效
+ * @returns 一组事件处理器函数，将其绑定到DOM元素上即可自动触发Popover展示和隐藏
  */
-export function popoverLogic(popover: ComponentExposed<typeof Popover>, debounce: number = 100) {
+export function popoverLogic<
+    P extends any[],
+>(
+    popover: ComponentExposed<typeof Popover>,
+    { debounce = 100, beforeShow, beforeHide }: PopoverLogicOptions<P> = {},
+) {
     let isTouchScreen = false;
     let handle: Nullable<number> = null;
     let lastShowEvent: Event = new Event('placeholder-event');
 
-    const show = (e: Event) => {
+    const show = (e: Event, ...params: P) => {
         // 显示可以打断/取消隐藏
         if (handle !== null) {
             clearTimeout(handle);
             handle = null;
         }
         lastShowEvent = e;
+        // beforeShow钩子
+        if (beforeShow?.(e, ...params) === false) return;
         // 显示Popover
         popover.show(e);
     };
@@ -325,7 +359,12 @@ export function popoverLogic(popover: ComponentExposed<typeof Popover>, debounce
         // 如果当前事件就是先前触发show的事件，则不隐藏
         if (e === lastShowEvent) return;
         // 规划：从现在开始到防抖时间后，执行隐藏，期间可以被显示打断/取消
-        handle = setTimeout(() => popover.hide(), debounce);
+        handle = setTimeout(() => {
+            // beforeHide钩子
+            if (beforeHide?.(e) === false) return;
+            // 隐藏popover
+            popover.hide();
+        }, debounce);
     };
 
     // 触屏模式下，点击DOM其他位置时自动隐藏Popover
@@ -337,14 +376,14 @@ export function popoverLogic(popover: ComponentExposed<typeof Popover>, debounce
     }, { signal: controller.signal });
 
     return {
-        onTouchStart(e: TouchEvent) {
+        onTouchStart(e: TouchEvent, ...params: P) {
             isTouchScreen = true;
-            show(e);
+            show(e, ...params);
         },
 
-        onMouseEnter(e: MouseEvent) {
+        onMouseEnter(e: MouseEvent, ...params: P) {
             if (isTouchScreen) return;
-            show(e);
+            show(e, ...params);
         },
 
         onMouseLeave(e: MouseEvent) {

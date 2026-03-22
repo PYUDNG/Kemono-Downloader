@@ -81,7 +81,18 @@ const coverSizingClasses = computed(() => {
 
 // 封面图Popover展示逻辑
 const coverPop = useTemplateRef('cover-pop');
-const popoverHandlers = computed(() =>coverPop.value ? popoverLogic(coverPop.value) : Object.create(null) as Record<any, undefined>);
+const popoverHandlers = computed(() =>
+    coverPop.value ?
+        popoverLogic(coverPop.value, {
+            beforeShow(_e) {
+                // 缩略图完全未加载时不展示悬浮窗大图
+                if (!img.value || img.value.naturalWidth === 0 || img.value.naturalHeight === 0)
+                    return false;
+                return true;
+            },
+        }) :
+        Object.create(null) as Record<any, undefined>
+);
 </script>
 
 <template>

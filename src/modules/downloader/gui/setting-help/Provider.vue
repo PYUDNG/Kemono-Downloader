@@ -56,7 +56,7 @@ const results: Record<SupportItem, SupportCompatibility> = (function() {
             browser: true,
             fsa: {
                 compatible: checkCompatibility(),
-                questionable: isMobileAgent() ? t($help.$fsaMobile) : false,
+                questionable: isMobileAgent() ? t($help.$fsaMobile) : true,
             },
             aria2: {
                 compatible: true,
@@ -102,13 +102,17 @@ const results: Record<SupportItem, SupportCompatibility> = (function() {
 const popoverContent = ref('');
 const popover = useTemplateRef('popover');
 const popoverParent = computed(() => getCurrentInstance()?.root.vnode.el?.parentElement);
-const popoverHandlers = computed(() => popover.value ? popoverLogic(popover.value) : Object.create(null) as Record<any, undefined>);
-function onMouseEnter(e: MouseEvent, comp: Compatibiliy) {
-    if (!isQuestionable(comp)) return;
-    popoverContent.value = typeof comp.questionable === 'boolean' ?
-        t($help.$questionable) : comp.questionable;
-    popoverHandlers.value.onMouseEnter?.(e);
-}
+const popoverHandlers = computed(() =>
+    popover.value ?
+        popoverLogic(popover.value, {
+            beforeShow(_e, comp: Compatibiliy) {
+                if (!isQuestionable(comp)) return false;
+                popoverContent.value = typeof comp.questionable === 'boolean' ?
+                    t($help.$questionable) : comp.questionable;
+            },
+        }) :
+        Object.create(null) as Record<any, undefined>
+);
 
 function isQuestionable(comp: Compatibiliy): comp is Compatibiliy & { questionable: string | true } {
     return typeof comp === 'object' && comp !== null && !!comp.questionable;
@@ -149,9 +153,9 @@ function isQuestionable(comp: Compatibiliy): comp is Compatibiliy & { questionab
                 <div
                     class="font-bold flex flex-row items-center justify-center py-2 px-3 border-r border-b border-solid border-surface-200 dark:border-surface-800"
                     :class="{ 'border-b-3': i === Object.keys(results).length - 1, 'border-r-3': j === Object.keys(results).length - 1 }"
-                    @mouseenter="e => onMouseEnter(e, comp)"
+                    @mouseenter="e => popoverHandlers.onMouseEnter?.(e, comp)"
                     @mouseleave="popoverHandlers.onMouseLeave"
-                    @touchstart="popoverHandlers.onTouchStart"
+                    @touchstart="e => popoverHandlers.onTouchStart?.(e, comp)"
                 >
                     <div
                         class="relative w-fit h-fit text-xl"
