@@ -3,7 +3,7 @@ import { PostApiResponse } from "@/modules/api/types/post";
 import { PostsApiResponse } from "@/modules/api/types/posts";
 import { ProfileApiResponse } from "@/modules/api/types/profile";
 import { globalStorage } from "@/storage";
-import { Nullable, ReplaceRule, safeBatchReplace } from "@/utils/main";
+import { $CrE, Nullable, ReplaceRule, safeBatchReplace } from "@/utils/main";
 import { Conn } from "maria2";
 import { v4 as uuid } from "uuid";
 
@@ -113,6 +113,22 @@ export function getFullUrl(file: FileItem, data: PostApiResponse): string {
     // preview.server be like: 'https://n3.kemono.cr'
     const server = preview?.server ?? `https://n1.${ location.host }`;
     return `${server}/data${file.path}`;
+}
+
+/**
+ * 将帖子API中的文字内容html格式化渲染成人类可看html
+ * @param html PostAPIResponse.post.content 中的原始html
+ */
+export function formatContentHTML(html: string) {
+    return `<pre>${ html }</pre>`;
+}
+
+/**
+ * 将帖子API中的文字内容html格式化渲染成人类可读txt文字
+ * @param html PostAPIResponse.post.content 中的原始html
+ */
+export function formatContentText(html: string) {
+    return $CrE('div', { props: { innerHTML: html } }).innerText;
 }
 
 interface Aria2Call {

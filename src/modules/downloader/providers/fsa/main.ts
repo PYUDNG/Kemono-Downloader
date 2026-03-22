@@ -1,6 +1,6 @@
 import { Nullable, Queue, requestBuffer, toast } from "@/utils/main.js";
-import { BaseDownloadTask, BaseFileDownloadTask, ProviderType } from "../../types/base/task";
-import { DownloadFile, IFileDownloadTask, Status } from "../../types/interface/task";
+import { BaseDownloadTask, BaseFileDownloadTask, BaseSavefileTask, ProviderType } from "../../types/base/task";
+import { DownloadFile, IFileDownloadTask, ISavefileTask, SaveFile, Status } from "../../types/interface/task";
 import { logger as globalLogger } from "@/utils/main.js";
 import { globalStorage } from "@/storage";
 import { FeatureNotSupportedError } from "../../types/base/error";
@@ -9,9 +9,9 @@ import { BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/po
 import { IPostDownloadTask, IPostsDownloadTask } from "../../types/interface/post";
 import { Reactive, reactive, ref } from "vue";
 import { PostApiResponse } from "@/modules/api/types/post";
-import { PostInfo } from "@/modules/api/types/common";
+import { FileItem, PostInfo } from "@/modules/api/types/common";
 import { post, profile } from "@/modules/api/main";
-import { constructFilename, getFullUrl } from "../../utils/main";
+import { constructFilename, formatContentHTML, formatContentText, getFullUrl } from "../../utils/main";
 import { BaseDownloadProvider, Feature } from "../../types/base/provider";
 import { IDownloadProvider } from "../../types/interface/provider";
 import { onModuleRegistered, registerGroup, registerItem } from "@/modules/settings/main.js";
@@ -136,6 +136,69 @@ const queueFile = new Queue({
     sleep: 0,
 });
 storage.watch('concurrent', (_key, _oldVal, newVal, _remote) => queueFile.updateConfig({ max: newVal }));
+
+class FSASaveFileTask extends BaseSavefileTask implements ISavefileTask {
+    public provider: ProviderType = 'fsa';
+    public init: Promise<void> = Promise.resolve();
+    private logger = logger.withPath('BrowserSavefileTask');
+
+    constructor(parent: Nullable<BaseDownloadTask>, file: SaveFile) {
+        super(parent, file);
+        this.parent = parent ?? null;
+        this.progress.status = 'queue';
+    }
+
+    async run(): Promise<void> {
+        if (this.progress.status === 'ongoing') {
+            this.logger.simple('Error', 'calling run while status is ongoing');
+            return;
+        }
+        this.progress.status = 'ongoing';
+
+        // 将数据转换为FSA文件可写流可写入格式
+        let data: FileSystemWriteChunkType;
+        if (this.file.data instanceof FileSystemFileHandle) {
+            data = await this.file.data.getFile();
+        } else {
+            data = this.file.data;
+        }
+
+        // 获取文件可写流
+        const dlDirHandle = await getDownloadDirectoryHandle();
+        const fileHandle = await getFileHandleRecursive(dlDirHandle, this.file.path);
+        const writable = await fileHandle.createWritable({ keepExistingData: false });
+
+        // 写入前确保拥有读写权限
+        await ensurePermission(dlDirHandle);
+        await ensurePermission(fileHandle);
+
+        // 写入数据
+        await writable.write(data);
+
+        // 关闭可写流
+        await writable.close();
+
+        this.progress.status = 'complete';
+    }
+
+    /**
+     * 取消任务  
+     * 保存文件任务**不支持取消**，因此调用此方法没有任何作用
+     */
+    abort(): void {}
+
+    /**
+     * 暂停任务  
+     * 保存文件任务**不支持暂停**，因此调用此方法没有任何作用
+     */
+    pause(): void {}
+
+    /**
+     * 取消暂停任务  
+     * 保存文件任务**不支持暂停**，因此调用此方法没有任何作用
+     */
+    unpause(): void {}
+}
 
 /**
  * 单文件下载任务  
@@ -311,7 +374,7 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
     public provider: ProviderType = 'fsa';
     public name: Nullable<string> = null;
     public data: Nullable<PostApiResponse> = null;
-    public subTasks: Reactive<BaseFileDownloadTask[]> = reactive([]);
+    public subTasks: Reactive<(BaseFileDownloadTask | FSASaveFileTask)[]> = reactive([]);
     public dataPromise: Promise<PostApiResponse>;
     public init: Promise<void>;
 
@@ -341,33 +404,98 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
             // 为post任务设置名称
             this.name = this.data!.post.title;
 
-            // 为每个文件创建下载任务
-            const files = [this.data!.post.file, ...this.data!.post.attachments];
-            storage.get('noCoverFile') && files.shift();
-            await Promise.allSettled(files.map(async (file, i) => {
-                const creator = await profile({
-                    service: this.info.service,
-                    creatorId: this.info.creatorId
-                });
-                const filename = constructFilename({
-                    data: {
-                        creator: creator,
-                        post: this.data!,
-                        file: file,
+            // 获取创作者数据
+            const creator = await profile({
+                service: this.info.service,
+                creatorId: this.info.creatorId
+            });
+
+            // 先创建抽象任务列表，再分别创建实际任务实例
+            /**
+             * 抽象任务
+             */
+            type SubTask = ({
+                type: 'download',
+                /** API中的文件数据 */
+                file: FileItem,
+            } | {
+                type: 'savefile',
+                /** 包含原始文件名的文件数据 */
+                file: SaveFile,
+            });
+            // 每个附件对应一个下载任务
+            const files: SubTask[] = this.data!.post.attachments.map(file => ({
+                type: 'download', file
+            }));
+            // 用户未指定不下载封面图时，添加封面图任务
+            storage.get('noCoverFile') || files.push({
+                type: 'download', file: this.data!.post.file,
+            });
+            // 用户指定下载文字内容时，添加文字内容，插入到最开始（第0位）
+            const saveTextContent = storage.get('textContent');
+            if (saveTextContent !== 'none') {
+                const sourceHTML = this.data!.post.content;
+                const content = saveTextContent === 'txt' ?
+                    formatContentText(sourceHTML) :
+                    formatContentHTML(sourceHTML);
+                files.splice(0, 0, {
+                    type: 'savefile',
+                    file: {
+                        data: content,
+                        path: saveTextContent === 'txt' ? 'content.txt' : 'content.html',
                     },
-                    p: i + 1,
                 });
-                const downloadUrl = getFullUrl(file, this.data!);
-                const fileTask = new FSAFileDownloadTask(
-                    this,
-                    {
-                        url: downloadUrl,
-                        path: filename,
+            }
+
+            // 为每个文件创建下载任务
+            await Promise.allSettled(files.map(async (subTask, i) => {
+                let taskInstance: typeof this.subTasks[number];
+
+                switch (subTask.type) {
+                    case 'savefile': {
+                        const file = subTask.file;
+                        const filename = constructFilename({
+                            data: {
+                                creator: creator,
+                                file: {
+                                    name: file.path,
+                                    path: '__internal_content__',
+                                },
+                                post: this.data,
+                                posts: null,
+                            },
+                            p: i + 1
+                        });
+                        taskInstance = new FSASaveFileTask(this, {
+                            data: file.data, path: filename,
+                        });
+                        break;
                     }
-                );
-                this.subTasks.push(fileTask);
-                
-                await fileTask.init;
+                    case 'download': {
+                        const file = subTask.file;
+                        const filename = constructFilename({
+                            data: {
+                                creator: creator,
+                                post: this.data!,
+                                file: file,
+                            },
+                            p: i + 1,
+                        });
+                        const downloadUrl = getFullUrl(file, this.data!);
+                        taskInstance = new FSAFileDownloadTask(
+                            this,
+                            {
+                                url: downloadUrl,
+                                path: filename,
+                            }
+                        );
+                        
+                        break;
+                    }
+                }
+
+                this.subTasks.push(taskInstance);
+                await taskInstance.init;
             }));
             this.progress.total = files.length;
             this.progress.finished = 0;
@@ -537,7 +665,7 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
 
 export default class BrowserDownloadProvider extends BaseDownloadProvider implements IDownloadProvider {
     public name: ProviderType = 'fsa';
-    static features: Feature[] = ['abortFiles', 'concurrent'];
+    static features: Feature[] = ['abortFiles', 'concurrent', 'textContent'];
 
     /**
      * 下载单Post

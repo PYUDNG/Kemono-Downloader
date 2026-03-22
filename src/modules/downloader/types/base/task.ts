@@ -1,4 +1,4 @@
-import { DownloadFile, IDownloadTask, IFileDownloadTask, IMultiFileDownloadTask, Progress, ITask } from "../interface/task.js";
+import { DownloadFile, IDownloadTask, IFileDownloadTask, IMultiFileDownloadTask, Progress, ITask, ISavefileTask, SaveFile } from "../interface/task.js";
 import { v4 as uuid } from "uuid";
 import { Reactive, reactive } from "vue";
 import { Nullable } from "@/utils/main.js";
@@ -40,6 +40,25 @@ export abstract class BaseTask implements ITask {
      */
     abstract abort(...args: any[]): unknown;
 }
+
+export abstract class BaseSavefileTask extends BaseTask implements ISavefileTask {
+    public readonly type: string = 'savefile';
+    public name: string | null;
+    file: SaveFile;
+
+    constructor(parent: Nullable<BaseTask>, file: SaveFile) {
+        super(parent);
+        this.file = file;
+        this.name = file.path;
+    }
+
+    /**
+     * 开始保存  
+     * 返回一个保存完成时resolve的Promise
+     */
+    abstract run(...args: any): Promise<unknown>;
+}
+
 export abstract class BaseDownloadTask extends BaseTask implements IDownloadTask {
     public readonly type: string = 'download';
     abstract name: string | null;
@@ -50,6 +69,7 @@ export abstract class BaseDownloadTask extends BaseTask implements IDownloadTask
      */
     abstract run(...args: any[]): Promise<unknown>;
 }
+
 export abstract class BaseFileDownloadTask extends BaseDownloadTask implements IFileDownloadTask {
     public readonly type: string = 'file';
     public name: string;

@@ -111,9 +111,9 @@ export default {
             "feature-not-supported": '当前下载器（{provider}）不支持修改此设置',
             provider: {
                 label: '下载器',
-                caption: '默认使用浏览器内置下载；其它下载器有其独特优势，但需要自行测试和您的浏览器的兼容性',
+                caption: '默认使用浏览器内置下载器；其它下载器有其独特优势，但需要自行测试和您的浏览器的兼容性',
                 options: {
-                    browser: '浏览器内置下载',
+                    browser: '浏览器内置下载器',
                     fsa: 'File System API',
                     aria2: 'Aria2 RPC',
                 },
@@ -126,7 +126,7 @@ export default {
                             support: '功能',
                         },
                         provider: {
-                            browser: '浏览器内置下载',
+                            browser: '浏览器内置下载器',
                             fsa: 'File System API',
                             aria2: 'Aria2 RPC',
                         },
@@ -200,12 +200,26 @@ export default {
                     aria2: '您当前的下载器是{provider}，请通过服务端配置文件或者专业Aria2界面调整此设置',
                 },
             },
+            "text-content": {
+                label: '同时下载帖子的文字内容',
+                caption: '使用文件命名功能自定义文件名时，此文件的文件原名为content.txt/content.html',
+                "feature-not-supported": {
+                    browser: '当前下载器（{provider}）不支持修改此设置',
+                    fsa: '当前下载器（{provider}）不支持修改此设置',
+                    aria2: '{provider} 不支持此功能',
+                },
+                options: {
+                    none: '不下载文字内容',
+                    txt: '下载为txt文件',
+                    html: '下载为html文件',
+                },
+            },
             group: '常规设置',
         },
         provider: {
             browser: {
                 settings: {
-                    label: '下载器: 浏览器内置下载',
+                    label: '下载器: 浏览器内置下载器',
                 }
             },
             fsa: {

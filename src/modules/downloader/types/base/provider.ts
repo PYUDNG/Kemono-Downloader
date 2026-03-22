@@ -8,6 +8,7 @@ export const features = [
     'pause',
     'abortFiles',
     'concurrent',
+    'textContent',
 ] as const;
 export type Feature = typeof features[number];
 

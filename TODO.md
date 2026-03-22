@@ -110,7 +110,11 @@ TODO
 - [x] bug: README语言切换器没有在Greasyfork版本隐藏
 - [x] bug: 设置模块中无未分组设置项时，顶部依然有gap
 - [ ] 全选下载创作者全部帖子功能
-- [ ] 下载帖子文本内容功能
+- [x] 下载帖子文本内容功能
+  - [x] 创建feature
+  - [x] 设置项
+  - [x] 不同provider兼容数据
+  - [x] provider逻辑实现
 - [x] 并发下载数量自定义
   - [x] 创建feature
   - [x] 设置项

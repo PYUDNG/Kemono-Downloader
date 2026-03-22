@@ -23,9 +23,9 @@ export default {
         },
         gui: {
             title: 'Settings',
-            "tabpanel-placeholder": 'Select a module to enter its settings',
+            "tabpanel-placeholder": 'Select a module to access its settings',
             "no-items-placeholder": 'Settings list is empty',
-            "reload-to-apply": 'Changes will take effect after refreshing the page',
+            "reload-to-apply": 'Changes to this setting will take effect after refreshing the page',
             "help-header": 'Help - {name}',
             "mobile-dialog": {
                 ok: 'Save',
@@ -44,8 +44,8 @@ export default {
         name: 'Downloader',
         gui: {
             title: 'Downloader',
-            "title-detail": 'Task Details - {name}',
-            "title-detail-noname": 'Task Details',
+            "title-detail": 'Task Detail - {name}',
+            "title-detail-noname": 'Task Detail',
             tabs: {
                 init: 'Initializing',
                 queue: 'Queued',
@@ -73,21 +73,21 @@ export default {
                     "confirm-delete-files": 'Also delete downloaded files',
                     "confirm-restart": {
                         label: 'Redownload',
-                        message: 'Are you sure you want to restart the download task <span class="text-primary">{name}</span>?<br>Current progress will be lost and the download will start from the beginning',
+                        message: 'Are you sure you want to restart the download task <span class="text-primary">{name}</span>?<br>Current progress will be lost.',
                         header: 'Confirm Redownload',
-                        accept: 'Redownload',
+                        accept: 'Restart',
                         reject: 'Cancel',
                     },
                     "confirm-abort": {
-                        label: 'Stop (Abort) Download',
-                        message: 'Are you sure you want to stop (abort) the download task <span class="text-primary">{name}</span>?<br>Resuming is not currently supported; you will have to restart from the beginning if needed',
+                        label: 'Abort Download',
+                        message: 'Are you sure you want to abort the task <span class="text-primary">{name}</span>?<br>Resuming is not supported; restarting will start from the beginning.',
                         header: 'Confirm Abort',
-                        accept: 'Stop',
+                        accept: 'Abort',
                         reject: 'Cancel',
                     },
                     "confirm-remove": {
                         label: 'Remove Task',
-                        message: 'Are you sure you want to remove the download task <span class="text-primary">{name}</span>?<br>The task will be permanently removed; you must click the download button again on the original page to restart',
+                        message: 'Are you sure you want to remove the task <span class="text-primary">{name}</span>?<br>The task will be permanently removed.',
                         header: 'Confirm Removal',
                         accept: 'Remove',
                         reject: 'Cancel',
@@ -97,71 +97,71 @@ export default {
                     caption: 'Progress: {percentage}%, {finished} / {total}',
                 },
                 post: {
-                    caption: '{total} files in total, {finished} downloaded',
+                    caption: '{total} files total, {finished} downloaded',
                     "caption-aborted": ', {aborted} aborted',
                 },
                 posts: {
-                    caption: '{total} posts in total, {finished} downloaded',
+                    caption: '{total} posts total, {finished} downloaded',
                     "caption-aborted": ', {aborted} aborted',
                 },
             }
         },
         settings: {
             label: 'Downloader',
-            "feature-not-supported": 'The current downloader ({provider}) does not support modifying this setting',
+            "feature-not-supported": 'The current downloader ({provider}) does not support this setting',
             provider: {
-                label: 'Downloader Provider',
-                caption: 'Defaults to Browser Built-in; other downloaders have unique advantages but require compatibility testing with your browser/manager',
+                label: 'Provider',
+                caption: 'Uses the browser default downloader by default. Others offer unique advantages but require compatibility testing.',
                 options: {
                     browser: 'Browser Built-in',
                     fsa: 'File System API',
                     aria2: 'Aria2 RPC',
                 },
                 help: {
-                    instruction: 'Different downloaders have different characteristics. The following table shows compatibility data tested against your browser and script manager:',
+                    instruction: 'Different providers have different features. Compatibility tested for your browser/manager:',
                     table: {
                         corner: {
                             provider: 'Provider',
                             support: 'Features',
                         },
                         provider: {
-                            browser: 'Browser Built-in',
+                            browser: 'Built-in',
                             fsa: 'File System API',
                             aria2: 'Aria2 RPC',
                         },
                         support: {
-                            self: 'Provider Availability',
+                            self: 'Availability',
                             pause: 'Pause/Resume',
-                            "abort-files": 'Delete files when aborting',
-                            dir: 'Create folder structure',
+                            "abort-files": 'Delete files on abort',
+                            dir: 'Create directory structure',
                         },
                     },
-                    questionable: 'Developer cannot guarantee 100% compatibility for this item; please test it yourself',
+                    questionable: 'Compatibility is not 100% guaranteed; please test manually.',
                     aria2NeedInstall: dedent`
                         Aria2 needs to be installed and configured manually.
-                        A professional Aria2 client GUI is also recommended.
+                        Using a professional Aria2 GUI client is recommended.
                     `.replaceAll('\n', '<br>'),
-                    fsaMobile: 'Mobile browsers may encounter file read/write issues; please test it yourself',
+                    fsaMobile: 'Mobile browsers may experience file I/O issues.',
                 },
             },
             filename: {
-                label: 'File Naming',
-                caption: 'Use templates for custom naming; leave empty to restore default filenames',
+                label: 'Filenaming',
+                caption: 'Use templates for custom filenaming. Clear to restore defaults.',
                 help: {
                     header: dedent`
-                        You can use slashes to create directory structures: "\\" for Windows, and "/" for Apple/Linux/Android.
-                        The following templates can be used in custom filenames (case-insensitive); keep the curly braces when using them (click to copy).
+                        Use slashes for directories: "\\" for Windows, "/" for others.
+                        Templates are case-insensitive. Keep curly braces (click to copy):
                     `.replaceAll('\n', '<br>'),
                     markup: 'Template',
                     desc: 'Description',
                     templates: {
-                        PostID: 'Post ID',
+                        PostID: 'Post Content ID',
                         CreatorID: 'Creator ID',
-                        Service: 'Platform (e.g., "fanbox", "fantia", etc.)',
-                        P: 'The index of the file in the current folder level',
-                        Name: 'Original filename on Kemono server',
+                        Service: 'Platform (e.g., "fanbox", "fantia")',
+                        P: 'File index in current directory',
+                        Name: 'Original filename on server',
                         Base: 'Filename without extension (e.g., "abc" from "abc.jpg")',
-                        Ext: 'File extension (e.g., "jpg" from "abc.jpg")',
+                        Ext: 'File extension (e.g., "jpg")',
                         Title: 'Post Title',
                         Creator: 'Creator Name',
                         Year: '4-digit Year',
@@ -171,9 +171,9 @@ export default {
                         Minute: '2-digit Minute',
                         Second: '2-digit Second',
                         Timestamp: 'Numeric Timestamp',
-                        Timetext: 'Readable Timestamp',
+                        Timetext: 'Textual Timestamp',
                     },
-                    footer: 'Note: All time-related templates are based on the content\'s publication time'
+                    footer: 'Note: All time-related templates are based on the content publish date.'
                 },
                 toast: {
                     copied: 'Copied',
@@ -181,8 +181,8 @@ export default {
             },
             "no-cover-file": 'Do not download cover images',
             "abort-files": {
-                label: 'Action when aborting a task',
-                caption: 'Some downloaders may not support this feature',
+                label: 'Action on task abort',
+                caption: 'May not be supported by all providers',
                 options: {
                     prompt: 'Always ask',
                     delete: 'Delete downloaded files',
@@ -191,32 +191,46 @@ export default {
             },
             concurrent: {
                 label: 'Max Concurrent Downloads',
-                caption: 'Maximum number of files to download simultaneously',
+                caption: 'Number of files to download simultaneously',
                 "feature-not-supported": {
-                    browser: 'The current downloader ({provider}) does not support modifying this setting',
-                    fsa: 'The current downloader ({provider}) does not support modifying this setting',
-                    aria2: 'Your current downloader is {provider}; please adjust this setting via the server configuration file or a professional Aria2 interface',
+                    browser: 'The current provider ({provider}) does not support this setting',
+                    fsa: 'The current provider ({provider}) does not support this setting',
+                    aria2: 'Using {provider}? Adjust this via server config or Aria2 GUI.',
                 },
             },
-            group: 'General Settings',
+            "text-content": {
+                label: 'Download post text content',
+                caption: 'Filename will be content.txt/content.html unless customized.',
+                "feature-not-supported": {
+                    browser: 'The current provider ({provider}) does not support this setting',
+                    fsa: 'The current provider ({provider}) does not support this setting',
+                    aria2: 'Not supported by {provider}',
+                },
+                options: {
+                    none: 'None',
+                    txt: 'Download as .txt',
+                    html: 'Download as .html',
+                },
+            },
+            group: 'General',
         },
         provider: {
             browser: {
                 settings: {
-                    label: 'Downloader: Browser Built-in',
+                    label: 'Provider: Browser Built-in',
                 }
             },
             fsa: {
                 settings: {
-                    label: 'Downloader: File System API',
+                    label: 'Provider: File System API',
                     directory: {
                         label: 'Download Folder',
-                        caption: 'Click to change the download destination',
+                        caption: 'Click to change save location',
                         "not-selected": 'No folder selected',
                     },
                     "permission-check": {
-                        label: 'Check Folder Permissions',
-                        caption: 'If authorization isn\'t triggered or errors occur during saving, click here',
+                        label: 'Check Permissions',
+                        caption: 'If authorization fails or errors occur, click here',
                         button: 'Authorize',
                         toast: {
                             granted: {
@@ -225,7 +239,7 @@ export default {
                             },
                             failed: {
                                 title: 'Permission Check',
-                                message: 'Unable to acquire read/write permissions for the folder',
+                                message: 'Unable to obtain read/write access',
                             },
                         },
                     },
@@ -233,49 +247,49 @@ export default {
             },
             aria2: {
                 settings: {
-                    label: 'Downloader: Aria2',
-                    "disabled-text": 'Aria2 is not the current downloader',
+                    label: 'Provider: Aria2',
+                    "disabled-text": 'Aria2 is not the current provider',
                     endpoint: {
                         label: 'Aria2 Server',
-                        caption: 'Server endpoint, supports http(s)/ws(s) protocols',
+                        caption: 'Server endpoint, supports http(s)/ws(s)',
                     },
                     secret: {
                         label: 'Secret',
-                        caption: 'Leave empty if no secret is required',
+                        caption: 'Leave blank if not used',
                     },
                     dir: {
                         label: 'Download Path',
-                        caption: 'Folder path for saving downloads; leave empty to use default',
+                        caption: 'Path to store downloads; leave blank to use server default',
                         help: dedent`
-                            If you have configured a download location on the Aria2 server, this option will override it.
-                            To use the server-side configuration, please leave this field empty.
-                            <span class="font-bold">Note: If you intend to create folders via custom filenames, this field must be specified; otherwise, custom folders will be created in the Aria2 execution directory instead of the server's download directory.</span>
+                            This overrides the server-side configuration.
+                            Leave blank to use the default server path.
+                            <span class="font-bold">Note: Required for custom filename subdirectories, otherwise they will be created in the Aria2 execution root.</span>
                         `.replaceAll('\n', '<br>'),
                     },
                     interval: {
-                        label: 'Task Refresh Interval (sec)',
-                        caption: 'The time interval for refreshing task progress during download',
+                        label: 'Refresh Interval (sec)',
+                        caption: 'How often to refresh task progress',
                     },
                     "connection-test": {
                         label: 'Test Connection',
-                        caption: 'Attempt to connect to the Aria2 server with current settings',
+                        caption: 'Try connecting to the Aria2 server with current settings',
                         button: 'Test',
                         toast: {
                             "not-enabled": {
                                 title: 'Aria2 Not Enabled',
-                                message: 'Please set the downloader to Aria2 before testing',
+                                message: 'Set provider to Aria2 before testing',
                             },
                             "not-ready": {
-                                title: 'Aria2 Not Connected',
-                                message: 'Aria2 downloader is not ready; please check the configuration and test the connection',
+                                title: 'Aria2 Not Ready',
+                                message: 'Downloader not initialized, check config',
                             },
                             granted: {
-                                title: 'Connection Successful',
+                                title: 'Success',
                                 message: 'Connected to Aria2 server, version {version}',
                             },
                             failed: {
-                                title: 'Connection Failed',
-                                message: 'Unable to connect, please check your settings',
+                                title: 'Failed',
+                                message: 'Connection failed, check config',
                             },
                         },
                     },
@@ -299,25 +313,25 @@ export default {
         },
     },
     debugging: {
-        name: 'Debugging',
+        name: 'Debug',
         settings: {
             "group-log": 'Logs',
             "save-logs": {
                 label: 'Save Logs',
-                caption: 'Save runtime logs in the script storage for later export; only enable when necessary, as excessive logs may slow down the script',
+                caption: 'Saves logs to script storage for export; may slow down the script if kept on indefinitely',
             },
             "export-logs": {
                 label: 'Export Logs',
-                caption: 'To report a bug, please enable the "Save Logs" button above, refresh the page to reproduce the bug, and then click here to export the log file for feedback',
+                caption: 'To report a bug: enable logs, reproduce the bug, then click here to export',
                 button: 'Export',
             },
             "clear-logs": {
                 label: 'Clear Logs',
-                caption: 'If recorded logs are no longer needed, click here to delete them',
+                caption: 'Delete recorded logs if no longer needed',
                 button: 'Clear',
                 cleared: {
                     summary: 'Logs Cleared',
-                    detail: 'All logs have been deleted, freeing up {size} of space'
+                    detail: 'All logs deleted, {size} freed'
                 }
             },
         },

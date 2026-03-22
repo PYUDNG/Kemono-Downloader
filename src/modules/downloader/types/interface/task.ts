@@ -110,6 +110,21 @@ export interface ITask {
 }
 
 /**
+ * 待保存文件
+ */
+export interface SaveFile {
+    /**
+     * 下载链接 / 文件地址
+     */
+    data: Blob | File | FileSystemFileHandle | string;
+
+    /**
+     * 保存的文件名 / 路径
+     */
+    path: string;
+}
+
+/**
  * 待下载文件
  */
 export interface DownloadFile {
@@ -122,6 +137,31 @@ export interface DownloadFile {
      * 保存的文件名 / 路径
      */
     path: string;
+}
+
+/**
+ * 保存文件任务  
+ * 无需网络请求、直接保存内存内容到文件的任务
+ */
+export interface ISavefileTask extends ITask {
+    /**
+     * 任务类型  
+     * 当实例化为任何非子类实例时，type应为`'savefile'`
+     */
+    type: HintedString<'savefile'>;
+
+    /**
+     * 任务的人类可读名称  
+     * 通常用于UI展示  
+     * 当由于各种原因（如数据未加载完成等）缺失时，为`null`
+     */
+    name: string | null;
+
+    /**
+     * 开始保存  
+     * 返回一个保存完成时resolve的Promise
+     */
+    run: (...args: any[]) => Promise<unknown>;
 }
 
 /**

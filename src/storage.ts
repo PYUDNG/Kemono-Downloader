@@ -37,6 +37,11 @@ export const globalStorage = new UserscriptStorage(
             concurrent: 5 as number,
 
             /**
+             * 是否下载文字内容
+             */
+            textContent: 'none' as 'none' | 'txt' | 'html',
+
+            /**
              * 不同provider自己的设置空间
              */
             providerSettings: {

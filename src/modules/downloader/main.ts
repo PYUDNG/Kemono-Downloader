@@ -13,7 +13,7 @@ import FilenameHelpComp from "./gui/setting-help/Filename.vue";
 import ProviderHelpComp from "./gui/setting-help/Provider.vue";
 import { ProviderType } from "./types/base/task.js";
 import { DisabledGUI } from "../settings/types.js";
-import { BaseDownloadProvider } from "./types/base/provider.js";
+import { BaseDownloadProvider, Feature } from "./types/base/provider.js";
 import { Status } from "./types/interface/task.js";
 import { GM_registerMenuCommand } from "$";
 export { default as gui } from './gui/app.vue';
@@ -22,6 +22,7 @@ import FileEditIcon from '~icons/prime/file-edit';
 import ImageIcon from '~icons/prime/image';
 import FolderIcon from '~icons/prime/folder';
 import ARALIcon from '~icons/prime/arrow-right-arrow-left';
+import AlignJustifyIcon from '~icons/prime/align-justify';
 
 const t = i18n.global.t;
 const storage = globalStorage.withKeys('downloader');
@@ -37,17 +38,22 @@ export default defineModule({
 });
 
 // 设置项
+/**
+ * 当前provider  
+ * 此变量隶属于{@link providerRelatedDisabled}函数使用
+ */
+const currentProvider = makeStorageRef('provider', storage);
+
 registerModule({
     id: 'downloader',
     name: t($settings.$label),
     items: [{
         id: 'provider',
         type: 'select',
-        icon: DownloadIcon,
         label: t($settings.$provider.$label),
         caption: t($settings.$provider.$caption),
+        icon: DownloadIcon,
         help: markRaw(ProviderHelpComp),
-        value: makeStorageRef('provider', storage, true, false),
         props: {
             optionLabel: 'label',
             optionValue: 'value',
@@ -56,6 +62,7 @@ registerModule({
                 value: name,
             })),
         },
+        value: makeStorageRef('provider', storage, true, false),
         reload: true,
         group: 'regular',
     }, {
@@ -118,22 +125,54 @@ registerModule({
             placeholder: storage.default('concurrent').toString(),
         },
         value: makeStorageRef('concurrent', storage, true, false),
-        disabled: (function() {
-            const provider = makeStorageRef('provider', storage);
-            return computed(() => 
-                providers[provider.value].features.includes('concurrent') ?
-                    false :
-                    ({
-                        text: t($settings.$concurrent.$featureNotSupported + '.' + provider.value, {
-                            provider: t($settings.$provider.$options + '.' + provider.value),
-                        }),
-                        props: {
-                            class: 'text-yellow-500'
-                        },
-                        value: -1,
-                    } satisfies DisabledGUI)
-            );
-        }) (),
+        disabled: featureRelatedDisabled(
+            'concurrent',
+            (Object.keys(providers) as ProviderType[]).reduce((text, provider) => {
+                const $featureNotSupported = $settings.$concurrent.$featureNotSupported;
+                const $provider = $settings.$provider;
+                text[provider] = {
+                    text: t(
+                        $featureNotSupported + '.' + provider, {
+                            provider: t($provider.$options + '.' + provider),
+                        }
+                    ),
+                    value: -1,
+                };
+                return text;
+            }, {} as Record<ProviderType, Partial<DisabledGUI>>),
+        ),
+        group: 'regular',
+    }, {
+        id: 'textContent',
+        type: 'select',
+        label: t($settings.$textContent.$label),
+        caption: t($settings.$textContent.$caption),
+        icon: AlignJustifyIcon,
+        props: {
+            optionLabel: 'label',
+            optionValue: 'value',
+            options: ['none', 'txt', 'html'].map(val => ({
+                label: t($settings.$textContent.$options + '.' + val),
+                value: val,
+            })),
+        },
+        value: makeStorageRef('textContent', storage),
+        disabled: featureRelatedDisabled(
+            'textContent',
+            (Object.keys(providers) as ProviderType[]).reduce((text, provider) => {
+                const $featureNotSupported = $settings.$textContent.$featureNotSupported;
+                const $provider = $settings.$provider;
+                text[provider] = {
+                    text: t(
+                        $featureNotSupported + '.' + provider, {
+                            provider: t($provider.$options + '.' + provider),
+                        }
+                    ),
+                    value: 'none',
+                };
+                return text;
+            }, {} as Record<ProviderType, Partial<DisabledGUI>>),
+        ),
         group: 'regular',
     }],
     index: 1,
@@ -190,4 +229,26 @@ export async function downloadPosts(name: string, infos: PostInfo[]) {
 export function showUI(tab?: Status) {
     tab && (root.tab = tab);
     root.visible = true;
+}
+
+/**
+ * 根据当前provider是否支持某一特定feature决定设置项是否禁用
+ * @param provider 若当前provider在此列表中，则**不禁用**；反之为禁用
+ * @param text 当被禁用时，在界面上展示什么文本提示；数据类型为{ [当前provider]: 文本 }；若某些provider对应属性未设置，则在需要时使用默认的feature-not-supported文本
+ * @returns 表示设置项禁用状态的响应式变量，可以直接填入SettingItem的disabled属性
+ */
+function featureRelatedDisabled(
+    feature: Feature,
+    gui: Partial<Record<ProviderType, Partial<DisabledGUI>>>) {
+    return computed<boolean | DisabledGUI>(() => 
+        providers[currentProvider.value].features.includes(feature) ?
+            false :
+            ({
+                text: gui[currentProvider.value]?.text ??
+                    t($settings.$featureNotSupported, { provider: currentProvider.value }),
+                props: gui[currentProvider.value]?.props ??
+                    { class: 'text-yellow-500' },
+                value: gui[currentProvider.value]?.value,
+            })
+    );
 }
