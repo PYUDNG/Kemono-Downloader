@@ -154,6 +154,8 @@ class FSASaveFileTask extends BaseSavefileTask implements ISavefileTask {
             return;
         }
         this.progress.status = 'ongoing';
+        this.progress.finished = 0;
+        this.progress.total = 1;
 
         // 将数据转换为FSA文件可写流可写入格式
         let data: FileSystemWriteChunkType;
@@ -178,6 +180,7 @@ class FSASaveFileTask extends BaseSavefileTask implements ISavefileTask {
         // 关闭可写流
         await writable.close();
 
+        this.progress.finished = 1;
         this.progress.status = 'complete';
     }
 

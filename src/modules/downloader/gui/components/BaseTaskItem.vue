@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T extends BaseDownloadTask = BaseDownloadTask">
+<script setup lang="ts" generic="T extends BaseTask = BaseTask">
 import ProgressBar from '@/volt/ProgressBar.vue';
 import type { Status } from '../../types/interface/main.js';
 import { useI18n } from 'vue-i18n';
@@ -10,11 +10,11 @@ import { useConfirm } from 'primevue/useconfirm';
 import { globalStorage, makeStorageRef } from '@/storage';
 import { v4 as uuid } from 'uuid';
 import { supports } from './utils.js';
-import { BaseDownloadTask } from '../../types/base/task.js';
+import { BaseTask } from '../../types/base/task.js';
 import Checkbox from '@/volt/Checkbox.vue';
 import ExclamationTriangleIcon from '@primevue/icons/exclamationtriangle';
 import { i18nKeys } from '@/i18n/utils.js';
-import DownloadIcon from '~icons/prime/times'
+import DownloadIcon from '~icons/prime/download'
 import FileIcon from '~icons/prime/file'
 import FolderIcon from '~icons/prime/folder'
 import PlayIcon from '~icons/prime/play'
@@ -271,6 +271,7 @@ const confirmRemove = function(e?: PointerEvent | KeyboardEvent) {
  * 根据任务类型展示对应的图标
  */
 const icon = computed(() => ({
+    savefile: FileIcon,
     download: DownloadIcon,
     file: FileIcon,
     post: FileIcon,

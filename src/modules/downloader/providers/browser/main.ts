@@ -68,9 +68,12 @@ class BrowserSavefileTask extends BaseSavefileTask implements ISavefileTask {
             return;
         }
         this.progress.status = 'ongoing';
+        this.progress.finished = 0;
+        this.progress.total = 1;
 
         await saveAs(this.file.data, this.file.path);
 
+        this.progress.finished = 1;
         this.progress.status = 'complete';
     }
 

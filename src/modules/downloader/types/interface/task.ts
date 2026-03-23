@@ -58,6 +58,13 @@ export interface ITask {
     provider: string;
 
     /**
+     * 任务的人类可读名称  
+     * 通常用于UI展示  
+     * 当由于各种原因（如数据未加载完成等）缺失时，为`null`
+     */
+    name: string | null;
+
+    /**
      * 任务进度  
      * 响应式对象
      */

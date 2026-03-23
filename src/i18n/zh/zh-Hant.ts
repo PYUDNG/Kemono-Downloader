@@ -93,6 +93,12 @@ export default {
                         reject: '算了',
                     }
                 },
+                save: {
+                    caption: {
+                        ongoing: '正在儲存檔案...',
+                        complete: '檔案已儲存',
+                    },
+                },
                 file: {
                     caption: '下載進度: {percentage}%, {finished} / {total}',
                 },

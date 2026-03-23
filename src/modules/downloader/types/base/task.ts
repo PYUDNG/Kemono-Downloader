@@ -9,6 +9,7 @@ export type ProviderType = keyof typeof import('../../providers/main.js');
 export abstract class BaseTask implements ITask {
     public id: string = uuid();
     public readonly type: string = 'task';
+    abstract name: string | null;
     public progress: Reactive<Progress> = reactive({
         total: -1,
         finished: -1,

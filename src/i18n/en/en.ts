@@ -93,6 +93,12 @@ export default {
                         reject: 'Cancel',
                     }
                 },
+                save: {
+                    caption: {
+                        ongoing: 'Saving file...',
+                        complete: 'File saved',
+                    },
+                },
                 file: {
                     caption: 'Progress: {percentage}%, {finished} / {total}',
                 },
