@@ -3,6 +3,10 @@ import dedent from "dedent";
 export default {
     components: {
         "posts-selector": {
+            "selection-buttons": {
+                "select-all": '全选',
+                clear: '清空',
+            },
             list: {
                 search: '搜索'
             },

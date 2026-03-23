@@ -31,6 +31,7 @@
         "vue-i18n": "^11.2.8"
     },
     "devDependencies": {
+        "@iconify-json/material-symbols": "^1.2.63",
         "@iconify-json/prime": "^1.2.4",
         "@iconify-json/simple-icons": "^1.2.74",
         "@types/fs-extra": "^11.0.4",

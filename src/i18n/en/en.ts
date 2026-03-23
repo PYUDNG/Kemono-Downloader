@@ -3,6 +3,10 @@ import dedent from "dedent";
 export default {
     components: {
         "posts-selector": {
+            "selection-buttons": {
+                "select-all": 'Select All',
+                clear: 'Clear',
+            },
             list: {
                 search: 'Search'
             },

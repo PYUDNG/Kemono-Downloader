@@ -4,15 +4,20 @@ import { PostsApiItem } from '@/modules/api/types/posts.js';
 import PostItem from './PostItem.vue';
 import InputText from '@/volt/InputText.vue';
 import { computed, ref, watch } from 'vue';
+import type { Component } from 'vue';
 import { isPostsApiItem } from './utils';
 import { useI18n } from 'vue-i18n';
 import Paginator from '@/volt/Paginator.vue';
 import { PageState } from 'primevue';
 import { PostInfo } from '@/modules/api/types/common';
-import { debounce } from '@/utils/main';
+import { debounce, getIsMobileLayout } from '@/utils/main';
 import { i18nKeys } from '@/i18n/utils';
+import Button from '@/volt/Button.vue';
+import MaterialSymbolsSelectAllRounded from '~icons/material-symbols/select-all-rounded';
+import MaterialSymbolsDeselectRounded from '~icons/material-symbols/deselect-rounded';
 
 const { t } = useI18n();
+const $postsSelector = i18nKeys.$components.$postsSelector;
 
 const props = defineProps<{
     /**
@@ -218,13 +223,58 @@ const displayPostItems = computed(() =>
         isSelected: isPostSelected(post)
     }))
 );
+
+//#region 选项操作按钮
+interface SelectionButton {
+    label: string;
+    icon: Component;
+    onClick: (e: PointerEvent) => void,
+}
+const isMobileLayout = getIsMobileLayout();
+const selectionButtions: SelectionButton[] = [{
+    label: t($postsSelector.$selectionButtons.$selectAll),
+    icon: MaterialSymbolsSelectAllRounded,
+    onClick(_e) {
+        // 在原数组上更改而不是替换为新数组，以确保触发vue响应式跟踪更新
+        const newSelectedPosts = displayPosts.value.map(post => {
+            const data = isPostsApiItem(post) ? post : post.post;
+            return {
+                service: data.service,
+                creatorId: data.user,
+                postId: data.id
+            };
+        });
+        selectedPosts.value.splice(0, selectedPosts.value.length, ...newSelectedPosts);
+    },
+}, {
+    label: t($postsSelector.$selectionButtons.$clear),
+    icon: MaterialSymbolsDeselectRounded,
+    onClick(_e) {
+        selectedPosts.value.splice(0, selectedPosts.value.length);
+    },
+}];
 </script>
 
 <template>
     <div ref="div" class="flex flex-col">
+        <!-- 选项操作按钮 -->
+        <div class="flex flex-row gap-3 px-3 py-2 items-center justify-end">
+            <Button
+                v-for="button of selectionButtions"
+                :label="isMobileLayout ? '' : button.label"
+                :title="button.label"
+                variant="text"
+                @click="button.onClick"
+            >
+                <template #icon>
+                    <component :is="button.icon" class="text-xl"></component>
+                </template>
+            </Button>
+        </div>
+
         <!-- 搜索框 -->
         <div class="px-3 py-2 flex flex-row items-center">
-            <span class="w-fit px-3 py-2">{{ t(i18nKeys.$components.$postsSelector.$list.$search) }}</span>
+            <span class="w-fit px-3 py-2">{{ t($postsSelector.$list.$search) }}</span>
             <InputText v-model="search" class="grow shrink" />
         </div>
 
