@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Checkbox from '@/volt/Checkbox.vue';
-import { computed, useTemplateRef } from 'vue';
+import { computed, ref, useTemplateRef } from 'vue';
 import { v4 as uuid } from 'uuid';
 import { PostsApiItem } from '@/modules/api/types/posts.js';
 import { PostApiResponse } from '@/modules/api/types/post.js';
@@ -14,8 +14,10 @@ import { i18nKeys } from '@/i18n/utils.js';
 import ImageIcon from '~icons/prime/image'
 import ExternalLinkIcon from '~icons/prime/external-link'
 import OverlayBadge from '@/volt/OverlayBadge.vue';
+import PrimeSpinner from '~icons/prime/spinner'
 
-const { t } = useI18n()
+const { t } = useI18n();
+const $postsSelector = i18nKeys.$components.$postsSelector;
 
 const { data, id } = defineProps<{
     /**
@@ -81,13 +83,16 @@ const coverSizingClasses = computed(() => {
 
 // 封面图Popover展示逻辑
 const coverPop = useTemplateRef('cover-pop');
+/** 图片是否至少有一小部分已加载，当完全未加载时为false */
+const hasData = ref(true);
 const popoverHandlers = computed(() =>
     coverPop.value ?
         popoverLogic(coverPop.value, {
             beforeShow(_e) {
-                // 缩略图完全未加载时不展示悬浮窗大图
-                if (!img.value || img.value.naturalWidth === 0 || img.value.naturalHeight === 0)
-                    return false;
+                // 没有缩略图时不展示popover
+                if (!img.value) return false
+                // 缩略图完全未加载时不展示悬浮窗大图，展示加载中placeholder UI
+                hasData.value = img.value.naturalWidth > 0 && img.value.naturalHeight > 0;
                 return true;
             },
         }) :
@@ -139,9 +144,14 @@ const popoverHandlers = computed(() =>
                 class="pointer-events-none"
             >
                 <img
+                    v-if="hasData"
                     :src="coverUrl"
                     :class="[...coverSizingClasses]"
                 >
+                <div v-else class="px-3 py-2 flex flex-row items-center gap-3">
+                    <PrimeSpinner class="animate-spin" />
+                    {{ t($postsSelector.$imageLoading) }}
+                </div>
             </Popover>
         </div>
 
@@ -163,7 +173,7 @@ const popoverHandlers = computed(() =>
         <!-- 按钮 -->
         <div class="flex flex-row items-center px-3 py-2">
             <a :href="postUrl" target="_blank">
-                <Button variant="text" :pt:root:title="t(i18nKeys.$components.$postsSelector.$buttons.$openPost)">
+                <Button variant="text" :pt:root:title="t($postsSelector.$buttons.$openPost)">
                     <template #icon>
                         <ExternalLinkIcon />
                     </template>

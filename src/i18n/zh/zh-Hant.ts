@@ -15,6 +15,7 @@ export default {
                 ok: '下載',
                 cancel: '取消',
             },
+            "image-loading": '載入中...',
         }
     },
     api: {

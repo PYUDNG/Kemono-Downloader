@@ -287,32 +287,36 @@ class FSAFileDownloadTask extends BaseFileDownloadTask implements IFileDownloadT
                         keepExistingData: false,
                         // @ts-ignore `mode`参数存在，但项目使用的ts类型库'@types/wicg-file-system-access'尚未实现此类型
                         mode: 'exclusive',
-                    })
-                    let lastBytesLoaded = 0;
-                    const writeChunk = async (buffer: ArrayBuffer) => {
-                        const chunk = buffer.slice(lastBytesLoaded);
-                        if (chunk.byteLength > 0) {
-                            await writable.write(chunk);
-                            lastBytesLoaded += chunk.byteLength;
-                        }
-                    };
-                    await requestBuffer({
-                        url: this.file.url,
-                        onprogress: async e => {
-                            // 写入文件
-                            if (e.response) await writeChunk(e.response);
-                            // 更新进度
-                            this.progress.total = (e.total ?? e.totalSize ?? -1) || -1;
-                            this.progress.finished = (e.done ?? e.loaded ?? -1) || -1;
-                        },
-                        onload: async e => {
-                            // 写入文件
-                            await writeChunk(e.response);
-                            // 更新进度
-                            this.progress.finished = this.progress.total;
-                        }
-                    }, currentRunSignal);
-                    await writable.close();
+                    });
+                    // 为应对GM_xhr也出错（比如网络不稳定情况），使用try-finally保证文件可写流最终一定被关闭
+                    try {
+                        let lastBytesLoaded = 0;
+                        const writeChunk = async (buffer: ArrayBuffer) => {
+                            const chunk = buffer.slice(lastBytesLoaded);
+                            if (chunk.byteLength > 0) {
+                                await writable.write(chunk);
+                                lastBytesLoaded += chunk.byteLength;
+                            }
+                        };
+                        await requestBuffer({
+                            url: this.file.url,
+                            onprogress: async e => {
+                                // 写入文件
+                                if (e.response) await writeChunk(e.response);
+                                // 更新进度
+                                this.progress.total = (e.total ?? e.totalSize ?? -1) || -1;
+                                this.progress.finished = (e.done ?? e.loaded ?? -1) || -1;
+                            },
+                            onload: async e => {
+                                // 写入文件
+                                await writeChunk(e.response);
+                                // 更新进度
+                                this.progress.finished = this.progress.total;
+                            }
+                        }, currentRunSignal);
+                    } finally {
+                        await writable.close();
+                    }
                 }
 
                 // 

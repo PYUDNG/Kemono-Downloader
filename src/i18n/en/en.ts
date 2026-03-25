@@ -15,6 +15,7 @@ export default {
                 ok: 'Download',
                 cancel: 'Cancel',
             },
+            "image-loading": 'Loading...',
         }
     },
     api: {
