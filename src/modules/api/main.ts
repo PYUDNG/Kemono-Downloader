@@ -1,4 +1,4 @@
-import { PromiseOrRaw, requestJson } from "@/utils/main.js";
+import { PromiseOrRaw, requestJson, toast } from "@/utils/main.js";
 import { PostApiResponse } from "./types/post.js";
 import { defineModule } from "../types.js";
 import { KemonoService, PostInfo } from "./types/common.js";
@@ -7,8 +7,13 @@ import { PostsApiResponse } from "./types/posts.js";
 import { ProfileApiResponse } from "./types/profile.js";
 import { Nullable } from "@primevue/core";
 import i18n, { i18nKeys } from "@/i18n/main.js";
+import { groupExists, onModuleRegistered, registerGroup, registerItem } from "../settings/main.js";
+import { ref } from "vue";
+import PrimeTrash from '~icons/prime/trash'
 
 const t = i18n.global.t;
+const $api = i18nKeys.$api;
+const $settings = $api.$settings;
 
 interface ApiOptions {
     /**
@@ -84,6 +89,35 @@ const hasCache = <C = undefined>(
     const result = cache.get(cacheKey);
     return completed && result instanceof Promise ?
         false : !!result;
+};
+
+/**
+ * 清除特定缓存
+ * @param request 请求体
+ * @returns 存在缓存且已清除时返回true，不存在缓存时返回false
+ */
+const removeCache = <C = undefined>(request: GmXmlhttpRequestOption<'text', C>): boolean => {
+    // 检查是否为GET请求
+    const method = request.method?.toUpperCase();
+    if (method && method !== 'GET') return false;
+
+    // 合成缓存Key
+    const cacheKey = getCacheKey(request);
+
+    // 清除缓存
+    const exist = cache.has(cacheKey);
+    exist && cache.delete(cacheKey);
+    return exist;
+};
+
+/**
+ * 清除全部缓存
+ * @returns 清理的缓存条目数量
+ */
+export const clearCache = (): number => {
+    const count = cache.size;
+    cache.clear();
+    return count;
 }
 
 /**
@@ -107,9 +141,17 @@ export async function api<
     const jsonTextPromise = promise.then(response => JSON.stringify(response));
     saveCache(request, jsonTextPromise);
 
-    // 取得response，并更新缓存
-    const response = await promise;
-    saveCache(request, JSON.stringify(response));
+    // 带错误处理地取得并处理响应
+    let response: any;
+    try {
+        // 取得response，并更新缓存
+        response = await promise;
+        saveCache(request, JSON.stringify(response));
+    } catch(err) {
+        // 发生错误，清除缓存，并抛出错误
+        removeCache(request);
+        throw err;
+    }
 
     // 返回response
     return response;
@@ -151,8 +193,41 @@ export function profile({ service, creatorId }: { service: KemonoService, creato
     }, options);
 }
 
+// 设置
+onModuleRegistered('self', () => {
+    // cache组可能被其他模块共用，因此这里先检查确定组不存在再注册
+    // 目前缓存还只有API缓存，因此注册、命名等均在API命名空间和作用域下
+    groupExists('self', 'cache') || registerGroup('self', {
+        id: 'cache',
+        name: t($settings.$groupCache),
+        index: 2,
+    });
+
+    registerItem('self', [{
+        id: 'clear-api-cache',
+        type: 'button',
+        label: t($settings.$clearApiCache.$label),
+        caption: t($settings.$clearApiCache.$caption),
+        icon: PrimeTrash,
+        props: {
+            onClick() {
+                const $clearApiCache = $settings.$clearApiCache;
+                const count = clearCache();
+                toast({
+                    severity: 'success',
+                    summary: t($clearApiCache.$cleared.$summary),
+                    detail: t($clearApiCache.$cleared.$detail, { count }),
+                    life: 3000,
+                });
+            }
+        },
+        value: ref(t($settings.$clearApiCache.$button)),
+        group: 'cache',
+    }])
+});
+
 // 默认导出模块定义
 export default defineModule({
     id: 'api',
-    name: t(i18nKeys.$api.$name),
+    name: t($api.$name),
 });

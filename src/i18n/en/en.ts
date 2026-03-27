@@ -20,6 +20,18 @@ export default {
     },
     api: {
         name: 'Kemono API',
+        settings: {
+            "group-cache": 'Cache',
+            "clear-api-cache": {
+                label: 'Clear API Cache',
+                caption: 'Ensure the latest data is fetched from the server',
+                button: 'Clear',
+                cleared: {
+                    summary: 'API Cache Cleared',
+                    detail: 'Cleared {count} cache entries',
+                },
+            },
+        },
     },
     settings: {
         name: 'Settings',

@@ -20,6 +20,18 @@ export default {
     },
     api: {
         name: 'Kemono API',
+        settings: {
+            "group-cache": '快取',
+            "clear-api-cache": {
+                label: '清理 API 快取',
+                caption: '確保從伺服器獲取最新數據',
+                button: '清理',
+                cleared: {
+                    summary: 'API 快取清理',
+                    detail: '清理了 {count} 條快取',
+                },
+            },
+        },
     },
     settings: {
         name: '設定',

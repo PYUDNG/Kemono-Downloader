@@ -57,7 +57,7 @@ export default defineModule({
  * @param module 设置模块
  */
 export function registerModule(module: SettingModule) {
-    if (modules.value.some(m => m.id === module.id)) throw TypeError(`duplicate id ${module.id}`);
+    if (modules.value.some(m => m.id === module.id)) throw TypeError(`duplicate id ${ module.id }`);
     modules.value.push(reactive(module));
 }
 
@@ -68,7 +68,7 @@ export function registerModule(module: SettingModule) {
  */
 export function registerItem(id: string, items: SingleOrArray<SettingItem>) {
     const module = modules.value.find(m => m.id === id);
-    if (!module) throw new TypeError(`cannot find module with id ${id}`);
+    if (!module) throw new TypeError(`cannot find module with id ${ id }`);
     
     items = Array.isArray(items) ? items : [items];
     const reactiveItems = items.map(item => reactive(item));
@@ -82,11 +82,33 @@ export function registerItem(id: string, items: SingleOrArray<SettingItem>) {
  */
 export function registerGroup(id: string, group: SettingGroup) {
     const module = modules.value.find(m => m.id === id);
-    if (!module) throw new TypeError(`cannot find module with id ${id}`);
+    if (!module) throw new TypeError(`cannot find module with id ${ id }`);
+    if (module.groups?.some(g => g.id === group.id)) throw new TypeError(`duplicate id ${ id }`);
     
     Array.isArray(module.groups) ?
         module.groups.push(group) :
         module.groups = [group];
+}
+
+/**
+ * 检查给定设置模块是否存在
+ * @param id 模块ID
+ * @returns 
+ */
+export function moduleExists(id: string): boolean {
+    return modules.value.some(m => m.id === id);
+}
+
+/**
+ * 检查给定设置模块中是否存在指定设置组
+ * @param moduleId 模块ID
+ * @param groupId 组ID
+ * @returns 
+ */
+export function groupExists(moduleId: string, groupId: string): boolean {
+    const module = modules.value.find(m => m.id === moduleId);
+    if (!module) throw new TypeError(`cannot find module with id ${ moduleId }`);
+    return module.groups?.some(g => g.id === groupId) ?? false;
 }
 
 /**
