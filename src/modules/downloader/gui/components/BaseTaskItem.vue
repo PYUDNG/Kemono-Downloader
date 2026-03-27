@@ -2,10 +2,11 @@
 import ProgressBar from '@/volt/ProgressBar.vue';
 import type { Status } from '../../types/interface/main.js';
 import { useI18n } from 'vue-i18n';
-import { computed, ref } from 'vue';
+import { computed, getCurrentInstance, ref, useTemplateRef } from 'vue';
 import type { Component } from 'vue';
 import Button from '@/volt/Button.vue';
 import ConfirmDialog from '@/volt/ConfirmDialog.vue';
+import Menu from '@/volt/Menu.vue';
 import { useConfirm } from 'primevue/useconfirm';
 import { globalStorage, makeStorageRef } from '@/storage';
 import { v4 as uuid } from 'uuid';
@@ -22,7 +23,8 @@ import PauseIcon from '~icons/prime/pause'
 import StopIcon from '~icons/prime/stop'
 import RefreshIcon from '~icons/prime/refresh'
 import TrashIcon from '~icons/prime/trash'
-
+import PrimeEllipsisH from '~icons/prime/ellipsis-h'
+import { MenuItem } from 'primevue/menuitem';
 
 const { t } = useI18n();
 const storage = globalStorage.withKeys('downloader');
@@ -53,11 +55,14 @@ const emit = defineEmits<{
     restart: [task: T, deleteFiles: boolean];
     abort: [task: T, deleteFiles: boolean];
     remove: [task: T, deleteFiles: boolean];
+    pause: [task: T];
+    unpause: [task: T];
+    retry: [task: T];
     click: [event: PointerEvent, task: T];
 }>();
 
 // 插槽定义
-defineSlots<{
+const slots = defineSlots<{
     /**
      * 标题插槽
      */
@@ -108,7 +113,9 @@ const progress = computed(() => Object.assign({
         error: 'bg-red-600'
     } [task.progress.status],
     percentage: task.progress.total > -1 && task.progress.finished > -1 ?
-        task.progress.finished / task.progress.total * 100 : 0,
+        (task.progress.total > 0 ?
+            task.progress.finished / task.progress.total * 100 : 100) :
+        0,
     hasPercentage: task.progress.total > -1 && task.progress.finished > -1,
 }, task.progress));
 const progreebarMode = computed(() => ({
@@ -164,6 +171,11 @@ const pausable = supports(task, 'pause') && isStatus('paused', 'ongoing');
 const abortable = isStatus('queue', 'ongoing');
 
 /**
+ * 任务是否可以用户主动重试
+ */
+const retryable = isStatus('error');
+
+/**
  * 任务是否可以用户主动重新开始
  */
 const restartable = isStatus('ongoing', 'complete', 'aborted', 'error');
@@ -176,7 +188,7 @@ const removable = computed(() => !isSubtask);
 /**
  * 用户重新开始下载任务
  */
-const confirmRestart = function(e?: PointerEvent | KeyboardEvent) {
+const confirmRestart = function(e?: Event) {
     e?.stopPropagation();
 
     // 重置复选框选中状态
@@ -207,7 +219,7 @@ const confirmRestart = function(e?: PointerEvent | KeyboardEvent) {
 /**
  * 用户停止下载任务
  */
-const confirmAbort = function(e?: PointerEvent | KeyboardEvent) {
+const confirmAbort = function(e?: Event) {
     e?.stopPropagation();
 
     // 重置复选框选中状态
@@ -239,9 +251,7 @@ const confirmAbort = function(e?: PointerEvent | KeyboardEvent) {
 /**
  * 用户移除下载任务
  */
-const confirmRemove = function(e?: PointerEvent | KeyboardEvent) {
-    e?.stopPropagation();
-
+const confirmRemove = function(_e?: Event) {
     // 重置复选框选中状态
     deleteFilesChecked.value = false;
 
@@ -267,6 +277,7 @@ const confirmRemove = function(e?: PointerEvent | KeyboardEvent) {
         }
     });
 }
+
 /**
  * 根据任务类型展示对应的图标
  */
@@ -277,6 +288,53 @@ const icon = computed(() => ({
     post: FileIcon,
     posts: FolderIcon,
 })[task.type] as Component);
+
+const instance = getCurrentInstance()!;
+const overlayParent = computed(() => instance.root.vnode.el?.parentElement);
+
+/**
+ * 更多菜单
+ */
+const menu = useTemplateRef('menu');
+
+/**
+ * 更多菜单操作按钮展开/隐藏
+ */
+const toggleMenu = (e: Event, target?: any) => {
+    e.stopPropagation();
+    menu.value?.toggle(e, target);
+}
+
+type CustomMenuItem = {
+    // 遍历 MenuItem 的所有键
+    [P in keyof MenuItem]: P extends 'icon' 
+        ? Component | undefined            // 如果是 icon，换成 Component
+        : P extends 'items' 
+            ? CustomMenuItem[] | undefined // 如果是 items，递归换成当前类型
+            : MenuItem[P];                 // 其他属性保持原样
+}
+
+/**
+ * 更多菜单中的按钮
+ */
+const menuButtons = computed(() => {
+    const items: CustomMenuItem[] = [{
+        label: t($common.$confirmRestart.$label),
+        disabled: loading,
+        icon: RefreshIcon,
+        command(e) {
+            confirmRestart(e.originalEvent);
+        },
+    }, {
+        label: t($common.$confirmRemove.$label),
+        disabled: loading,
+        icon: TrashIcon,
+        command(e) {
+            confirmRemove(e.originalEvent);
+        },
+    }];
+    return items;
+});
 </script>
 
 <template>
@@ -357,7 +415,7 @@ const icon = computed(() => ({
                     v-show="pausable"
                     variant="text"
                     :loading="loading"
-                    @click="task.progress.status === 'paused' ? task.unpause() : task.pause()"
+                    @click="task.progress.status === 'paused' ? emit('unpause', task) : emit('pause', task)"
                     :title="t($common + '.' + (task.progress.status === 'paused' ? 'unpause' : 'pause'))"
                     pt:root:class="p-2"
                 >
@@ -367,13 +425,13 @@ const icon = computed(() => ({
                     </template>
                 </Button>
 
-                <!-- 重新下载任务按钮 -->
+                <!-- 重试下载任务按钮 -->
                 <Button
-                    v-show="restartable"
+                    v-show="retryable"
                     variant="text"
                     :loading="loading"
-                    @click="confirmRestart"
-                    :title="t($common.$confirmRemove.$label)"
+                    @click="task.progress.status === 'error' && emit('retry', task)"
+                    :title="t($common.$retry)"
                     pt:root:class="p-2"
                 >
                     <template #icon>
@@ -395,19 +453,31 @@ const icon = computed(() => ({
                     </template>
                 </Button>
 
-                <!-- 移除下载任务按钮 -->
+                <!-- 更多菜单操作按钮 -->
                 <Button
-                    v-show="removable"
+                    v-show="restartable || removable"
                     variant="text"
-                    :loading="loading"
-                    @click="confirmRemove"
-                    :title="t($common.$confirmRemove.$label)"
+                    @click="toggleMenu"
+                    :title="t($common.$more)"
                     pt:root:class="p-2"
                 >
                     <template #icon>
-                        <TrashIcon />
+                        <PrimeEllipsisH />
                     </template>
                 </Button>
+
+                <!-- 菜单 -->
+                <Menu 
+                    ref="menu"
+                    :model="(menuButtons as MenuItem[])"
+                    :append-to="overlayParent"
+                    :pt:root:onclick="(e: Event) => e.stopPropagation()"
+                    popup
+                >
+                    <template #itemicon="{ class: cls, item }">
+                        <component :is="item.icon" :class="cls" />
+                    </template>
+                </Menu>
             </div>
         </div>
 

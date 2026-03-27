@@ -56,6 +56,46 @@ const defaultOptions: Required<ShadowAppCreationOptions<Component>> = {
     stopPropagation: true,
 };
 
+// Fix: 重写document上的addEventListener，使得event.target可以获取到Shadow DOM内的元素
+document.addEventListener = function(
+    ...args: Parameters<typeof EventTarget.prototype.addEventListener>
+): ReturnType<typeof EventTarget.prototype.addEventListener> {
+    const [type, listener, options] = args;
+    if (!listener) return;
+
+    const wrappedListener = function(this: any, event: Event) {
+        // 参数处理：提取事件处理器函数
+        const handler = isEventListener(listener) ? listener : listener.handleEvent;
+
+        // 当Shadow DOM的mode为'open'时，composedPath可以强制返回真实的原始节点
+        const realTarget = event.composedPath()[0] || event.target;
+
+        // 只有当原始 target 是 Shadow Host 时，才进行伪装
+        // 这样可以确保非 Shadow DOM 的普通元素逻辑不受任何影响
+        const needsProxy = event.target && 'shadowRoot' in event.target && event.target.shadowRoot && event.target !== realTarget;
+        if (!needsProxy)
+            // 当非shadowroot事件时，不进行event包装
+            return handler.call(this, event);
+
+        // 创建一个 Proxy 来拦截对 target 的访问
+        const eventProxy = new Proxy(event, {
+            get(target, prop: keyof Event) {
+                if (prop === 'target') {
+                    return event.composedPath()[0] || target.target;
+                }
+                return target[prop];
+            }
+        });
+        return handler.call(this, eventProxy);
+    };
+    
+    return EventTarget.prototype.addEventListener.call(this, type, wrappedListener, options);
+
+    function isEventListener(listener: EventListenerOrEventListenerObject): listener is EventListener {
+        return !('handleEvent' in listener);
+    } 
+};
+
 // 异步导入styling，防止循环导入初始化死锁
 let styling = import('@/styling.js');
 

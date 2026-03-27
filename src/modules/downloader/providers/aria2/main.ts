@@ -348,6 +348,27 @@ class Aria2FileDownloadTask extends BaseFileDownloadTask implements IFileDownloa
         // 设置停止状态
         this.progress.status = 'aborted';
     }
+
+    /**
+     * 重试任务  
+     * 重新下载当前文件
+     */
+    async retry(): Promise<void> {
+        // 如果没有错误就什么都不干
+        if (this.progress.status !== 'error') return;
+        
+        // 重试
+        await this.abort();
+        await this.run();
+
+        // 设置父级任务状态
+        if (this.parent) {
+            const progress = this.parent.progress;
+            progress.finished++;
+            if (progress.finished === progress.total)
+                progress.status = 'complete';
+        }
+    }
 }
 
 export class PostDownloadTask extends BasePostDownloadTask implements IPostDownloadTask {
@@ -479,6 +500,29 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
         await Promise.allSettled(this.subTasks.map(task => task.abort()));
         // 等待本次run执行完毕后返回
         await this.runPromise;
+    }/**
+     * 重试任务  
+     * 重试所有失败的子任务
+     */
+    async retry(): Promise<void> {
+        // 如果没有错误就什么都不干
+        if (this.progress.status !== 'error') return;
+        
+        // 重试
+        this.progress.status = 'ongoing';
+        await Promise.allSettled(
+            this.subTasks
+                .filter(task => task.progress.status === 'error')
+                .map(task => task.retry())
+        );
+        
+        // 设置父级任务状态
+        if (this.parent) {
+            const progress = this.parent.progress;
+            progress.finished++;
+            if (progress.finished === progress.total)
+                progress.status = 'complete';
+        }
     }
 
     /**
@@ -574,6 +618,31 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
         // 终止每一个子任务
         await Promise.allSettled(this.subTasks.map(task => task.abort()));
         // 等待本次run完成后返回：由于此时每个子任务都已完成（终止），run自然就已经完成，因此无需额外等待
+    }
+
+    /**
+     * 重试任务  
+     * 重试所有失败的子任务
+     */
+    async retry(): Promise<void> {
+        // 如果没有错误就什么都不干
+        if (this.progress.status !== 'error') return;
+        
+        // 重试
+        this.progress.status = 'ongoing';
+        await Promise.allSettled(
+            this.subTasks
+                .filter(task => task.progress.status === 'error')
+                .map(task => task.retry())
+        );
+        
+        // 设置父级任务状态
+        if (this.parent) {
+            const progress = this.parent.progress;
+            progress.finished++;
+            if (progress.finished === progress.total)
+                progress.status = 'complete';
+        }
     }
 
     /**

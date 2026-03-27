@@ -75,6 +75,8 @@ export default {
                     "caption-nodata": 'service: {service}, creator id: {creatorId}, post id: {postId}',
                     pause: 'Pause',
                     unpause: 'Resume',
+                    retry: 'Retry',
+                    more: 'More',
                     "confirm-delete-files": 'Also delete downloaded files',
                     "confirm-restart": {
                         label: 'Redownload',

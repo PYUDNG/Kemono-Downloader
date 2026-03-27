@@ -35,6 +35,8 @@ export abstract class BaseTask implements ITask {
 
     abstract unpause(): unknown;
 
+    abstract retry(): unknown;
+
     /**
      * 终止任务
      * 仅当任务处于`'queue'`或`'ongoing'`状态时有效

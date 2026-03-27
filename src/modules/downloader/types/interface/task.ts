@@ -106,6 +106,12 @@ export interface ITask {
     abort: Function;
 
     /**
+     * 重试任务失败部分  
+     * 将任务整体重试或者出错部分重试，取决于任务性质与具体实现
+     */
+    retry: Function;
+
+    /**
      * 子任务列表
      */
     subTasks: ITask[];

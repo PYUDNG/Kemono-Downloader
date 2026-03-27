@@ -75,6 +75,8 @@ export default {
                     "caption-nodata": 'service: {service}, creator id: {creatorId}, post id: {postId}',
                     pause: '暂停下载',
                     unpause: '取消暂停',
+                    retry: '重试',
+                    more: '更多',
                     "confirm-delete-files": '同时删除已下载的文件',
                     "confirm-restart": {
                         label: '重新下载',

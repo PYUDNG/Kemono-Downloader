@@ -76,6 +76,39 @@ async function restart(task: BasePostsDownloadTask, deleteFiles: boolean) {
 }
 
 /**
+ * 用户暂停下载任务
+ * @param task 任务实例，和props传入的task应当相同
+ * @param deleteFiles 是否删除已下载的文件
+ */
+async function pause(task: BasePostsDownloadTask) {
+    loading.value = true;
+    await task.pause();
+    loading.value = false;
+}
+
+/**
+ * 用户取消暂停下载任务
+ * @param task 任务实例，和props传入的task应当相同
+ * @param deleteFiles 是否删除已下载的文件
+ */
+async function unpause(task: BasePostsDownloadTask) {
+    loading.value = true;
+    await task.unpause();
+    loading.value = false;
+}
+
+/**
+ * 用户重试下载任务
+ * @param task 任务实例，和props传入的task应当相同
+ * @param deleteFiles 是否删除已下载的文件
+ */
+async function retry(task: BasePostsDownloadTask) {
+    loading.value = true;
+    await task.retry();
+    loading.value = false;
+}
+
+/**
  * 用户查看任务详情
  * @param _e 点击事件
  * @param task 任务实例，和props传入的task应当相同
@@ -110,6 +143,9 @@ function detail(_e: PointerEvent, task: BasePostsDownloadTask) {
         @abort="abort"
         @remove="remove"
         @restart="restart"
+        @pause="pause"
+        @unpause="unpause"
+        @retry="retry"
         @click="detail"
     >
         <!-- 标题插槽：当post api尚未加载完成时，先展示占位文本 -->

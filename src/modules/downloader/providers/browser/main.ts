@@ -94,6 +94,12 @@ class BrowserSavefileTask extends BaseSavefileTask implements ISavefileTask {
      * 保存文件任务**不支持暂停**，因此调用此方法没有任何作用
      */
     unpause(): void {}
+
+    /**
+     * 重试任务  
+     * 保存文件任务**不存在程序可处理的错误**，因此调用此方法没有任何作用
+     */
+    retry(): void {}
 }
 
 /**
@@ -200,6 +206,27 @@ class BrowserFileDownloadTask extends BaseFileDownloadTask implements IFileDownl
         this.controller?.abort();
         // 等待本次run执行完毕后返回
         await this.runPromise;
+    }
+
+    /**
+     * 重试任务  
+     * 重新下载当前文件
+     */
+    async retry(): Promise<void> {
+        // 如果没有错误就什么都不干
+        if (this.progress.status !== 'error') return;
+
+        // 重试
+        await this.abort();
+        await this.run();
+
+        // 设置父级任务状态
+        if (this.parent) {
+            const progress = this.parent.progress;
+            progress.finished++;
+            if (progress.finished === progress.total)
+                progress.status = 'complete';
+        }
     }
 }
 
@@ -394,6 +421,31 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
     }
 
     /**
+     * 重试任务  
+     * 重试所有失败的子任务
+     */
+    async retry(): Promise<void> {
+        // 如果没有错误就什么都不干
+        if (this.progress.status !== 'error') return;
+        
+        // 重试
+        this.progress.status = 'ongoing';
+        await Promise.allSettled(
+            this.subTasks
+                .filter(task => task.progress.status === 'error')
+                .map(task => task.retry())
+        );
+
+        // 设置父级任务状态
+        if (this.parent) {
+            const progress = this.parent.progress;
+            progress.finished++;
+            if (progress.finished === progress.total)
+                progress.status = 'complete';
+        }
+    }
+
+    /**
      * 检查所有subTasks中是否存在给定状态的task
      */
     hasTaskStatus(status: Status) {
@@ -474,6 +526,31 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
         // 终止每一个子任务
         await Promise.allSettled(this.subTasks.map(task => task.abort()));
         // 等待本次run完成后返回：由于此时每个子任务都已完成（终止），run自然就已经完成，因此无需额外等待
+    }
+
+    /**
+     * 重试任务  
+     * 重试所有失败的子任务
+     */
+    async retry(): Promise<void> {
+        // 如果没有错误就什么都不干
+        if (this.progress.status !== 'error') return;
+        
+        // 重试
+        this.progress.status = 'ongoing';
+        await Promise.allSettled(
+            this.subTasks
+                .filter(task => task.progress.status === 'error')
+                .map(task => task.retry())
+        );
+        
+        // 设置父级任务状态
+        if (this.parent) {
+            const progress = this.parent.progress;
+            progress.finished++;
+            if (progress.finished === progress.total)
+                progress.status = 'complete';
+        }
     }
 
     /**
