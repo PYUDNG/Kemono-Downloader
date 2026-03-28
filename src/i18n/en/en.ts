@@ -237,6 +237,10 @@ export default {
                     html: 'Download as .html',
                 },
             },
+            "auto-retry": {
+                label: 'Auto-Retry Attempts',
+                caption: 'Maximum number of automatic retries when a download task fails; set to 0 to disable auto-retry; set to a negative value for infinite retries',
+            },
             group: 'General',
         },
         provider: {

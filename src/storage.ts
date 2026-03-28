@@ -42,6 +42,11 @@ export const globalStorage = new UserscriptStorage(
             textContent: 'none' as 'none' | 'txt' | 'html',
 
             /**
+             * 自动重试次数
+             */
+            autoRetry: 3 as number,
+
+            /**
              * 不同provider自己的设置空间
              */
             providerSettings: {

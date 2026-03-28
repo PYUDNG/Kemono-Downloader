@@ -23,6 +23,7 @@ import ImageIcon from '~icons/prime/image';
 import FolderIcon from '~icons/prime/folder';
 import ARALIcon from '~icons/prime/arrow-right-arrow-left';
 import AlignJustifyIcon from '~icons/prime/align-justify';
+import PrimeRefresh from '~icons/prime/refresh'
 
 const t = i18n.global.t;
 const storage = globalStorage.withKeys('downloader');
@@ -84,65 +85,6 @@ registerModule({
         value: makeStorageRef('noCoverFile', storage, true, false),
         group: 'regular',
     }, {
-        id: 'abortFiles',
-        type: 'select',
-        icon: FolderIcon,
-        label: t($settings.$abortFiles.$label),
-        caption: t($settings.$abortFiles.$caption),
-        value: makeStorageRef('abortFiles', storage, true, false),
-        props: {
-            optionLabel: 'label',
-            optionValue: 'value',
-            options: ['prompt', 'delete', 'preserve'].map(action => ({
-                label: t($settings.$abortFiles.$options + '.' + action),
-                value: action,
-            })),
-        },
-        disabled: (function() {
-            const provider = makeStorageRef('provider', storage);
-            return computed(() => 
-                providers[provider.value].features.includes('abortFiles') ?
-                    false :
-                    ({
-                        text: t($settings.$featureNotSupported, {
-                            provider: t($settings.$provider.$options + '.' + provider.value),
-                        }),
-                        props: {
-                            class: 'text-yellow-500'
-                        },
-                        value: 'preserve',
-                    } satisfies DisabledGUI)
-            );
-        }) (),
-        group: 'regular',
-    }, {
-        id: 'concurrent',
-        type: 'number',
-        icon: ARALIcon,
-        label: t($settings.$concurrent.$label),
-        caption: t($settings.$concurrent.$caption),
-        props: {
-            placeholder: storage.default('concurrent').toString(),
-        },
-        value: makeStorageRef('concurrent', storage, true, false),
-        disabled: featureRelatedDisabled(
-            'concurrent',
-            (Object.keys(providers) as ProviderType[]).reduce((text, provider) => {
-                const $featureNotSupported = $settings.$concurrent.$featureNotSupported;
-                const $provider = $settings.$provider;
-                text[provider] = {
-                    text: t(
-                        $featureNotSupported + '.' + provider, {
-                            provider: t($provider.$options + '.' + provider),
-                        }
-                    ),
-                    value: -1,
-                };
-                return text;
-            }, {} as Record<ProviderType, Partial<DisabledGUI>>),
-        ),
-        group: 'regular',
-    }, {
         id: 'textContent',
         type: 'select',
         label: t($settings.$textContent.$label),
@@ -173,6 +115,76 @@ registerModule({
                 return text;
             }, {} as Record<ProviderType, Partial<DisabledGUI>>),
         ),
+        group: 'regular',
+    }, {
+        id: 'concurrent',
+        type: 'number',
+        icon: ARALIcon,
+        label: t($settings.$concurrent.$label),
+        caption: t($settings.$concurrent.$caption),
+        props: {
+            placeholder: storage.default('concurrent').toString(),
+        },
+        value: makeStorageRef('concurrent', storage, true, false),
+        disabled: featureRelatedDisabled(
+            'concurrent',
+            (Object.keys(providers) as ProviderType[]).reduce((text, provider) => {
+                const $featureNotSupported = $settings.$concurrent.$featureNotSupported;
+                const $provider = $settings.$provider;
+                text[provider] = {
+                    text: t(
+                        $featureNotSupported + '.' + provider, {
+                            provider: t($provider.$options + '.' + provider),
+                        }
+                    ),
+                    value: -1,
+                };
+                return text;
+            }, {} as Record<ProviderType, Partial<DisabledGUI>>),
+        ),
+        group: 'regular',
+    }, {
+        id: 'auto-retry',
+        type: 'number',
+        label: t($settings.$autoRetry.$label),
+        caption: t($settings.$autoRetry.$caption),
+        icon: PrimeRefresh,
+        props: {
+            placeholder: storage.default('autoRetry').toString(),
+        },
+        value: makeStorageRef('autoRetry', storage),
+        group: 'regular',
+    }, {
+        id: 'abortFiles',
+        type: 'select',
+        icon: FolderIcon,
+        label: t($settings.$abortFiles.$label),
+        caption: t($settings.$abortFiles.$caption),
+        value: makeStorageRef('abortFiles', storage, true, false),
+        props: {
+            optionLabel: 'label',
+            optionValue: 'value',
+            options: ['prompt', 'delete', 'preserve'].map(action => ({
+                label: t($settings.$abortFiles.$options + '.' + action),
+                value: action,
+            })),
+        },
+        disabled: (function() {
+            const provider = makeStorageRef('provider', storage);
+            return computed(() => 
+                providers[provider.value].features.includes('abortFiles') ?
+                    false :
+                    ({
+                        text: t($settings.$featureNotSupported, {
+                            provider: t($settings.$provider.$options + '.' + provider.value),
+                        }),
+                        props: {
+                            class: 'text-yellow-500'
+                        },
+                        value: 'preserve',
+                    } satisfies DisabledGUI)
+            );
+        }) (),
         group: 'regular',
     }],
     index: 1,

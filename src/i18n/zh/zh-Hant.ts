@@ -237,6 +237,10 @@ export default {
                     html: '下載為 .html 檔案',
                 },
             },
+            "auto-retry": {
+                label: '自動重試次數',
+                caption: '下載任務失敗時最多自動重試幾次；設定為 0 則不自動重試；設定為負數則無限自動重試',
+            },
             group: '常規設定',
         },
         provider: {

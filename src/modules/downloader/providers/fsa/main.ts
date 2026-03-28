@@ -1,5 +1,5 @@
 import { Nullable, Queue, requestBuffer, toast } from "@/utils/main.js";
-import { BaseDownloadTask, BaseFileDownloadTask, BaseSavefileTask, ProviderType } from "../../types/base/task";
+import { BaseDownloadTask, BaseFileDownloadTask, BaseSavefileTask, BaseTask, ProviderType } from "../../types/base/task";
 import { DownloadFile, IFileDownloadTask, ISavefileTask, SaveFile, Status } from "../../types/interface/task";
 import { logger as globalLogger } from "@/utils/main.js";
 import { globalStorage } from "@/storage";
@@ -759,7 +759,7 @@ export default class BrowserDownloadProvider extends BaseDownloadProvider implem
         // 创建任务并开始执行
         const task = new PostDownloadTask(null, info);
         this.tasks.push(task);
-        task.init.then(() => task.run());
+        this.runWithRetry(task);
         return task.id;
     }
 
@@ -775,8 +775,30 @@ export default class BrowserDownloadProvider extends BaseDownloadProvider implem
         // 创建任务并开始执行
         const task = new PostsDownloadTask(null, name, infos);
         this.tasks.push(task);
-        task.init.then(() => task.run());
+        this.runWithRetry(task);
         return task.id;
+    }
+    
+    /**
+     * 带自动错误重试逻辑地执行任务
+     * @param task 需要执行的任务
+     */
+    private async runWithRetry(task: BaseTask) {
+        // 等待任务初始化完毕
+        await task.init;
+
+        // 首先执行一次
+        await task.run();
+
+        // 后续错误重试逻辑
+        for (
+            // 用户设定的重试最大次数，当设置为负数时无限重试
+            let retries = storage.get('autoRetry');
+            // 当重试次数归零，或者未处于错误状态时，不继续重试
+            retries !== 0 && task.progress.status === 'error';
+            // 重试次数递减
+            retries--
+        ) await task.retry();
     }
 }
 
