@@ -41,7 +41,10 @@ export function constructFilename(
     template = template ?? storage.get('filename');
 
     // 模板数据所用到的值
-    const dotIndex = data.file ? data.file.name.lastIndexOf('.') : null;
+    const origName = data.file ?
+        data.file.name ?? data.file.path.substring(data.file.path.lastIndexOf('/') + 1) :
+        null;
+    const dotIndex = data.file ? origName?.lastIndexOf('.') : null;
     const date = data.post?.post.published ? new Date(data.post?.post.published) : null;
 
     // 合成模板数据
@@ -50,9 +53,9 @@ export function constructFilename(
         CreatorID: data.post?.post.user,
         Service: data.post?.post.service,
         P: info.p,
-        Name: data.file?.name,
-        Base: data.file?.name.substring(0, dotIndex!),
-        Ext: data.file?.name.substring(dotIndex! + 1),
+        Name: origName,
+        Base: origName?.substring(0, dotIndex!),
+        Ext: origName?.substring(dotIndex! + 1),
         Title: data.post?.post.title,
         Creator: data.creator?.name,
         Year: date?.getFullYear(),

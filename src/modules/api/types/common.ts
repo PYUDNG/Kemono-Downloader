@@ -18,7 +18,7 @@ export interface PostInfo {
  * 文件对象类型
  */
 export interface FileItem {
-    name: string;
+    name?: string;
     path: string;
 }
 

@@ -32,7 +32,6 @@ export default defineModule({
                 width: 'fit-content',
                 height: 'fit-content',
                 display: 'block',
-                padding: '0',
             },
             classes: 'button',
         }));
