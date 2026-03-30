@@ -269,3 +269,27 @@ export async function saveAs(
     // 释放Blob URL
     setTimeout(() => URL.revokeObjectURL(url));
 }
+
+export class TypedBroadcastChannel<T> {
+    private channel: BroadcastChannel;
+
+    constructor(name: string) {
+        this.channel = new BroadcastChannel(name);
+    }
+
+    // 严格限制发送的数据类型
+    post(message: T) {
+        this.channel.postMessage(message);
+    }
+
+    // 接收数据时，通过回调传入类型约束
+    onMessage(callback: (message: T) => void) {
+        this.channel.addEventListener('message', 
+            (event: MessageEvent<T>) => callback(event.data)
+        );
+    }
+
+    close() {
+        this.channel.close();
+    }
+}

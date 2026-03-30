@@ -31,7 +31,10 @@ export default defineModule({
                 background: 'transparent',
                 border: 'none',
                 color: 'white',
-                cursor: 'pointer',
+                width: 'fit-content',
+                height: 'fit-content',
+                display: 'block',
+                padding: '0',
             },
             classes: 'button',
         }));
@@ -39,6 +42,11 @@ export default defineModule({
         // 挂载按钮到容器的 Shadow DOM 内
         const { app } = createShadowApp(DownloadButton, {
             host: container,
+            options: {
+                app: {
+                    classes: ['w-fit'],
+                }
+            },
             props: {
                 loading: false,
                 label: t(i18nKeys.$post.$gui.$download),
