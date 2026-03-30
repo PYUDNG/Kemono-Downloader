@@ -98,7 +98,7 @@ registerModule({
                 value: val,
             })),
         },
-        value: makeStorageRef('textContent', storage),
+        value: makeStorageRef('textContent', storage, true, false),
         disabled: featureRelatedDisabled(
             'textContent',
             (Object.keys(providers) as ProviderType[]).reduce((text, provider) => {
@@ -152,7 +152,7 @@ registerModule({
         props: {
             placeholder: storage.default('autoRetry').toString(),
         },
-        value: makeStorageRef('autoRetry', storage),
+        value: makeStorageRef('autoRetry', storage, true, false),
         group: 'regular',
     }, {
         id: 'abortFiles',

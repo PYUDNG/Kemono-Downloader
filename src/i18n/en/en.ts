@@ -22,6 +22,10 @@ export default {
         name: 'Kemono API',
         settings: {
             "group-cache": 'Cache',
+            "api-cache-expires": {
+                label: 'API Cache Expiration',
+                caption: 'Unit: minutes; expired cache will be automatically cleared',
+            },
             "clear-api-cache": {
                 label: 'Clear API Cache',
                 caption: 'Ensure the latest data is fetched from the server',

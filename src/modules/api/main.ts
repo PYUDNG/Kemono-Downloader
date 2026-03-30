@@ -8,9 +8,12 @@ import { ProfileApiResponse } from "./types/profile.js";
 import i18n, { i18nKeys } from "@/i18n/main.js";
 import { groupExists, onModuleRegistered, registerGroup, registerItem } from "../settings/main.js";
 import { ref } from "vue";
-import PrimeTrash from '~icons/prime/trash'
+import PrimeTrash from '~icons/prime/trash';
+import PrimeHistory from '~icons/prime/history';
 import { clearCache, getCache, hasCache, removeCache, saveCache } from "./cache.js";
+import { globalStorage, makeStorageRef } from "@/storage.js";
 
+const storage = globalStorage.withKeys('api');
 const t = i18n.global.t;
 const $api = i18nKeys.$api;
 const $settings = $api.$settings;
@@ -110,6 +113,17 @@ onModuleRegistered('self', () => {
     });
 
     registerItem('self', [{
+        id: 'api-cache-expires',
+        type: 'number',
+        label: t($settings.$apiCacheExpires.$label),
+        caption: t($settings.$apiCacheExpires.$caption),
+        icon: PrimeHistory,
+        props: {
+            placeholder: storage.default('cacheExpires').toString(),
+        },
+        value:  makeStorageRef('cacheExpires', storage, true, false),
+        group: 'cache',
+    }, {
         id: 'clear-api-cache',
         type: 'button',
         label: t($settings.$clearApiCache.$label),

@@ -22,6 +22,10 @@ export default {
         name: 'Kemono API',
         settings: {
             "group-cache": '缓存',
+            "api-cache-expires": {
+                label: 'API缓存有效期',
+                caption: '单位：分钟；过期的缓存将被自动清理',
+            },
             "clear-api-cache": {
                 label: '清理API缓存',
                 caption: '确保从服务器获取最新数据',

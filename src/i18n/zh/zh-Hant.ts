@@ -22,6 +22,10 @@ export default {
         name: 'Kemono API',
         settings: {
             "group-cache": '快取',
+            "api-cache-expires": {
+                label: 'API 快取有效期',
+                caption: '單位：分鐘；過期的快取將被自動清理',
+            },
             "clear-api-cache": {
                 label: '清理 API 快取',
                 caption: '確保從伺服器獲取最新數據',

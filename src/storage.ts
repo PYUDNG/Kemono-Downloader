@@ -10,6 +10,13 @@ import { LogPage } from "./modules/debugging/types.js";
 export const globalStorage = new UserscriptStorage(
     { GM_getValue, GM_setValue, GM_deleteValue, GM_listValues, GM_addValueChangeListener },
     {
+        api: {
+            /**
+             * API缓存有效期  
+             * 单位：分钟
+             */
+            cacheExpires: 60 as number,
+        },
         downloader: {
             /**
              * 使用哪种下载器

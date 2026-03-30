@@ -1,9 +1,13 @@
 import { GmXmlhttpRequestOption } from "$";
+import { globalStorage, makeStorageRef } from "@/storage";
 import { Nullable, PromiseOrRaw, TypedBroadcastChannel } from "@/utils/main";
 import { DBSchema, IDBPDatabase, openDB } from "idb";
+import { computed } from "vue";
 
 const IDB_NAME = 'kemono-downloader.cache';
 const STORE_NAME = 'api';
+
+const storage = globalStorage.withKeys('api');
 
 /**
  * 基础缓存项数据结构
@@ -98,6 +102,7 @@ loadCacheData(cache);
 
 /** 跨页面数据通信通道 */
 const channel = new TypedBroadcastChannel<UpdateMessage>('kemono-downloader:api-cache');
+// 接收和处理跨页面同步事件
 channel.onMessage(update => {
     switch (update.type) {
         case 'update': {
@@ -115,6 +120,10 @@ channel.onMessage(update => {
         }
     }
 });
+
+/** 缓存有效期（分钟） */
+const cacheExpires = makeStorageRef('cacheExpires', storage, true, false);
+const cacheExpiresMS = computed(() => cacheExpires.value * 60 * 1000);
 
 /**
  * 根据请求体，生成请求缓存key
@@ -180,6 +189,10 @@ export const getCache = <C = undefined>(
     const result = cache.get(cacheKey);
     if (!result) return null;
     if (completed && !result.completed) return null;
+    if (Date.now() - result.time > cacheExpiresMS.value) {
+        removeCache(request);
+        return null;
+    }
     return result.data;
 };
 
@@ -197,6 +210,10 @@ export const hasCache = <C = undefined>(
     const result = cache.get(cacheKey);
     if (!result) return false;
     if (completed && !result.completed) return false;
+    if (Date.now() - result.time > cacheExpiresMS.value) {
+        removeCache(request);
+        return false;
+    }
     return true;
 };
 
