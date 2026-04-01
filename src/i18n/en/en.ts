@@ -178,7 +178,7 @@ export default {
                 caption: 'Use templates for custom filenaming. Clear to restore defaults.',
                 help: {
                     header: dedent`
-                        You can use slashes to create directory structures: "\\" for Windows, "/" for Apple/Linux/Android.
+                        You can use slashes to create directory structures: "\" for Windows, "/" for Apple/Linux/Android.
                         If folders are not created despite using slashes, please try switching to another downloader, such as File System API or Aria2.
                         The following templates can be used in custom filenames (case-insensitive). Keep the curly braces (click to copy):
                     `.replaceAll('\n', '<br>'),
