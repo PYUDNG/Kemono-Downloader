@@ -178,8 +178,9 @@ export default {
                 caption: '可以使用範本進行檔案命名，清空即可恢復預設檔名',
                 help: {
                     header: dedent`
-                        您可以使用斜線建立目錄結構，Windows 使用 "\\"，Apple/Linux/Android 使用 "/"
-                        以下範本可在自訂檔名中使用，不區分大小寫，使用時需保留大括號（點擊即可複製）
+                        您可以使用斜線建立資料夾結構，Windows 使用 "\\"，Apple/Linux/Android 使用 "/"
+                        如果發現使用了斜線依然無法建立資料夾，請嘗試修改設定使用其他下載器，例如 File System API 或 Aria2
+                        以下範本可在自訂檔名中使用，不區分大小寫，使用時需保留大括號（可直接點擊複製）
                     `.replaceAll('\n', '<br>'),
                     markup: '範本',
                     desc: '說明',
