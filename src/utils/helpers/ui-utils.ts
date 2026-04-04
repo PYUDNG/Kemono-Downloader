@@ -92,6 +92,7 @@ document.addEventListener = function(
                             if (thisArg === receiver) {
                                 return (target as Function).apply(event, argArray);
                             }
+                            return (target as Function).apply(thisArg, argArray);
                         },
                     });
                 }
