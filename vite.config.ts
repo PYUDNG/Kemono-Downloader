@@ -42,7 +42,7 @@ export default defineConfig({
                 author: pkg.author.name,
                 license: 'GPL-3.0-or-later',
                 icon: 'https://kemono.cr/assets/favicon-CPB6l7kH.ico',
-                namespace: 'https://greasyfork.org/users/667968-pyudng',
+                namespace: pkg.meta.author,
                 match: [
                     'http*://*.kemono.party/*',
                     'http*://*.kemono.su/*',
@@ -110,6 +110,7 @@ export default defineConfig({
         __GITHUB_URL__: JSON.stringify(pkg.meta.github),
         __GREASYFORK_URL__: JSON.stringify(pkg.meta.greasyfork),
         __ISSUES_URL__: JSON.stringify(pkg.meta.issues),
+        __AUTHOR_URL__: JSON.stringify(pkg.meta.author),
     },
 });
 

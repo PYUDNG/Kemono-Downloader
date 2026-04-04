@@ -56,6 +56,7 @@
     "meta": {
         "greasyfork": "https://greasyfork.org/scripts/570258",
         "github": "https://github.com/PYUDNG/Kemono-Downloader",
-        "issues": "https://github.com/PYUDNG/Kemono-Downloader/issues"
+        "issues": "https://github.com/PYUDNG/Kemono-Downloader/issues",
+        "author": "https://greasyfork.org/users/667968-pyudng"
     }
 }

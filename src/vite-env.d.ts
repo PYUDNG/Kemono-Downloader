@@ -7,3 +7,4 @@
 declare const __GITHUB_URL__: string;
 declare const __GREASYFORK_URL__: string;
 declare const __ISSUES_URL__: string;
+declare const __AUTHOR_URL__: string;

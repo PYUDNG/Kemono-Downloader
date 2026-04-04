@@ -79,9 +79,21 @@ document.addEventListener = function(
 
         // 创建一个 Proxy 来拦截对 target 的访问
         const eventProxy = new Proxy(event, {
-            get(target, prop: keyof Event) {
+            get(target, prop: keyof Event, receiver) {
+                // 当访问target属性时，返回composedPath()返回的终端元素，该方法可以获取到open状态下的Shadow DOM结构
                 if (prop === 'target') {
-                    return event.composedPath()[0] || target.target;
+                    return target.composedPath()[0] || target.target;
+                }
+
+                // 修复实例方法调用时，this为proxy而不是原始event导致的Illegal invocation问题
+                if (typeof target[prop] === 'function') {
+                    return new Proxy(target[prop], {
+                        apply(target, thisArg, argArray: []) {
+                            if (thisArg === receiver) {
+                                return (target as Function).apply(event, argArray);
+                            }
+                        },
+                    });
                 }
                 return target[prop];
             }

@@ -343,6 +343,7 @@ class FSAFileDownloadTask extends BaseFileDownloadTask implements IFileDownloadT
                 // 控制台报错
                 logger.simple('Error', 'download error');
                 logger.asLevel('Error', err);
+                console.log(this.file);
                 // 设置任务状态
                 if (this.progress.status !== 'aborted')
                     this.progress.status = 'error';
