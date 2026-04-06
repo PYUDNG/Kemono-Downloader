@@ -1,10 +1,15 @@
+<!-- This is a MODIFIED volt component - so it's not exactly same as that volt provided one -->
+
 <template>
     <Select
         unstyled
+        ref="select"
         :pt="theme"
         :ptOptions="{
             mergeProps: ptViewMerge
         }"
+        @show="isOverlayShowing = true"
+        @hide="isOverlayShowing = false"
     >
         <template #dropdownicon>
             <ChevronDownIcon />
@@ -30,16 +35,53 @@ import SearchIcon from '@primevue/icons/search';
 import SpinnerIcon from '@primevue/icons/spinner';
 import TimesIcon from '@primevue/icons/times';
 import Select, { type SelectPassThroughOptions, type SelectProps } from 'primevue/select';
-import { ref } from 'vue';
+import { ref, useTemplateRef, watch } from 'vue';
 import { ptViewMerge } from './utils';
 
 interface Props extends /* @vue-ignore */ SelectProps {}
 defineProps<Props>();
 
+const select = useTemplateRef('select');
+const isOverlayShowing = ref(false);
+watch(isOverlayShowing, s => console.log('isOverlayShowing switched to', s));
+defineExpose({
+    /**
+     * Shows the overlay.
+     * @param isFocus — Decides whether to focus on the component.
+     */
+    show(isFocus?: boolean | undefined) {
+        select.value?.show(isFocus);
+    },
+
+    /**
+     * Shows the overlay.
+     * @param isFocus — Decides whether to focus on the component.
+     */
+    hide(isFocus?: boolean | undefined) {
+        select.value?.hide(isFocus);
+    },
+    
+    /**
+     * Toggles the overlay.
+     * @param isFocus — Decides whether to focus on the component.
+     */
+    toggle(isFocus?: boolean | undefined) {
+        console.log('isOverlayShowing', isOverlayShowing.value);
+        isOverlayShowing.value ?
+            select.value?.hide(isFocus) :
+            select.value?.show(isFocus);
+    },
+
+    /**
+     * Whether the overlay is showing(visible) right now
+     */
+    get isOverlayShowing() { return isOverlayShowing.value; },
+});
+
 const theme = ref<SelectPassThroughOptions>({
     root: `inline-flex cursor-pointer relative select-none rounded-md p-fluid:flex
         bg-surface-0 dark:bg-surface-950
-        border border-surface-300 hover:border-surface-400 dark:border-surface-700 dark:hover:border-surface-600
+        border border-solid border-surface-300 hover:border-surface-400 dark:border-surface-700 dark:hover:border-surface-600
         p-focus:border-primary
         p-filled:bg-surface-50 dark:p-filled:bg-surface-800
         p-invalid:border-red-400 dark:p-invalid:border-red-300
@@ -58,7 +100,7 @@ const theme = ref<SelectPassThroughOptions>({
         text-surface-400 w-10 rounded-e-md`,
     overlay: `absolute top-0 left-0 rounded-md p-portal-self:min-w-full
         bg-surface-0 dark:bg-surface-900
-        border border-surface-200 dark:border-surface-700
+        border border-solid border-surface-200 dark:border-surface-700
         text-surface-700 dark:text-surface-0
         shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)]`,
     header: `pt-2 pb-1 px-4`,

@@ -1,6 +1,7 @@
+<!-- This is NOT a volt component - its fully written by myself -->
+<!-- PrimeVue Toast -->
+
 <template>
-    <!-- This is NOT a volt component - its fully written by myself -->
-    <!-- PrimeVue Toast -->
     <Toast
         unstyled
         :pt="theme"

@@ -1,5 +1,6 @@
+<!-- This is a MODIFIED volt component - so it's not exactly same as that volt provided one -->
+
 <template>
-    <!-- This is a MODIFIED volt component - so it's not exactly same as that volt provided one -->
     <Dialog
         unstyled
         :pt="theme"
