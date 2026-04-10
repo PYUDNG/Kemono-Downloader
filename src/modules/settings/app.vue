@@ -35,7 +35,7 @@ const visible = ref(false);
 /** 横/竖版布局 */
 const layout = getLayoutRef(1.2);
 
-/** 生产环境下反复切换点击，为防止意外关闭界面，设置为不可通过点击背景遮罩关闭Dialog */
+/** 开发环境下反复切换点击，为防止意外关闭界面，设置为不可通过点击背景遮罩关闭Dialog */
 const backdropDismiss = import.meta.env.PROD;
 
 defineExpose({ visible });

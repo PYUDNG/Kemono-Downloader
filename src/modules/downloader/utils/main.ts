@@ -88,7 +88,7 @@ export function constructFilename(
             for (const [char, repl] of Object.entries(replacements)) {
                 val = val.toString().replaceAll(char, repl);
             }
-            templateData[key] = val
+            templateData[key] = val;
         }
     });
 
@@ -104,7 +104,15 @@ export function constructFilename(
             replace: val?.toString() ?? strPlaceholder,
         };
     })
-    return safeBatchReplace(template!, rules);
+    let filepath = safeBatchReplace(template!, rules);
+
+    // 由于浏览器安全规则，文件名/文件夹名不得以空格和点号结尾（开头未测试），这里为了确保文件能保存，进行掐头去尾
+    filepath = filepath
+        .replaceAll(/(^|[\/\\])[ \.]+/g, '$1')
+        .replaceAll(/[ \.]+(^|[\/\\])/g, '$1')
+
+    // 返回文件名
+    return filepath;
 }
 
 /**
