@@ -12,6 +12,7 @@ import PrimeTrash from '~icons/prime/trash';
 import PrimeHistory from '~icons/prime/history';
 import { clearCache, getCache, hasCache, removeCache, saveCache } from "./cache.js";
 import { globalStorage, makeStorageRef } from "@/storage.js";
+import { DiscordChannelApiResponse, DiscordServerApiResponse } from "./types/discord.js";
 
 const storage = globalStorage.withKeys('api');
 const t = i18n.global.t;
@@ -100,6 +101,27 @@ export function profile({ service, creatorId }: { service: KemonoService, creato
         method: 'GET',
         url: `https://${ location.host }/api/v1/${ service }/user/${ creatorId }/profile`
     }, options);
+}
+
+/**
+ * 获取discord服务器或频道信息
+ * @returns 如果提供了ChannelID，则返回Channel信息，否则返回Server信息
+ */
+export function discord({ serverId }: { serverId: string }): Promise<DiscordServerApiResponse>
+export function discord({ channelId }: { channelId: string }): Promise<DiscordChannelApiResponse>
+export function discord({ serverId, channelId }: { serverId?: string, channelId?: string }): Promise<DiscordServerApiResponse | DiscordChannelApiResponse> {
+    if (typeof channelId === 'undefined') {
+        if (typeof serverId === 'undefined') throw new TypeError('both serverId and channelId omitted');
+        return api({
+            method: 'GET',
+            url: `https://${ location.host }/api/v1/discord/server/${ serverId }`,
+        });
+    } else {
+        return api({
+            method: 'GET',
+            url: `https://${ location.host }/api/v1/discord/channel/${ channelId }`,
+        });
+    }
 }
 
 // 设置
