@@ -210,6 +210,7 @@ export default {
                 },
             },
             "no-cover-file": '不下載封面圖',
+            "download-original-image": '下載原圖',
             "abort-files": {
                 label: '取消任務時，如何處理已下載檔案',
                 caption: '部分下載器可能不支援此功能',

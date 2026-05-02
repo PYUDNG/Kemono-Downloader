@@ -116,14 +116,16 @@ export function constructFilename(
 }
 
 /**
- * 将PostApiResonse中的文件根据api预览图部分提供的server服务器域名信息补全为完整的url  
+ * 将PostApiResonse中的文件根据api预览图部分提供的server服务器域名信息补全为完整的url
  * 如果没有对应文件的预览信息，或预览信息中没有serve字段，就使用`'n1.${ location.host }'`
  */
 export function getFullUrl(file: FileItem, data: PostApiResponse): string {
-    const preview = data.previews.find(p => p.path === file.path);
-    // preview.server be like: 'https://n3.kemono.cr'
-    const server = preview?.server ?? `https://n1.${ location.host }`;
-    return `${server}/data${file.path}`;
+    if (storage.get('downloadOriginalImage')) {
+        const preview = data.previews.find(p => p.path === file.path);
+        const server = preview?.server ?? `https://n1.${location.host}`;
+        return `${server}/data${file.path}`;
+    }
+    return `https://img.${location.host}/thumbnail/data${file.path}`;
 }
 
 /**
