@@ -1,4 +1,5 @@
 import { FileItem } from "@/modules/api/types/common";
+import { DiscordChannelPost } from "@/modules/api/types/discord";
 import { PostApiResponse } from "@/modules/api/types/post";
 import { PostsApiResponse } from "@/modules/api/types/posts";
 import { ProfileApiResponse } from "@/modules/api/types/profile";
@@ -6,6 +7,7 @@ import { globalStorage } from "@/storage";
 import { $CrE, Nullable, ReplaceRule, safeBatchReplace } from "@/utils/main";
 import { Conn } from "maria2";
 import { v4 as uuid } from "uuid";
+import { fullFileURL } from "./murmurhash";
 
 const storage = globalStorage.withKeys('downloader');
 
@@ -19,6 +21,7 @@ interface FilenameInfo {
         post?: Nullable<PostApiResponse>;
         file?: Nullable<FileItem>;
         creator?: Nullable<ProfileApiResponse>;
+        discord?: Nullable<DiscordChannelPost>
     };
 
     /** 该文件在当前文件夹层级中是第几个文件 */
@@ -45,13 +48,14 @@ export function constructFilename(
         data.file.name ?? data.file.path.substring(data.file.path.lastIndexOf('/') + 1) :
         null;
     const dotIndex = data.file ? origName?.lastIndexOf('.') : null;
-    const date = data.post?.post.published ? new Date(data.post?.post.published) : null;
+    const dateText = (data.post?.post ?? data.discord)?.published ?? null;
+    const date = dateText ? new Date(dateText) : null;
 
     // 合成模板数据
     const templateData: Record<string, undefined | null | string | number> = {
-        PostID: data.post?.post.id,
-        CreatorID: data.post?.post.user,
-        Service: data.post?.post.service,
+        PostID: data.post?.post.id ?? data.discord?.channel,
+        CreatorID: data.post?.post.user ?? data.discord?.author.id,
+        Service: data.post?.post.service ?? 'discord',
         P: info.p,
         Name: origName,
         Base: origName?.substring(0, dotIndex!),
@@ -116,14 +120,20 @@ export function constructFilename(
 }
 
 /**
- * 将PostApiResonse中的文件根据api预览图部分提供的server服务器域名信息补全为完整的url  
- * 如果没有对应文件的预览信息，或预览信息中没有serve字段，就使用`'n1.${ location.host }'`
+ * 取得文件资源对应的带服务器域名部分的完整URL  
+ * - 如果传入了PostApiResponse作为data，则根据其中的预览图部分提供的server服务器域名信息补全为完整的url  
+ *   如果没有对应文件的预览信息，或预览信息中没有serve字段，就使用`'n1.${ location.host }'`
+ * - 如果没有传入data参数，则使用murmur2算法计算使用的服务器（和Kemono前端代码Discord部分逻辑相同）
  */
-export function getFullUrl(file: FileItem, data: PostApiResponse): string {
-    const preview = data.previews.find(p => p.path === file.path);
-    // preview.server be like: 'https://n3.kemono.cr'
-    const server = preview?.server ?? `https://n1.${ location.host }`;
-    return `${server}/data${file.path}`;
+export function getFullUrl(file: FileItem, data?: PostApiResponse): string {
+    if (data) {
+        const preview = data.previews.find(p => p.path === file.path);
+        // preview.server be like: 'https://n3.kemono.cr'
+        const server = preview?.server ?? `https://n1.${ location.host }`;
+        return `${server}/data${file.path}`;
+    } else {
+        return fullFileURL(file.path);
+    }
 }
 
 /**

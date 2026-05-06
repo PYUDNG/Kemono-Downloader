@@ -1,19 +1,20 @@
 import { FileItem, PostInfo } from "@/modules/api/types/common.js";
 import { BaseDownloadProvider, Feature } from "../../types/base/provider.js";
 import { BaseDownloadTask, BaseFileDownloadTask, BaseSavefileTask, BaseTask, ProviderType } from "../../types/base/task.js";
-import { IPostDownloadTask, IPostsDownloadTask } from "../../types/interface/post.js";
+import { IDiscordChannelDownloadTask, IDiscordServerDownloadTask, IPostDownloadTask, IPostsDownloadTask } from "../../types/interface/post.js";
 import { IDownloadProvider } from "../../types/interface/provider.js";
 import { DownloadFile, IFileDownloadTask, ISavefileTask, SaveFile, Status } from "../../types/interface/task.js";
 import { PostApiResponse } from "@/modules/api/types/post.js";
-import { download, logger as globalLogger, Nullable, Queue, saveAs } from "@/utils/main.js";
-import { post, profile } from "@/modules/api/main.js";
-import { BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/post.js";
+import { download, logger as globalLogger, htmlEncode, Nullable, Queue, saveAs } from "@/utils/main.js";
+import { discord, post, profile } from "@/modules/api/main.js";
+import { BaseDiscordChannelDownloadTask, BaseDiscordServerDownloadTask, BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/post.js";
 import { Reactive, reactive } from "vue";
 import { constructFilename, formatContentHTML, formatContentText, getFullUrl } from "../../utils/main.js";
 import { globalStorage } from "@/storage.js";
 import { FeatureNotSupportedError } from "../../types/base/error.js";
 import { onModuleRegistered, registerGroup } from "@/modules/settings/main.js";
 import i18n, { i18nKeys } from "@/i18n/main.js";
+import { DiscordChannelApiResponse, DiscordChannelPost, DiscordServerApiResponse } from "@/modules/api/types/discord.js";
 
 const t = i18n.global.t;
 const logger = globalLogger.withPath('downloader', 'provider', 'browser');
@@ -230,7 +231,7 @@ class BrowserFileDownloadTask extends BaseFileDownloadTask implements IFileDownl
     }
 }
 
-export class PostDownloadTask extends BasePostDownloadTask implements IPostDownloadTask {
+export class BrowserPostDownloadTask extends BasePostDownloadTask implements IPostDownloadTask {
     public provider: ProviderType = 'browser';
     public name: Nullable<string> = null;
     public data: Nullable<PostApiResponse> = null;
@@ -257,7 +258,6 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
             this.data = await post(this.info);
             return this.data;
         });
-
 
         // 当api数据获取完毕时
         this.dataPromise.then(async () => {
@@ -453,9 +453,9 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
     }
 }
 
-export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDownloadTask {
+export class BrowserPostsDownloadTask extends BasePostsDownloadTask implements IPostsDownloadTask {
     public provider: ProviderType = 'browser';
-    public subTasks: Reactive<PostDownloadTask[]>;
+    public subTasks: Reactive<BrowserPostDownloadTask[]>;
     public name: string;
     public init: Promise<void>;
 
@@ -470,7 +470,7 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
         this.name = name;
         
         // 为所有post创建子任务
-        this.subTasks = this.infos.map(info => new PostDownloadTask(this, info));
+        this.subTasks = this.infos.map(info => new BrowserPostDownloadTask(this, info));
 
         // 设置进度
         this.progress.total = this.subTasks.length;
@@ -561,6 +561,379 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
     }
 }
 
+export class BrowserDiscordChannelDownloadTask extends BaseDiscordChannelDownloadTask implements IDiscordChannelDownloadTask {
+    public provider: ProviderType = 'browser';
+    public subTasks: Reactive<(BrowserFileDownloadTask | BrowserSavefileTask)[]> = [];
+    public name: string;
+    public data: Nullable<DiscordChannelApiResponse> = null;
+    public init: Promise<void>;
+    private logger = logger.withPath('BaseDiscordChannelDownloadTask');
+
+    /**
+     * 一个run过程中pending、run完毕后resolve的Promise  
+     * 用于等待run执行完毕  
+     * 注意：此Promise和直接调用`run`返回的Promise不是同一个
+     */
+    private runPromise: Promise<void> = Promise.resolve();
+
+    /**
+     * @param parent 父级任务（不可省略，需有父级任务后才能传入此任务名称，因为频道名只有ServerAPI才提供）
+     * @param name 任务名称（应为频道名称，由父级任务传入）
+     * @param channelId Discord频道ID
+     */
+    constructor(parent: BaseDownloadTask, name: string, channelId: string) {
+        super(parent, channelId);
+
+        // init promise
+        const { promise, resolve } = Promise.withResolvers<void>();
+        this.init = promise;
+
+        // 设置名称
+        this.name = name;
+
+        // 排队访问API，获取Post数据
+        const dataPromise = queueApi.enqueue(async () => {
+            this.data = await discord({ channelId: this.channelId });
+            return this.data;
+        });
+
+        // 当api数据获取完毕时
+        dataPromise.then(async posts => {
+            // 先创建抽象任务列表，再分别创建实际任务实例
+            /**
+             * 抽象任务
+             */
+            type SubTask = ({
+                type: 'download';
+                /** API中的文件数据 */
+                file: FileItem;
+                /** 对应Post的API数据 */
+                data: DiscordChannelPost;
+            } | {
+                type: 'savefile';
+                /** 包含原始文件名的文件数据 */
+                file: SaveFile;
+                /** 对应Post的API数据 */
+                data: DiscordChannelPost;
+            });
+
+            /**
+             * 抽象任务列表
+             */
+            const files: SubTask[] = [];
+
+            // 为文字内容创建抽象任务
+            const textContent = storage.get('textContent');
+            if (textContent !== 'none' && posts.length > 0) {
+                const content = ({
+                    html: posts.map(post => `<p>${ htmlEncode(post.content) }</p>`).join('\n'),
+                    txt: posts.map(post => post.content).join('\n'),
+                } satisfies Record<typeof textContent, string>) [textContent];
+                files.push({
+                    type: 'savefile',
+                    file: {
+                        data: content,
+                        path: textContent === 'txt' ? 'content.txt' : 'content.html',
+                    },
+                    data: posts[0],
+                });
+            }
+
+            // 为每个附件创建抽象任务
+            posts.forEach(post => post.attachments.forEach(file => files.push({
+                type: 'download',
+                file: file,
+                data: post,
+            })));
+
+            // 按照抽象任务列表创建实际任务
+            await Promise.allSettled(files.map(async (subTask, i) => {
+                let taskInstance: typeof this.subTasks[number];
+                switch (subTask.type) {
+                    case 'savefile': {
+                        const file = subTask.file;
+                        const filename = constructFilename({
+                            data: {
+                                discord: subTask.data,
+                                file: {
+                                    name: file.path,
+                                    path: '__internal_content__',
+                                },
+                            },
+                            p: i + 1
+                        });
+                        taskInstance = new BrowserSavefileTask(this, {
+                            data: file.data, path: filename,
+                        });
+                        break;
+                    }
+                    case 'download': {
+                        const file = subTask.file;
+                        const filename = constructFilename({
+                            data: {
+                                discord: subTask.data,
+                                file: file,
+                            },
+                            p: i + 1,
+                        });
+                        const downloadUrl = getFullUrl(file);
+                        taskInstance = new BrowserFileDownloadTask(
+                            this,
+                            {
+                                url: downloadUrl,
+                                path: filename,
+                            }
+                        );
+                        break;
+                    }
+                }
+
+                this.subTasks.push(taskInstance);
+                await taskInstance.init;
+            }));
+            this.progress.total = files.length;
+            this.progress.finished = 0;
+
+            resolve();
+        });
+    }
+
+    async run(): Promise<void> {
+        // 检查当前任务状态
+        const runnable: Status[] = ['queue', 'complete', 'aborted', 'error'];
+        if (!runnable.includes(this.progress.status)) {
+            this.logger.simple('Error', 'calling run in invalid status');
+            return;
+        }
+
+        // 设置runPromise
+        const { promise, resolve } = Promise.withResolvers<void>();
+        this.runPromise = promise;
+
+        // 设置任务状态
+        this.progress.status = 'ongoing' as Status;
+        this.progress.finished = 0;
+        this.progress.total = this.subTasks.length;
+
+        // 执行所有子任务
+        await Promise.allSettled(this.subTasks.map(subTask =>
+            // fileTask.run内部已存在错误处理逻辑，即使下载出错，这里也不应报错（除非是代码错误）
+            subTask.run().then(() => subTask.progress.status === 'complete' && this.progress.finished++)
+        ));
+
+        // 下载完毕，设置任务状态
+        this.progress.status = this.progress.status === 'aborted' ?
+            // 如果任务已取消，则状态依然aborted
+            'aborted' :
+            // 如果任务没有被取消
+            this.hasTaskStatus('error') ?
+                // 如果任一文件下载子任务存在错误，即视作任务整体出错
+                'error' :
+                // 一个错误也没有，任务完成
+                'complete';
+        
+        // 下载完毕，resolve run promise
+        resolve();
+    }
+
+    async abort(): Promise<void> {
+        // 先设置任务状态
+        this.progress.status = 'aborted';
+
+        // 停止所有子任务
+        await Promise.allSettled(this.subTasks.map(task => Promise.resolve(task.abort())));
+
+        // 等待run执行完毕
+        await this.runPromise;
+    }
+
+    /**
+     * browser下载方式不支持暂停功能
+     */
+    pause(): unknown {
+        throw new FeatureNotSupportedError('Unsupported feature: pause', this.provider);
+    }
+    
+    /**
+     * browser下载方式不支持暂停功能
+     */
+    unpause(): unknown {
+        throw new FeatureNotSupportedError('Unsupported feature: pause', this.provider);
+    }
+    
+    /**
+     * 重试任务  
+     * 重试所有失败的子任务
+     */
+    async retry(): Promise<void> {
+        // 如果没有错误就什么都不干
+        if (this.progress.status !== 'error') return;
+        
+        // 重试
+        this.progress.status = 'ongoing';
+        await Promise.allSettled(
+            this.subTasks
+                .filter(task => task.progress.status === 'error')
+                .map(task => task.retry())
+        );
+
+        // 设置父级任务状态
+        if (this.parent) {
+            const progress = this.parent.progress;
+            progress.finished++;
+            if (progress.finished === progress.total)
+                progress.status = 'complete';
+        }
+    }
+
+    /**
+     * 检查所有subTasks中是否存在给定状态的task
+     */
+    hasTaskStatus(status: Status) {
+        return this.subTasks.some(task => task.progress.status === status);
+    }
+}
+
+export class BrowserDiscordServerDownloadTask extends BaseDiscordServerDownloadTask implements IDiscordServerDownloadTask {
+    public provider: ProviderType = 'browser';
+    public subTasks: Reactive<BrowserDiscordChannelDownloadTask[]> = [];
+    public data: Nullable<DiscordServerApiResponse> = null;
+    public name: Nullable<string> = null;
+    public init: Promise<void>;
+    private logger = logger.withPath('BaseDiscordServerDownloadTask');
+
+    /**
+     * 一个run过程中pending、run完毕后resolve的Promise  
+     * 用于等待run执行完毕  
+     * 注意：此Promise和直接调用`run`返回的Promise不是同一个
+     */
+    private runPromise: Promise<void> = Promise.resolve();
+
+    constructor(parent: Nullable<BaseTask>, serverId: string) {
+        super(parent, serverId);
+
+        // init promise
+        const { promise, resolve } = Promise.withResolvers<void>();
+        this.init = promise;
+
+        // 加载API数据
+        const dataPromise = queueApi.enqueue(async () => {
+            this.data = await discord({ serverId: this.serverId });
+            return this.data;
+        });
+
+        // API加载完毕时
+        dataPromise.then(async data => {
+            // 设置任务名称
+            this.name = data.name;
+
+            // 为每个频道创建下载任务
+            for (const channel of data.channels) {
+                this.subTasks.push(new BrowserDiscordChannelDownloadTask(
+                    this, channel.name, channel.id,
+                ));
+            }
+            await Promise.allSettled(this.subTasks.map(t => t.init));
+            resolve();
+        });
+    }
+
+    async run(): Promise<void> {
+        // 检查当前任务状态
+        const runnable: Status[] = ['queue', 'complete', 'aborted', 'error'];
+        if (!runnable.includes(this.progress.status)) {
+            this.logger.simple('Error', 'calling run in invalid status');
+            return;
+        }
+
+        // 设置runPromise
+        const { promise, resolve } = Promise.withResolvers<void>();
+        this.runPromise = promise;
+
+        // 设置任务状态
+        this.progress.status = 'ongoing' as Status;
+        this.progress.finished = 0;
+        this.progress.total = this.subTasks.length;
+
+        // 执行所有子任务
+        await Promise.allSettled(this.subTasks.map(subTask =>
+            // fileTask.run内部已存在错误处理逻辑，即使下载出错，这里也不应报错（除非是代码错误）
+            subTask.run().then(() => subTask.progress.status === 'complete' && this.progress.finished++)
+        ));
+
+        // 下载完毕，设置任务状态
+        this.progress.status = this.progress.status === 'aborted' ?
+            // 如果任务已取消，则状态依然aborted
+            'aborted' :
+            // 如果任务没有被取消
+            this.hasTaskStatus('error') ?
+                // 如果任一文件下载子任务存在错误，即视作任务整体出错
+                'error' :
+                // 一个错误也没有，任务完成
+                'complete';
+        
+        // 下载完毕，resolve run promise
+        resolve();
+    }
+
+    async abort(): Promise<void> {
+        // 先设置任务状态
+        this.progress.status = 'aborted';
+
+        // 停止所有子任务
+        await Promise.allSettled(this.subTasks.map(task => Promise.resolve(task.abort())));
+
+        // 等待run执行完毕
+        await this.runPromise;
+    }
+
+    /**
+     * browser下载方式不支持暂停功能
+     */
+    pause(): unknown {
+        throw new FeatureNotSupportedError('Unsupported feature: pause', this.provider);
+    }
+    
+    /**
+     * browser下载方式不支持暂停功能
+     */
+    unpause(): unknown {
+        throw new FeatureNotSupportedError('Unsupported feature: pause', this.provider);
+    }
+    
+    /**
+     * 重试任务  
+     * 重试所有失败的子任务
+     */
+    async retry(): Promise<void> {
+        // 如果没有错误就什么都不干
+        if (this.progress.status !== 'error') return;
+        
+        // 重试
+        this.progress.status = 'ongoing';
+        await Promise.allSettled(
+            this.subTasks
+                .filter(task => task.progress.status === 'error')
+                .map(task => task.retry())
+        );
+
+        // 设置父级任务状态
+        if (this.parent) {
+            const progress = this.parent.progress;
+            progress.finished++;
+            if (progress.finished === progress.total)
+                progress.status = 'complete';
+        }
+    }
+
+    /**
+     * 检查所有subTasks中是否存在给定状态的task
+     */
+    hasTaskStatus(status: Status) {
+        return this.subTasks.some(task => task.progress.status === status);
+    }
+}
+
 export default class BrowserDownloadProvider extends BaseDownloadProvider implements IDownloadProvider {
     public name: ProviderType = 'browser';
     static features: Feature[] = ['concurrent', 'textContent'];
@@ -571,7 +944,7 @@ export default class BrowserDownloadProvider extends BaseDownloadProvider implem
      * @returns 
      */
     downloadPost(info: PostInfo): string {
-        const task = new PostDownloadTask(null, info);
+        const task = new BrowserPostDownloadTask(null, info);
         this.tasks.push(task);
         this.runWithRetry(task);
         return task.id;
@@ -583,7 +956,7 @@ export default class BrowserDownloadProvider extends BaseDownloadProvider implem
      * @param infos 需要下载的posts信息列表
      */
     downloadPosts(name: string, infos: PostInfo[]): string {
-        const task = new PostsDownloadTask(null, name, infos);
+        const task = new BrowserPostsDownloadTask(null, name, infos);
         this.tasks.push(task);
         this.runWithRetry(task);
         return task.id;

@@ -371,7 +371,7 @@ class Aria2FileDownloadTask extends BaseFileDownloadTask implements IFileDownloa
     }
 }
 
-export class PostDownloadTask extends BasePostDownloadTask implements IPostDownloadTask {
+export class Aria2PostDownloadTask extends BasePostDownloadTask implements IPostDownloadTask {
     public provider: ProviderType = 'aria2';
     public name: Nullable<string> = null;
     public data: Nullable<PostApiResponse> = null;
@@ -540,9 +540,9 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
     }
 }
 
-export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDownloadTask {
+export class Aria2PostsDownloadTask extends BasePostsDownloadTask implements IPostsDownloadTask {
     public provider: ProviderType = 'aria2';
-    public subTasks: Reactive<PostDownloadTask[]>;
+    public subTasks: Reactive<Aria2PostDownloadTask[]>;
     public name: string;
     public init: Promise<void>;
 
@@ -557,7 +557,7 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
         this.name = name;
         
         // 为所有post创建子任务
-        this.subTasks = this.infos.map(info => new PostDownloadTask(this, info));
+        this.subTasks = this.infos.map(info => new Aria2PostDownloadTask(this, info));
 
         // 设置进度
         this.progress.total = this.subTasks.length;
@@ -663,7 +663,7 @@ export default class Aria2DownloadProvider extends BaseDownloadProvider implemen
      * @returns 
      */
     downloadPost(info: PostInfo): string {
-        const task = new PostDownloadTask(null, info);
+        const task = new Aria2PostDownloadTask(null, info);
         this.tasks.push(task);
         this.runWithRetry(task);
         return task.id;
@@ -675,7 +675,7 @@ export default class Aria2DownloadProvider extends BaseDownloadProvider implemen
      * @param infos 需要下载的posts信息列表
      */
     downloadPosts(name: string, infos: PostInfo[]): string {
-        const task = new PostsDownloadTask(null, name, infos);
+        const task = new Aria2PostsDownloadTask(null, name, infos);
         this.tasks.push(task);
         this.runWithRetry(task);
         return task.id;

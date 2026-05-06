@@ -1,7 +1,8 @@
 import { DownloadFile, IDownloadTask, IFileDownloadTask, IMultiFileDownloadTask, Progress, ITask, ISavefileTask, SaveFile } from "../interface/task.js";
 import { v4 as uuid } from "uuid";
-import { Reactive, reactive } from "vue";
-import { Nullable } from "@/utils/main.js";
+import { reactive } from "vue";
+import type { Reactive } from "vue";
+import type { Nullable } from "@/utils/main.js";
 
 // 注意：这里使用 typeof import() 但不实际导入，以避免循环引用
 export type ProviderType = keyof typeof import('../../providers/main.js');
@@ -9,7 +10,7 @@ export type ProviderType = keyof typeof import('../../providers/main.js');
 export abstract class BaseTask implements ITask {
     public id: string = uuid();
     public readonly type: string = 'task';
-    abstract name: string | null;
+    public abstract name: string | null;
     public progress: Reactive<Progress> = reactive({
         total: -1,
         finished: -1,
@@ -47,7 +48,7 @@ export abstract class BaseTask implements ITask {
 export abstract class BaseSavefileTask extends BaseTask implements ISavefileTask {
     public readonly type: string = 'savefile';
     public name: string | null;
-    file: SaveFile;
+    public file: SaveFile;
 
     constructor(parent: Nullable<BaseTask>, file: SaveFile) {
         super(parent);
@@ -64,7 +65,7 @@ export abstract class BaseSavefileTask extends BaseTask implements ISavefileTask
 
 export abstract class BaseDownloadTask extends BaseTask implements IDownloadTask {
     public readonly type: string = 'download';
-    abstract name: string | null;
+    public abstract name: string | null;
 
     /**
      * 开始下载  
@@ -76,7 +77,7 @@ export abstract class BaseDownloadTask extends BaseTask implements IDownloadTask
 export abstract class BaseFileDownloadTask extends BaseDownloadTask implements IFileDownloadTask {
     public readonly type: string = 'file';
     public name: string;
-    file: DownloadFile;
+    public file: DownloadFile;
 
     constructor(parent: Nullable<BaseTask>, file: DownloadFile) {
         super(parent);

@@ -127,9 +127,9 @@ export interface ITask {
  */
 export interface SaveFile {
     /**
-     * 下载链接 / 文件地址
+     * 文件数据
      */
-    data: Blob | File | FileSystemFileHandle | string;
+    data: string | Blob | File | FileSystemFileHandle;
 
     /**
      * 保存的文件名 / 路径

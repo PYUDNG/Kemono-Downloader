@@ -1,14 +1,15 @@
 import { PostInfo } from "@/modules/api/types/common";
-import { IPostDownloadTask, IPostsDownloadTask } from "../interface/post";
-import { BaseMultiDownloadTask, BaseTask } from "./task";
+import { IDiscordChannelDownloadTask, IDiscordServerDownloadTask, IPostDownloadTask, IPostsDownloadTask } from "../interface/post";
+import { BaseDownloadTask, BaseFileDownloadTask, BaseMultiDownloadTask, BaseSavefileTask, BaseTask } from "./task";
 import { PostApiResponse } from "@/modules/api/types/post";
 import { Reactive } from "vue";
 import { Nullable } from "@/utils/main";
+import { DiscordChannelApiResponse, DiscordServerApiResponse } from "@/modules/api/types/discord";
 
 export abstract class BasePostDownloadTask extends BaseMultiDownloadTask implements IPostDownloadTask {
     public info: PostInfo;
     public data: PostApiResponse | null = null;
-    abstract dataPromise: Promise<PostApiResponse>;
+    public abstract dataPromise: Promise<PostApiResponse>;
 
     public readonly type: 'post' = 'post';
 
@@ -24,7 +25,7 @@ export abstract class BasePostDownloadTask extends BaseMultiDownloadTask impleme
 
 export abstract class BasePostsDownloadTask extends BaseMultiDownloadTask implements IPostsDownloadTask {
     public infos: PostInfo[];
-    abstract subTasks: Reactive<BasePostDownloadTask[]>;
+    public abstract subTasks: Reactive<BasePostDownloadTask[]>;
     public readonly type: 'posts' = 'posts';
 
     /**
@@ -34,5 +35,37 @@ export abstract class BasePostsDownloadTask extends BaseMultiDownloadTask implem
     constructor(parent: Nullable<BaseTask>, infos: PostInfo[]) {
         super(parent);
         this.infos = infos;
+    }
+}
+
+export abstract class BaseDiscordChannelDownloadTask extends BaseMultiDownloadTask implements IDiscordChannelDownloadTask {
+    public readonly type: 'discord-channel' = 'discord-channel';
+    public channelId: string;
+    public abstract data: Nullable<DiscordChannelApiResponse>;
+    public abstract subTasks: Reactive<(BaseFileDownloadTask | BaseSavefileTask)[]>;
+
+    /**
+     * 接收并设置channel信息
+     * @param channelId Discord频道ID
+     */
+    constructor(parent: Nullable<BaseTask>, channelId: string) {
+        super(parent);
+        this.channelId = channelId;
+    }
+}
+
+export abstract class BaseDiscordServerDownloadTask extends BaseMultiDownloadTask implements IDiscordServerDownloadTask {
+    public readonly type: 'discord-server' = 'discord-server';
+    public serverId: string;
+    public abstract data: Nullable<DiscordServerApiResponse>;
+    public abstract subTasks: Reactive<BaseDiscordChannelDownloadTask[]>;
+
+    /**
+     * 接收并设置channel信息
+     * @param serverId Discord服务器ID
+     */
+    constructor(parent: Nullable<BaseTask>, serverId: string) {
+        super(parent);
+        this.serverId = serverId;
     }
 }

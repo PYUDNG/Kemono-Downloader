@@ -405,7 +405,7 @@ class FSAFileDownloadTask extends BaseFileDownloadTask implements IFileDownloadT
     }
 }
 
-export class PostDownloadTask extends BasePostDownloadTask implements IPostDownloadTask {
+export class FSAPostDownloadTask extends BasePostDownloadTask implements IPostDownloadTask {
     public provider: ProviderType = 'fsa';
     public name: Nullable<string> = null;
     public data: Nullable<PostApiResponse> = null;
@@ -633,9 +633,9 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
     }
 }
 
-export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDownloadTask {
+export class FSAPostsDownloadTask extends BasePostsDownloadTask implements IPostsDownloadTask {
     public provider: ProviderType = 'fsa';
-    public subTasks: Reactive<PostDownloadTask[]>;
+    public subTasks: Reactive<FSAPostDownloadTask[]>;
     public name: string;
     public init: Promise<void>;
 
@@ -650,7 +650,7 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
         this.name = name;
         
         // 为所有post创建子任务
-        this.subTasks = this.infos.map(info => new PostDownloadTask(this, info));
+        this.subTasks = this.infos.map(info => new FSAPostDownloadTask(this, info));
 
         // 设置进度
         this.progress.total = this.subTasks.length;
@@ -744,7 +744,7 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
     }
 }
 
-export default class BrowserDownloadProvider extends BaseDownloadProvider implements IDownloadProvider {
+export default class FSADownloadProvider extends BaseDownloadProvider implements IDownloadProvider {
     public name: ProviderType = 'fsa';
     static features: Feature[] = ['abortFiles', 'concurrent', 'textContent'];
 
@@ -758,7 +758,7 @@ export default class BrowserDownloadProvider extends BaseDownloadProvider implem
         await getDownloadDirectoryHandle();
 
         // 创建任务并开始执行
-        const task = new PostDownloadTask(null, info);
+        const task = new FSAPostDownloadTask(null, info);
         this.tasks.push(task);
         this.runWithRetry(task);
         return task.id;
@@ -774,7 +774,7 @@ export default class BrowserDownloadProvider extends BaseDownloadProvider implem
         await getDownloadDirectoryHandle();
 
         // 创建任务并开始执行
-        const task = new PostsDownloadTask(null, name, infos);
+        const task = new FSAPostsDownloadTask(null, name, infos);
         this.tasks.push(task);
         this.runWithRetry(task);
         return task.id;
