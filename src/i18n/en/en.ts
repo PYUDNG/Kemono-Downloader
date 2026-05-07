@@ -94,6 +94,7 @@ export default {
                     unpause: 'Resume',
                     retry: 'Retry',
                     more: 'More',
+                    copied: 'Copied',
                     "confirm-delete-files": 'Also delete downloaded files',
                     "confirm-restart": {
                         label: 'Redownload',
@@ -125,6 +126,7 @@ export default {
                 },
                 file: {
                     caption: 'Progress: {percentage}%, {finished} / {total}',
+                    copyLink: 'Copy download link',
                 },
                 post: {
                     caption: '{total} files total, {finished} downloaded',

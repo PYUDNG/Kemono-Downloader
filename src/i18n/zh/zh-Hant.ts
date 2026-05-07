@@ -94,6 +94,7 @@ export default {
                     unpause: '取消暫停',
                     retry: '重試',
                     more: '更多',
+                    copied: '已複製',
                     "confirm-delete-files": '同時刪除已下載的檔案',
                     "confirm-restart": {
                         label: '重新下載',
@@ -125,6 +126,7 @@ export default {
                 },
                 file: {
                     caption: '下載進度: {percentage}%, {finished} / {total}',
+                    copyLink: '複製下載連結',
                 },
                 post: {
                     caption: '共 {total} 個檔案，已下載 {finished} 個',

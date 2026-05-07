@@ -24,14 +24,17 @@ import StopIcon from '~icons/prime/stop'
 import RefreshIcon from '~icons/prime/refresh'
 import TrashIcon from '~icons/prime/trash'
 import PrimeEllipsisH from '~icons/prime/ellipsis-h'
+import PrimeCopy from '~icons/prime/copy'
 import { MenuItem } from 'primevue/menuitem';
+import { GM_setClipboard } from '$';
+import { toast } from '@/utils/main.js';
 
 const { t } = useI18n();
 const storage = globalStorage.withKeys('downloader');
 const $common = i18nKeys.$downloader.$gui.$taskComponent.$common;
 
 // props
-const { task, isSubtask = false, loading = false } = defineProps<{
+const { task, isSubtask = false, loading = false, copy } = defineProps<{
     /**
      * 下载任务实例
      */
@@ -48,6 +51,21 @@ const { task, isSubtask = false, loading = false } = defineProps<{
      * @default false
      */
     loading?: boolean;
+
+    /**
+     * 复制菜单项信息
+     */
+    copy?: {
+        /**
+         * 复制菜单项按钮文字
+         */
+        label: string;
+
+        /**
+         * 复制的文本内容
+         */
+        value: string;
+    };
 }>();
 
 // emits
@@ -333,6 +351,21 @@ const menuButtons = computed(() => {
             confirmRemove(e.originalEvent);
         },
     }];
+    if (copy) {
+        items.push({
+            label: copy.label,
+            icon: PrimeCopy,
+            command(_e) {
+                GM_setClipboard(copy.value, 'text');
+                toast({
+                    summary: copy.label,
+                    detail: t($common.$copied),
+                    severity: 'success',
+                    life: 3500,
+                });
+            },
+        });
+    }
     return items;
 });
 </script>

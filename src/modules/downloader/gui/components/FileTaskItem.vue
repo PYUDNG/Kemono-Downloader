@@ -117,6 +117,7 @@ async function retry(task: BaseFileDownloadTask) {
         :task="task"
         :is-subtask="isSubtask"
         :loading="loading"
+        :copy="{ label: t($file.$copyLink), value: task.file.url }"
         @abort="abort"
         @remove="remove"
         @restart="restart"
