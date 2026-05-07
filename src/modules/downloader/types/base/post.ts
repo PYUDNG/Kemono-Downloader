@@ -1,6 +1,6 @@
 import { PostInfo } from "@/modules/api/types/common";
 import { IDiscordChannelDownloadTask, IDiscordServerDownloadTask, IPostDownloadTask, IPostsDownloadTask } from "../interface/post";
-import { BaseDownloadTask, BaseFileDownloadTask, BaseMultiDownloadTask, BaseSavefileTask, BaseTask } from "./task";
+import { BaseFileDownloadTask, BaseMultiDownloadTask, BaseSavefileTask, BaseTask } from "./task";
 import { PostApiResponse } from "@/modules/api/types/post";
 import { Reactive } from "vue";
 import { Nullable } from "@/utils/main";

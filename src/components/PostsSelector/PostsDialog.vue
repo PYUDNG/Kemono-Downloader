@@ -61,6 +61,13 @@ const props = defineProps<{
      * @param keyword 筛选文本
      */
     onFilter?: (keyword: string) => any;
+
+    /**
+     * 当用户点击全选所有页时的回调函数  
+     * 仅在远程模式下有效
+     * @param e 点击事件
+     */
+    onSelectAll?: (e: PointerEvent) => any;
 }>();
 
 // 用于向外传递selection数据的promise
@@ -86,7 +93,12 @@ const emit = defineEmits<{
 }>();
 
 // expose
-defineExpose({ show, hide });
+defineExpose({
+    // 控制方法
+    show, hide,
+    // 模型值访问
+    selectedPosts,
+});
 
 // 是否采用移动端布局
 const mobile = getIsMobileLayout();
@@ -139,6 +151,7 @@ watch(visible, (val, oldVal) => oldVal && !val && reject());
             :mode="mode"
             @page="p => onPageUpdate?.(p)"
             @filter="keyword => onFilter?.(keyword)"
+            @select-all="e => onSelectAll?.(e)"
         />
 
         <template #footer>

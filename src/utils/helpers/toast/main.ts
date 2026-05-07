@@ -9,4 +9,8 @@ const { root } = createShadowApp(App, {
     },
 });
 
-export const toast = (...args: Parameters<typeof root.show>) => root.show(...args);
+const toast = (...args: Parameters<typeof root.add>) => root.add(...args);
+toast.add = (...args: Parameters<typeof root.add>) => root.add(...args);
+toast.remove = (...args: Parameters<typeof root.remove>) => root.remove(...args);
+
+export { toast };

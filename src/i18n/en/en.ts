@@ -4,6 +4,7 @@ export default {
     components: {
         "posts-selector": {
             "selection-buttons": {
+                "select-all-pages": 'Select all pages',
                 "select-all": 'Select All',
                 clear: 'Clear',
             },
@@ -335,6 +336,10 @@ export default {
         name: 'Creator Page',
         gui: {
             download: 'Download',
+            "select-all-pages": {
+                summary: 'Select all pages',
+                detail: 'Loading all pagination data...',
+            },
             "posts-selector": {
                 header: 'Select posts to download',
             },

@@ -6,7 +6,7 @@ import { IDownloadProvider } from "../../types/interface/provider.js";
 import { DownloadFile, IFileDownloadTask, Status } from "../../types/interface/task.js";
 import { PostApiResponse } from "@/modules/api/types/post.js";
 import { debounce, logger as globalLogger, Nullable, Queue, toast } from "@/utils/main.js";
-import { post, profile } from "@/modules/api/main.js";
+import { isErrorResponse, post, profile } from "@/modules/api/main.js";
 import { BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/post.js";
 import { Reactive, reactive, ref, watch } from "vue";
 import { Aria2IntervalCallsManager, constructFilename, getFullUrl } from "../../utils/main.js";
@@ -394,7 +394,9 @@ export class Aria2PostDownloadTask extends BasePostDownloadTask implements IPost
 
         // 排队访问API，获取Post数据
         this.dataPromise = queueApi.enqueue(async () => {
-            this.data = await post(this.info);
+            const data = await post(this.info);
+            if (isErrorResponse(data)) throw new Error(data.error);
+            this.data = data;
             return this.data;
         });
 
@@ -412,6 +414,7 @@ export class Aria2PostDownloadTask extends BasePostDownloadTask implements IPost
                     service: this.info.service,
                     creatorId: this.info.creatorId
                 });
+                if (isErrorResponse(creator)) throw new Error(creator.error);
                 const filename = constructFilename({
                     data: {
                         creator: creator,

@@ -364,6 +364,14 @@ export interface PopoverLogicOptions<
     debounce?: number;
 
     /**
+     * 触屏设备长按触发时长  
+     * 单位毫秒  
+     * 设置为0或负数则不使用长按触发，点击直接触发
+     * @default 0
+     */
+    longpress?: number;
+
+    /**
      * 在调用popover.show之前的hook回调，可以拦截show调用  
      * 如果在调用事件处理器函数时，在事件对象后添加了自定义的参数，将会传递到这里来
      * @param e 触发show调用的事件
@@ -390,13 +398,13 @@ export function popoverLogic<
     P extends any[],
 >(
     popover: ComponentExposed<typeof Popover>,
-    { debounce = 100, beforeShow, beforeHide }: PopoverLogicOptions<P> = {},
+    { debounce = 100, longpress = 0, beforeShow, beforeHide }: PopoverLogicOptions<P> = {},
 ) {
     let isTouchScreen = false;
     let handle: Nullable<number> = null;
     let lastShowEvent: Event = new Event('placeholder-event');
 
-    const show = (e: Event, ...params: P) => {
+    const show = (e: Event, target: Nullable<any>, ...params: P) => {
         // 显示可以打断/取消隐藏
         if (handle !== null) {
             clearTimeout(handle);
@@ -406,13 +414,13 @@ export function popoverLogic<
         // beforeShow钩子
         if (beforeShow?.(e, ...params) === false) return;
         // 显示Popover
-        popover.show(e);
+        popover.show(e, target);
     };
     const hide = (e: Event) => {
         // 如果当前事件就是先前触发show的事件，则不隐藏
         if (e === lastShowEvent) return;
         // 规划：从现在开始到防抖时间后，执行隐藏，期间可以被显示打断/取消
-        handle = setTimeout(() => {
+        handle = (setTimeout as typeof window.setTimeout)(() => {
             // beforeHide钩子
             if (beforeHide?.(e) === false) return;
             // 隐藏popover
@@ -428,15 +436,34 @@ export function popoverLogic<
         hide(e);
     }, { signal: controller.signal });
 
+    // 处理长按
+    let longPressID: Nullable<number> = null;
+    const cancelDelay = () => longPressID !== null && clearTimeout(longPressID);
+    const delayedShow = (e: Event, target: any, ...params: P) => setTimeout(() => {
+        // 使用setTimeout会导致currentTarget丢失（事件处理器外该属性为null），因此需要显式传入
+        cancelDelay();
+        show(e, target, ...params);
+    }, longpress);
+
     return {
         onTouchStart(e: TouchEvent, ...params: P) {
             isTouchScreen = true;
-            show(e, ...params);
+            if (longpress > 0) {
+                // 长按触发
+                delayedShow(e, e.currentTarget, ...params);
+            } else {
+                // 点按直接触发
+                show(e, undefined, ...params);
+            }
+        },
+
+        onTouchEnd(_e: TouchEvent) {
+            cancelDelay();
         },
 
         onMouseEnter(e: MouseEvent, ...params: P) {
             if (isTouchScreen) return;
-            show(e, ...params);
+            show(e, undefined, ...params);
         },
 
         onMouseLeave(e: MouseEvent) {

@@ -4,6 +4,7 @@ export default {
     components: {
         "posts-selector": {
             "selection-buttons": {
+                "select-all-pages": '全選所有頁',
                 "select-all": '全選',
                 clear: '清空',
             },
@@ -335,6 +336,10 @@ export default {
         name: '創作者頁面',
         gui: {
             download: '下載',
+            "select-all-pages": {
+                summary: '全選所有頁',
+                detail: '正在加載全部分頁數據...',
+            },
             "posts-selector": {
                 header: '選擇要下載的貼文',
             },

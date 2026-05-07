@@ -10,7 +10,7 @@ import { IPostDownloadTask, IPostsDownloadTask } from "../../types/interface/pos
 import { Reactive, reactive, ref } from "vue";
 import { PostApiResponse } from "@/modules/api/types/post";
 import { FileItem, PostInfo } from "@/modules/api/types/common";
-import { post, profile } from "@/modules/api/main";
+import { isErrorResponse, post, profile } from "@/modules/api/main";
 import { constructFilename, formatContentHTML, formatContentText, getFullUrl } from "../../utils/main";
 import { BaseDownloadProvider, Feature } from "../../types/base/provider";
 import { IDownloadProvider } from "../../types/interface/provider";
@@ -429,7 +429,9 @@ export class FSAPostDownloadTask extends BasePostDownloadTask implements IPostDo
 
         // 排队访问API，获取Post数据
         this.dataPromise = queueApi.enqueue(async () => {
-            this.data = await post(this.info);
+            const data = await post(this.info);
+            if (isErrorResponse(data)) throw new Error(data.error);
+            this.data = data;
             return this.data;
         });
 
@@ -444,6 +446,7 @@ export class FSAPostDownloadTask extends BasePostDownloadTask implements IPostDo
                 service: this.info.service,
                 creatorId: this.info.creatorId
             });
+            if (isErrorResponse(creator)) throw new Error(creator.error);
 
             // 先创建抽象任务列表，再分别创建实际任务实例
             /**

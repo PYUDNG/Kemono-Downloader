@@ -6,7 +6,7 @@ import { IDownloadProvider } from "../../types/interface/provider.js";
 import { DownloadFile, IFileDownloadTask, ISavefileTask, SaveFile, Status } from "../../types/interface/task.js";
 import { PostApiResponse } from "@/modules/api/types/post.js";
 import { download, logger as globalLogger, htmlEncode, Nullable, Queue, saveAs } from "@/utils/main.js";
-import { discord, post, profile } from "@/modules/api/main.js";
+import { discord, isErrorResponse, post, profile } from "@/modules/api/main.js";
 import { BaseDiscordChannelDownloadTask, BaseDiscordServerDownloadTask, BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/post.js";
 import { Reactive, reactive } from "vue";
 import { constructFilename, formatContentHTML, formatContentText, getFullUrl } from "../../utils/main.js";
@@ -255,7 +255,9 @@ export class BrowserPostDownloadTask extends BasePostDownloadTask implements IPo
 
         // 排队访问API，获取Post数据
         this.dataPromise = queueApi.enqueue(async () => {
-            this.data = await post(this.info);
+            const data = await post(this.info);
+            if (isErrorResponse(data)) throw new Error(data.error);
+            this.data = data;
             return this.data;
         });
 
@@ -269,6 +271,7 @@ export class BrowserPostDownloadTask extends BasePostDownloadTask implements IPo
                 service: this.info.service,
                 creatorId: this.info.creatorId
             });
+            if (isErrorResponse(creator)) throw new Error(creator.error);
 
             // 先创建抽象任务列表，再分别创建实际任务实例
             /**
@@ -593,7 +596,9 @@ export class BrowserDiscordChannelDownloadTask extends BaseDiscordChannelDownloa
 
         // 排队访问API，获取Post数据
         const dataPromise = queueApi.enqueue(async () => {
-            this.data = await discord({ channelId: this.channelId });
+            const data = await discord({ channelId: this.channelId });
+            if (isErrorResponse(data)) throw new Error(data.error);
+            this.data = data;
             return this.data;
         });
 
@@ -818,7 +823,9 @@ export class BrowserDiscordServerDownloadTask extends BaseDiscordServerDownloadT
 
         // 加载API数据
         const dataPromise = queueApi.enqueue(async () => {
-            this.data = await discord({ serverId: this.serverId });
+            const data = await discord({ serverId: this.serverId });
+            if (isErrorResponse(data)) throw new Error(data.error);
+            this.data = data;
             return this.data;
         });
 

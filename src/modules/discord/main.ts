@@ -3,7 +3,6 @@
 import { $CrE, detectDom, Optional, logger as globalLogger, createShadowApp } from '@/utils/main.js';
 import { defineModule } from '../types.js';
 import { downloadPost } from '../downloader/main.js';
-import { KemonoService } from '../api/types/common.js';
 import { i18nKeys } from '@/i18n/utils.js';
 import DownloadButton from '@/components/DownloadButton.vue';
 import i18n from '@/i18n/main.js';

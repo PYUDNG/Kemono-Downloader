@@ -1,10 +1,11 @@
 import { requestJson, toast } from "@/utils/main.js";
-import { PostApiResponse } from "./types/post.js";
 import { defineModule } from "../types.js";
-import { KemonoService, PostInfo } from "./types/common.js";
-import { GmXmlhttpRequestOption } from "$";
-import { PostsApiResponse } from "./types/posts.js";
-import { ProfileApiResponse } from "./types/profile.js";
+import type { PostApiResponse } from "./types/post.js";
+import type { KemonoService, PostInfo, APIErrorResponse } from "./types/common.js";
+import type { PostsApiResponse } from "./types/posts.js";
+import type { ProfileApiResponse } from "./types/profile.js";
+import type { GmXmlhttpRequestOption } from "$";
+import type { DiscordChannelApiResponse, DiscordServerApiResponse } from "./types/discord.js";
 import i18n, { i18nKeys } from "@/i18n/main.js";
 import { groupExists, onModuleRegistered, registerGroup, registerItem } from "../settings/main.js";
 import { ref } from "vue";
@@ -12,7 +13,6 @@ import PrimeTrash from '~icons/prime/trash';
 import PrimeHistory from '~icons/prime/history';
 import { clearCache, getCache, hasCache, removeCache, saveCache } from "./cache.js";
 import { globalStorage, makeStorageRef } from "@/storage.js";
-import { DiscordChannelApiResponse, DiscordServerApiResponse } from "./types/discord.js";
 
 const storage = globalStorage.withKeys('api');
 const t = i18n.global.t;
@@ -72,7 +72,7 @@ export async function api<
  */
 export function post({
     service, creatorId, postId,
-}: PostInfo, options?: ApiOptions): Promise<PostApiResponse> {
+}: PostInfo, options?: ApiOptions): Promise<PostApiResponse | APIErrorResponse> {
     return api({
         method: 'GET',
         url: `https://${ location.host }/api/v1/${ service }/user/${ creatorId }/post/${ postId }`,
@@ -82,7 +82,7 @@ export function post({
 /**
  * 获取创作者posts
  */
-export function posts({ service, creatorId, index, query }: { service: KemonoService, creatorId: string, index?: number, query?: string }, options?: ApiOptions): Promise<PostsApiResponse> {
+export function posts({ service, creatorId, index, query }: { service: KemonoService, creatorId: string, index?: number, query?: string }, options?: ApiOptions): Promise<PostsApiResponse | APIErrorResponse> {
     const url = new URL(`https://${ location.host }/api/v1/${ service }/user/${ creatorId }/posts`);
     typeof index === 'number' && url.searchParams.set('o', index.toString());
     typeof query === 'string' && url.searchParams.set('q', query);
@@ -96,7 +96,7 @@ export function posts({ service, creatorId, index, query }: { service: KemonoSer
 /**
  * 获取创作者信息
  */
-export function profile({ service, creatorId }: { service: KemonoService, creatorId: string }, options?: ApiOptions): Promise<ProfileApiResponse> {
+export function profile({ service, creatorId }: { service: KemonoService, creatorId: string }, options?: ApiOptions): Promise<ProfileApiResponse | APIErrorResponse> {
     return api({
         method: 'GET',
         url: `https://${ location.host }/api/v1/${ service }/user/${ creatorId }/profile`
@@ -107,9 +107,9 @@ export function profile({ service, creatorId }: { service: KemonoService, creato
  * 获取discord服务器或频道信息
  * @returns 如果提供了ChannelID，则返回Channel信息，否则返回Server信息
  */
-export function discord({ serverId }: { serverId: string }): Promise<DiscordServerApiResponse>
-export function discord({ channelId }: { channelId: string }): Promise<DiscordChannelApiResponse>
-export function discord({ serverId, channelId }: { serverId?: string, channelId?: string }): Promise<DiscordServerApiResponse | DiscordChannelApiResponse> {
+export function discord({ serverId }: { serverId: string }): Promise<DiscordServerApiResponse | APIErrorResponse>
+export function discord({ channelId }: { channelId: string }): Promise<DiscordChannelApiResponse | APIErrorResponse>
+export function discord({ serverId, channelId }: { serverId?: string, channelId?: string }): Promise<DiscordServerApiResponse | DiscordChannelApiResponse | APIErrorResponse> {
     if (typeof channelId === 'undefined') {
         if (typeof serverId === 'undefined') throw new TypeError('both serverId and channelId omitted');
         return api({
@@ -122,6 +122,10 @@ export function discord({ serverId, channelId }: { serverId?: string, channelId?
             url: `https://${ location.host }/api/v1/discord/channel/${ channelId }`,
         });
     }
+}
+
+export function isErrorResponse(data: any): data is APIErrorResponse {
+    return Object.hasOwn(data, 'error');
 }
 
 // 设置
