@@ -7,7 +7,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-7.1-646cff?logo=vite)](https://vitejs.dev/)
 
-> 目前项目刚刚发布，仍有可能包含未发现的bug，遇到错误请 [提出issue](https://github.com/PYUDNG/Kemono-Downloader/issues) 共同讨论解决
+> 如遇错误或有功能建议，欢迎 [提出issue](https://github.com/PYUDNG/Kemono-Downloader/issues) 共同讨论解决
 
 ## ✨ 功能特性
 
@@ -37,7 +37,7 @@
 
 ## 截图
 
-![](https://p.sda1.dev/31/ef19e9ffdd4262926f7d6c31c8365f1d/PostSelector.jpg)
+![](https://p.sda1.dev/32/3af729e78e788971b31a130ceb2a9e7f/PostsSelector.png)
 ![](https://p.sda1.dev/31/3e69318e23ec13093a501c07796c6777/Manager.jpg)
 ![](https://p.sda1.dev/31/57289b3c3a6dae2626c0df91fcd4cf7f/Settings.jpg)
 

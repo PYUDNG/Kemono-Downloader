@@ -1,26 +1,26 @@
 # Kemono Downloader
 
-一個現代化的 Kemono 下載器使用者腳本，提供美觀的 UI 介面、多種下載器和高度自訂功能。
+一個現代化的 Kemono 下載器使用者腳本，提供美觀的 UI 介面、多種下載器與高度自訂功能。
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Vue 3](https://img.shields.io/badge/Vue-3-42b883?logo=vue.js)](https://vuejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-7.1-646cff?logo=vite)](https://vitejs.dev/)
 
-> 目前專案剛剛發布，仍有可能包含未發現的 bug，遇到錯誤請 [提出 issue](https://github.com/PYUDNG/Kemono-Downloader/issues) 共同討論解決
+> 如遇錯誤或有功能建議，歡迎 [提出 issue](https://github.com/PYUDNG/Kemono-Downloader/issues) 共同討論解決
 
 ## ✨ 功能特性
 
 ### 🎨 現代化介面
-- 基於 PrimeVue 和 Tailwind CSS 的現代化 UI 設計
-- 響應式佈局，支援桌面和行動裝置
+- 基於 PrimeVue 與 Tailwind CSS 的現代化 UI 設計
+- 響應式佈局，支援桌面與行動裝置
 - 深色/淺色主題支援
 - 多語言支援
 
 ### 📥 下載功能
 - 批次下載支援
 - 多種下載器選擇
-- 智慧檔案名稱處理
+- 智慧型檔案名稱處理
 - 下載進度顯示
 - 下載任務管理
 
@@ -37,18 +37,18 @@
 
 ## 截圖
 
-![](https://p.sda1.dev/31/fd55d9dcd9e8e619012b25725900572a/PostSelector.jpg)
+![](https://p.sda1.dev/32/c88e54e8f9b13fc33a8acd35d58bc67e/PostsSelector.png)
 ![](https://p.sda1.dev/31/603cc320752a6167a58473768c553274/Manager.jpg)
 ![](https://p.sda1.dev/31/d16bee941f34ae4abe025201b86e9dc5/Settings.jpg)
 
-## 📄 授權許可
+## 📄 授權條款
 
-本專案採用 [GPL-3.0](https://spdx.org/licenses/GPL-3.0-or-later.html) 授權許可。
+本專案採用 [GPL-3.0](https://spdx.org/licenses/GPL-3.0-or-later.html) 授權條款。
 
 ## 🙏 致謝
 
-- [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey) - 用於建置使用者腳本的 Vite 外掛
-- [Pixiv Downloader](https://github.com/drunkg00se/Pixiv-Downloader/) - 適用於包括 Pixiv 在內的多站點的下載器
+- [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey) - 用於建置使用者腳本的 Vite 插件
+- [Pixiv Downloader](https://github.com/drunkg00se/Pixiv-Downloader/) - 適用於包括 Pixiv 在內的多站點下載器
 - [Vue.js](https://vuejs.org/) - 漸進式 JavaScript 框架
 - [PrimeVue](https://primevue.org/) - 下一代 Vue UI 元件庫
 - [Tailwind CSS](https://tailwindcss.com/) - 實用優先的 CSS 框架
@@ -66,4 +66,4 @@
 
 ---
 
-**注意**: 本專案僅供學習和研究使用，請遵守相關網站的使用條款和版權規定。
+**注意**: 本專案僅供學習與研究使用，請遵守相關網站的使用條款與版權規定。
