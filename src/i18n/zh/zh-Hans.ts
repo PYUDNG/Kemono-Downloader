@@ -6,6 +6,7 @@ export default {
             "selection-buttons": {
                 "select-all-pages": '全选所有页',
                 "select-all": '全选',
+                "clear-all-pages": '清空所有页',
                 clear: '清空',
             },
             list: {
@@ -13,7 +14,7 @@ export default {
             },
             buttons: {
                 "open-post": '打开帖子页面',
-                ok: '下载',
+                ok: '确认',
                 cancel: '取消',
             },
             "image-loading": '加载中...',
@@ -346,6 +347,10 @@ export default {
             },
             "posts-selector": {
                 header: '选择要下载的帖子',
+                buttons: {
+                    cancel: '取消',
+                    download: '下载',
+                },
             },
         },
     },

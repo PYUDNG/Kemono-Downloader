@@ -68,6 +68,16 @@ const attachmentsCount = computed(() => isPostApiResponse(data) ? data.post.atta
 const img = useTemplateRef('img');
 const overlayParent = computed(() => img.value?.closest('[data-v-app]') as Nullable<HTMLElement>);
 
+/**
+ * 标题
+ */
+const postTitle = computed(() => getPostTitle(data));
+
+/**
+ * 内容
+ */
+const postContent = computed(() => extractText(getPostContent(data) ?? ''));
+
 // 根据长宽计算封面图大小限制，保证在屏幕上完全展示的同时尽量大一些
 const viewport = getViewport();
 const coverSizingClasses = computed(() => {
@@ -158,8 +168,11 @@ const popoverHandlers = computed(() =>
         <!-- 文字部分 -->
         <div class="grow shrink flex flex-col justify-center truncate">
             <!-- 主标题 -->
-            <div class="text-base w-full">
-                {{ getPostTitle(data) }}
+            <div
+                class="text-base w-full"
+                :title="postTitle"
+            >
+                {{ postTitle }}
             </div>
             <!-- 副标题 -->
             <!-- PostsApiItem类暂时不展示：服务端返回的.substring是一个从html代码简单取前50个字符的截断字符串，不适合人类阅读
@@ -167,7 +180,8 @@ const popoverHandlers = computed(() =>
             -->
             <div
                 class="text-sm text-surface-500 dark:text-surface-400 flex flex-row items-center w-full truncate"
-            >{{ extractText(getPostContent(data) ?? '') }}</div>
+                :title="postContent"
+            >{{ postContent }}</div>
         </div>
 
         <!-- 按钮 -->

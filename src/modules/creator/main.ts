@@ -7,11 +7,13 @@ import PostsDialog from '@/components/PostsSelector/PostsDialog.vue';
 import DownloadButton from '@/components/DownloadButton.vue';
 import { isErrorResponse, posts, profile } from '../api/main.js';
 import { KemonoService, PostInfo } from '../api/types/common.js';
-import { App, reactive } from 'vue';
+import { App, reactive, watch } from 'vue';
 import { ComponentProps } from 'vue-component-type-helpers';
 import i18n, { i18nKeys } from '@/i18n/main.js';
 import { PostsApiItem } from '../api/types/posts.js';
 import { ToastMessageOptions } from 'primevue';
+import PrimeDownload from '~icons/prime/download';
+import PrimeTimes from '~icons/prime/times';
 
 const t = i18n.global.t;
 const $creator = i18nKeys.$creator;
@@ -118,6 +120,23 @@ const props: ComponentProps<typeof PostsDialog> = reactive({
     rows: 50,
     total: 0,
     mode: 'remote',
+    buttons: [{
+        type: 'secondary',
+        label: t($creator.$gui.$postsSelector.$buttons.$cancel),
+        disabled: false,
+        icon: PrimeTimes,
+        onclick(_submit, cancel) {
+            cancel();
+        },
+    }, {
+        type: 'primary',
+        label: t($creator.$gui.$postsSelector.$buttons.$download),
+        disabled: true,
+        icon: PrimeDownload,
+        onclick(submit, _cancel) {
+            submit();
+        },
+    }],
     async onPageUpdate(page) {
         const match = location.pathname.match(regPath)!;
         const allPosts = await posts({
@@ -188,3 +207,6 @@ const { root } = createShadowApp(PostsDialog, {
     },
     props: props,
 });
+
+// 帖子选择器：当选中数量为0时禁用提交按钮
+watch(() => root.selectedPosts.length, length => props.buttons![1].disabled = length === 0);

@@ -6,6 +6,7 @@ export default {
             "selection-buttons": {
                 "select-all-pages": '全選所有頁',
                 "select-all": '全選',
+                "clear-all-pages": '清空所有頁',
                 clear: '清空',
             },
             list: {
@@ -13,7 +14,7 @@ export default {
             },
             buttons: {
                 "open-post": '打開貼文頁面',
-                ok: '下載',
+                ok: '確認',
                 cancel: '取消',
             },
             "image-loading": '載入中...',
@@ -344,6 +345,10 @@ export default {
             },
             "posts-selector": {
                 header: '選擇要下載的貼文',
+                buttons: {
+                    cancel: '取消',
+                    download: '下載',
+                },
             },
         },
     },

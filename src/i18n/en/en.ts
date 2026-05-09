@@ -6,6 +6,7 @@ export default {
             "selection-buttons": {
                 "select-all-pages": 'Select all pages',
                 "select-all": 'Select All',
+                "clear-all-pages": 'Clear all pages',
                 clear: 'Clear',
             },
             list: {
@@ -13,7 +14,7 @@ export default {
             },
             buttons: {
                 "open-post": 'Open Post Page',
-                ok: 'Download',
+                ok: 'OK',
                 cancel: 'Cancel',
             },
             "image-loading": 'Loading...',
@@ -344,6 +345,10 @@ export default {
             },
             "posts-selector": {
                 header: 'Select posts to download',
+                buttons: {
+                    cancel: 'Cancel',
+                    download: 'Download',
+                },
             },
         },
     },

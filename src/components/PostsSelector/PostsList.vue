@@ -1,15 +1,13 @@
 <script setup lang="ts" generic="T extends PostsApiItem | PostApiResponse">
-import { PostApiResponse } from '@/modules/api/types/post.js';
-import { PostsApiItem } from '@/modules/api/types/posts.js';
+import type { PostApiResponse, PostsApiItem, PostInfo } from '@/modules/api/types/main.js';
 import PostItem from './PostItem.vue';
 import InputText from '@/volt/InputText.vue';
 import { computed, getCurrentInstance, ref, useTemplateRef, watch } from 'vue';
 import type { Component } from 'vue';
-import { isPostsApiItem } from './utils';
+import { extractPostInfo, isPostsApiItem, isSamePost } from './utils';
 import { useI18n } from 'vue-i18n';
 import Paginator from '@/volt/Paginator.vue';
 import { PageState } from 'primevue';
-import { PostInfo } from '@/modules/api/types/common';
 import { debounce, getIsMobileLayout, popoverLogic } from '@/utils/main';
 import { i18nKeys } from '@/i18n/utils';
 import Button from '@/volt/Button.vue';
@@ -79,12 +77,7 @@ const selectedPosts = defineModel<PostInfo[]>({ default: () => [] });
  * @returns index（当存在时）或-1（当不存在时）
  */
 function findSelectedIndex(post: T): number {
-    const data = isPostsApiItem(post) ? post : post.post;
-    return selectedPosts.value.findIndex(info => 
-        data.id === info.postId &&
-        data.service === info.service &&
-        data.user === info.creatorId
-    );
+    return selectedPosts.value.findIndex(info => isSamePost(info, post));
 }
 
 /**
@@ -98,20 +91,13 @@ function isPostSelected(post: T): boolean {
  * 处理Post选择状态变化
  */
 function handlePostSelectionChange(post: T, checked: boolean) {
-    const data = isPostsApiItem(post) ? post : post.post;
     const index = findSelectedIndex(post);
 
-    if (checked) {
+    checked ?
         // 添加选中的Post
-        index === -1 && selectedPosts.value.push({
-            service: data.service,
-            creatorId: data.user,
-            postId: data.id
-        });
-    } else {
+        index === -1 && selectedPosts.value.push(extractPostInfo(post)) :
         // 移除取消选中的Post
         index !== -1 && selectedPosts.value.splice(index, 1);
-    }
 }
 //#endregion
 
@@ -253,6 +239,12 @@ const leftButtons: SelectionButton[] = [{
     onClick(e) {
         emit('select-all', e);
     },
+}, {
+    label: t($postsSelector.$selectionButtons.$clearAllPages),
+    icon: MaterialSymbolsDeselectRounded,
+    onClick(_e) {
+        selectedPosts.value.splice(0, selectedPosts.value.length);
+    },
 }];
 const rightButtions: SelectionButton[] = [{
     label: t($postsSelector.$selectionButtons.$selectAll),
@@ -273,7 +265,10 @@ const rightButtions: SelectionButton[] = [{
     label: t($postsSelector.$selectionButtons.$clear),
     icon: MaterialSymbolsDeselectRounded,
     onClick(_e) {
-        selectedPosts.value.splice(0, selectedPosts.value.length);
+        const posts = selectedPosts.value.filter(post =>
+            props.posts.every(p => !isSamePost(p, post))
+        );
+        selectedPosts.value.splice(0, selectedPosts.value.length, ...posts);
     },
 }];
 </script>
