@@ -4,8 +4,8 @@ import { useI18n } from 'vue-i18n';
 import { providerInjectionKey } from '../utils';
 import BaseTaskItem from './BaseTaskItem.vue';
 import { stringifyBytes } from '@/utils/main.js';
-import { BaseFileDownloadTask } from '../../types/base/task.js';
 import { i18nKeys } from '@/i18n/utils.js';
+import { IFileDownloadTask } from '../../types/interface/task.js';
 
 const { t } = useI18n();
 const $common = i18nKeys.$downloader.$gui.$taskComponent.$common;
@@ -16,7 +16,7 @@ const { task, isSubtask = false } = defineProps<{
     /**
      * 文件下载任务实例
      */
-    task: BaseFileDownloadTask;
+    task: IFileDownloadTask;
 
     /**
      * 当前task是否从属于某父级task
@@ -48,7 +48,7 @@ const toProgressString = (num: number, formatter?: (num: number) => string) =>
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function abort(task: BaseFileDownloadTask, deleteFiles: boolean) {
+async function abort(task: IFileDownloadTask, deleteFiles: boolean) {
     loading.value = true;
     await task.abort(deleteFiles);
     loading.value = false;
@@ -59,7 +59,7 @@ async function abort(task: BaseFileDownloadTask, deleteFiles: boolean) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function remove(task: BaseFileDownloadTask, deleteFiles: boolean) {
+async function remove(task: IFileDownloadTask, deleteFiles: boolean) {
     loading.value = true;
     await task.abort(deleteFiles);
     provider.removeTask(task.id);
@@ -71,7 +71,7 @@ async function remove(task: BaseFileDownloadTask, deleteFiles: boolean) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function restart(task: BaseFileDownloadTask, deleteFiles: boolean) {
+async function restart(task: IFileDownloadTask, deleteFiles: boolean) {
     loading.value = true;
     await task.abort(deleteFiles);
     task.run();
@@ -83,7 +83,7 @@ async function restart(task: BaseFileDownloadTask, deleteFiles: boolean) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function pause(task: BaseFileDownloadTask) {
+async function pause(task: IFileDownloadTask) {
     loading.value = true;
     await task.pause();
     loading.value = false;
@@ -94,7 +94,7 @@ async function pause(task: BaseFileDownloadTask) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function unpause(task: BaseFileDownloadTask) {
+async function unpause(task: IFileDownloadTask) {
     loading.value = true;
     await task.unpause();
     loading.value = false;
@@ -105,7 +105,7 @@ async function unpause(task: BaseFileDownloadTask) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function retry(task: BaseFileDownloadTask) {
+async function retry(task: IFileDownloadTask) {
     loading.value = true;
     await task.retry();
     loading.value = false;

@@ -1,6 +1,6 @@
-<script setup lang="ts" generic="T extends BaseTask = BaseTask">
+<script setup lang="ts" generic="T extends ITask = ITask">
 import ProgressBar from '@/volt/ProgressBar.vue';
-import type { Status } from '../../types/interface/main.js';
+import type { ITask, Status } from '../../types/interface/main.js';
 import { useI18n } from 'vue-i18n';
 import { computed, getCurrentInstance, ref, useTemplateRef } from 'vue';
 import type { Component } from 'vue';
@@ -11,7 +11,6 @@ import { useConfirm } from 'primevue/useconfirm';
 import { globalStorage, makeStorageRef } from '@/storage';
 import { v4 as uuid } from 'uuid';
 import { supports } from './utils.js';
-import { BaseTask } from '../../types/base/task.js';
 import Checkbox from '@/volt/Checkbox.vue';
 import ExclamationTriangleIcon from '@primevue/icons/exclamationtriangle';
 import { i18nKeys } from '@/i18n/utils.js';
@@ -299,13 +298,18 @@ const confirmRemove = function(_e?: Event) {
 /**
  * 根据任务类型展示对应的图标
  */
-const icon = computed(() => ({
-    savefile: FileIcon,
-    download: DownloadIcon,
-    file: FileIcon,
-    post: FileIcon,
-    posts: FolderIcon,
-})[task.type] as Component);
+const icon = computed(() => {
+    const map: Record<string, Component> = {
+        savefile: FileIcon,
+        download: DownloadIcon,
+        file: FileIcon,
+        post: FileIcon,
+        posts: FolderIcon,
+    };
+    const comp: Component | undefined = map[task.type];
+    if (typeof comp === 'undefined') throw new Error(`task.type (${ task.type }) is not supported`);
+    return comp;
+});
 
 const instance = getCurrentInstance()!;
 const overlayParent = computed(() => instance.root.vnode.el?.parentElement);

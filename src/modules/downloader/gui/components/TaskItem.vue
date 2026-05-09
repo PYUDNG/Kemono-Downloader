@@ -3,20 +3,20 @@ import SaveTaskItem from './SaveTaskItem.vue';
 import FileTaskItem from './FileTaskItem.vue';
 import PostTaskItem from './PostTaskItem.vue';
 import PostsTaskItem from './PostsTaskItem.vue';
-import { BaseFileDownloadTask, BaseSavefileTask, BaseTask } from '../../types/base/task';
-import { BasePostDownloadTask, BasePostsDownloadTask } from '../../types/base/post';
+import type { IFileDownloadTask, ISavefileTask, ITask } from '../../types/interface/task';
+import type { IPostDownloadTask, IPostsDownloadTask } from '../../types/interface/post';
 
 // 类型守卫函数
-function isSaveTask(task: BaseTask): task is BaseSavefileTask {
+function isSaveTask(task: ITask): task is ISavefileTask {
     return task.type === 'savefile';
 }
-function isFileTask(task: BaseTask): task is BaseFileDownloadTask {
+function isFileTask(task: ITask): task is IFileDownloadTask {
     return task.type === 'file';
 }
-function isPostTask(task: BaseTask): task is BasePostDownloadTask {
+function isPostTask(task: ITask): task is IPostDownloadTask {
     return task.type === 'post';
 }
-function isPostsTask(task: BaseTask): task is BasePostsDownloadTask {
+function isPostsTask(task: ITask): task is IPostsDownloadTask {
     return task.type === 'posts';
 }
 
@@ -25,7 +25,7 @@ const { task, isSubtask = false } = defineProps<{
     /**
      * 任务实例
      */
-    task: BaseTask;
+    task: ITask;
 
     /**
      * 当前task是否从属于某父级task
