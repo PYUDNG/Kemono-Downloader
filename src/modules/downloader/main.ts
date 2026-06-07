@@ -85,6 +85,13 @@ registerModule({
         value: makeStorageRef('noCoverFile', storage, true, false),
         group: 'regular',
     }, {
+        id: 'downloadOriginalImage',
+        type: 'switch',
+        icon: ImageIcon,
+        label: t($settings.$downloadOriginalImage),
+        value: makeStorageRef('downloadOriginalImage', storage, true, false),
+        group: 'regular',
+    }, {
         id: 'textContent',
         type: 'select',
         label: t($settings.$textContent.$label),

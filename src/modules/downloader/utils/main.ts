@@ -126,13 +126,17 @@ export function constructFilename(
  * - 如果没有传入data参数，则使用murmur2算法计算使用的服务器（和Kemono前端代码Discord部分逻辑相同）
  */
 export function getFullUrl(file: FileItem, data?: PostApiResponse): string {
-    if (data) {
-        const preview = data.previews.find(p => p.path === file.path);
-        // preview.server be like: 'https://n3.kemono.cr'
-        const server = preview?.server ?? `https://n1.${ location.host }`;
-        return `${server}/data${file.path}`;
+    if (storage.get('downloadOriginalImage')) {
+      if (data) {
+          const preview = data.previews.find(p => p.path === file.path);
+          // preview.server be like: 'https://n3.kemono.cr'
+          const server = preview?.server ?? `https://n1.${ location.host }`;
+          return `${server}/data${file.path}`;
+      } else {
+          return fullFileURL(file.path);
+      }
     } else {
-        return fullFileURL(file.path);
+      return `https://img.${location.host}/thumbnail/data${file.path}`;
     }
 }
 

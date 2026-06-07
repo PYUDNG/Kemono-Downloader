@@ -214,6 +214,7 @@ export default {
                 },
             },
             "no-cover-file": 'Do not download cover images',
+            "download-original-image": 'Download original images',
             "abort-files": {
                 label: 'Action on task abort',
                 caption: 'May not be supported by all providers',

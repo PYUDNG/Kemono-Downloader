@@ -34,6 +34,11 @@ export const globalStorage = new UserscriptStorage(
             noCoverFile: false as boolean,
 
             /**
+             * 是否下载原图（而非缩略图）
+             */
+            downloadOriginalImage: true as boolean,
+
+            /**
              * 取消下载任务时，如何处理该任务中已下载的文件
              */
             abortFiles: 'prompt' as 'prompt' | 'delete' | 'preserve',
