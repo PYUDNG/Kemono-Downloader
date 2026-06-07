@@ -5,8 +5,8 @@ import { providerInjectionKey } from '../utils.js';
 import BaseTaskItem from './BaseTaskItem.vue';
 import AppTaskDetail from '../app-taskdetail.vue';
 import { createShadowApp } from '@/utils/main.js';
-import { BasePostDownloadTask } from '../../types/base/post.js';
 import { i18nKeys } from '@/i18n/utils.js';
+import { IPostDownloadTask } from '../../types/interface/post.js';
 
 const { t } = useI18n();
 const $common = i18nKeys.$downloader.$gui.$taskComponent.$common;
@@ -17,7 +17,7 @@ const { task, isSubtask = false } = defineProps<{
     /**
      * Post下载任务实例
      */
-    task: BasePostDownloadTask;
+    task: IPostDownloadTask;
 
     /**
      * 当前task是否从属于某父级task
@@ -45,7 +45,7 @@ const toProgressString = (num: number) => num > -1 ? num.toString() : t($common.
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function abort(task: BasePostDownloadTask, deleteFiles: boolean) {
+async function abort(task: IPostDownloadTask, deleteFiles: boolean) {
     loading.value = true;
     await task.abort(deleteFiles);
     loading.value = false;
@@ -56,7 +56,7 @@ async function abort(task: BasePostDownloadTask, deleteFiles: boolean) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function remove(task: BasePostDownloadTask, deleteFiles: boolean) {
+async function remove(task: IPostDownloadTask, deleteFiles: boolean) {
     loading.value = true;
     await task.abort(deleteFiles);
     provider.removeTask(task.id);
@@ -68,7 +68,7 @@ async function remove(task: BasePostDownloadTask, deleteFiles: boolean) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function restart(task: BasePostDownloadTask, deleteFiles: boolean) {
+async function restart(task: IPostDownloadTask, deleteFiles: boolean) {
     loading.value = true;
     await task.abort(deleteFiles);
     task.run();
@@ -80,7 +80,7 @@ async function restart(task: BasePostDownloadTask, deleteFiles: boolean) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function pause(task: BasePostDownloadTask) {
+async function pause(task: IPostDownloadTask) {
     loading.value = true;
     await task.pause();
     loading.value = false;
@@ -91,7 +91,7 @@ async function pause(task: BasePostDownloadTask) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function unpause(task: BasePostDownloadTask) {
+async function unpause(task: IPostDownloadTask) {
     loading.value = true;
     await task.unpause();
     loading.value = false;
@@ -102,7 +102,7 @@ async function unpause(task: BasePostDownloadTask) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function retry(task: BasePostDownloadTask) {
+async function retry(task: IPostDownloadTask) {
     loading.value = true;
     await task.retry();
     loading.value = false;
@@ -113,7 +113,7 @@ async function retry(task: BasePostDownloadTask) {
  * @param _e 点击事件
  * @param task 任务实例，和props传入的task应当相同
  */
-function detail(_e: PointerEvent, task: BasePostDownloadTask) {
+function detail(_e: PointerEvent, task: IPostDownloadTask) {
     // 创建并展示子任务窗口
     const { host, app, root } = createShadowApp(AppTaskDetail, {
         props: { provider, tasks: [], name: task.name },

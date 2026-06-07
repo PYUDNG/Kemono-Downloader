@@ -761,3 +761,23 @@ export function safeSerialize(val: any, depth = 5, visited = new WeakSet()): any
     }
     return res;
 }
+
+/**
+ * 将传入的字符串进行HTML转义
+ * @param text 待转义字符串
+ * @param encodeChars 需转义的字符列表。默认为防范 XSS 的核心字符集。
+ */
+export function htmlEncode(
+    text: string, 
+    encodeChars: string[] = ['&', '<', '>', '"', "'", '`', '/', '(', ')']
+): string {
+    if (!text) return '';
+
+    // 将字符数组转为正则匹配组，注意转义正则特殊符号
+    const regex = new RegExp(`[${encodeChars.map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('')}]`, 'g');
+
+    return text.replace(regex, (char) => {
+        // 返回十进制 HTML 实体编码格式：&#[code];
+        return `&#${char.charCodeAt(0)};`;
+    });
+}

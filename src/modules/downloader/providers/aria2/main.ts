@@ -6,7 +6,7 @@ import { IDownloadProvider } from "../../types/interface/provider.js";
 import { DownloadFile, IFileDownloadTask, Status } from "../../types/interface/task.js";
 import { PostApiResponse } from "@/modules/api/types/post.js";
 import { debounce, logger as globalLogger, Nullable, Queue, toast } from "@/utils/main.js";
-import { post, profile } from "@/modules/api/main.js";
+import { isErrorResponse, post, profile } from "@/modules/api/main.js";
 import { BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/post.js";
 import { Reactive, reactive, ref, watch } from "vue";
 import { Aria2IntervalCallsManager, constructFilename, getFullUrl } from "../../utils/main.js";
@@ -371,7 +371,7 @@ class Aria2FileDownloadTask extends BaseFileDownloadTask implements IFileDownloa
     }
 }
 
-export class PostDownloadTask extends BasePostDownloadTask implements IPostDownloadTask {
+export class Aria2PostDownloadTask extends BasePostDownloadTask implements IPostDownloadTask {
     public provider: ProviderType = 'aria2';
     public name: Nullable<string> = null;
     public data: Nullable<PostApiResponse> = null;
@@ -394,7 +394,9 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
 
         // 排队访问API，获取Post数据
         this.dataPromise = queueApi.enqueue(async () => {
-            this.data = await post(this.info);
+            const data = await post(this.info);
+            if (isErrorResponse(data)) throw new Error(data.error);
+            this.data = data;
             return this.data;
         });
 
@@ -412,6 +414,7 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
                     service: this.info.service,
                     creatorId: this.info.creatorId
                 });
+                if (isErrorResponse(creator)) throw new Error(creator.error);
                 const filename = constructFilename({
                     data: {
                         creator: creator,
@@ -540,9 +543,9 @@ export class PostDownloadTask extends BasePostDownloadTask implements IPostDownl
     }
 }
 
-export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDownloadTask {
+export class Aria2PostsDownloadTask extends BasePostsDownloadTask implements IPostsDownloadTask {
     public provider: ProviderType = 'aria2';
-    public subTasks: Reactive<PostDownloadTask[]>;
+    public subTasks: Reactive<Aria2PostDownloadTask[]>;
     public name: string;
     public init: Promise<void>;
 
@@ -557,7 +560,7 @@ export class PostsDownloadTask extends BasePostsDownloadTask implements IPostsDo
         this.name = name;
         
         // 为所有post创建子任务
-        this.subTasks = this.infos.map(info => new PostDownloadTask(this, info));
+        this.subTasks = this.infos.map(info => new Aria2PostDownloadTask(this, info));
 
         // 设置进度
         this.progress.total = this.subTasks.length;
@@ -663,7 +666,7 @@ export default class Aria2DownloadProvider extends BaseDownloadProvider implemen
      * @returns 
      */
     downloadPost(info: PostInfo): string {
-        const task = new PostDownloadTask(null, info);
+        const task = new Aria2PostDownloadTask(null, info);
         this.tasks.push(task);
         this.runWithRetry(task);
         return task.id;
@@ -675,7 +678,7 @@ export default class Aria2DownloadProvider extends BaseDownloadProvider implemen
      * @param infos 需要下载的posts信息列表
      */
     downloadPosts(name: string, infos: PostInfo[]): string {
-        const task = new PostsDownloadTask(null, name, infos);
+        const task = new Aria2PostsDownloadTask(null, name, infos);
         this.tasks.push(task);
         this.runWithRetry(task);
         return task.id;

@@ -4,7 +4,9 @@ export default {
     components: {
         "posts-selector": {
             "selection-buttons": {
+                "select-all-pages": '全選所有頁',
                 "select-all": '全選',
+                "clear-all-pages": '清空所有頁',
                 clear: '清空',
             },
             list: {
@@ -12,7 +14,7 @@ export default {
             },
             buttons: {
                 "open-post": '打開貼文頁面',
-                ok: '下載',
+                ok: '確認',
                 cancel: '取消',
             },
             "image-loading": '載入中...',
@@ -93,6 +95,7 @@ export default {
                     unpause: '取消暫停',
                     retry: '重試',
                     more: '更多',
+                    copied: '已複製',
                     "confirm-delete-files": '同時刪除已下載的檔案',
                     "confirm-restart": {
                         label: '重新下載',
@@ -124,6 +127,7 @@ export default {
                 },
                 file: {
                     caption: '下載進度: {percentage}%, {finished} / {total}',
+                    copyLink: '複製下載連結',
                 },
                 post: {
                     caption: '共 {total} 個檔案，已下載 {finished} 個',
@@ -336,8 +340,16 @@ export default {
         name: '創作者頁面',
         gui: {
             download: '下載',
+            "select-all-pages": {
+                summary: '全選所有頁',
+                detail: '正在加載全部分頁數據...',
+            },
             "posts-selector": {
                 header: '選擇要下載的貼文',
+                buttons: {
+                    cancel: '取消',
+                    download: '下載',
+                },
             },
         },
     },

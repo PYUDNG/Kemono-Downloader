@@ -1,20 +1,48 @@
 <script setup lang="ts" generic="T extends PostsApiItem | PostApiResponse">
 import Button from '@/volt/Button.vue';
 import Dialog from '@/volt/Dialog.vue';
+import type { Component } from 'vue';
 import { ref, watch } from 'vue';
 import PostsList from './PostsList.vue';
-import { PostApiResponse } from '@/modules/api/types/post.js';
-import { PostsApiItem } from '@/modules/api/types/posts.js';
-import { PageState } from 'primevue';
-import { PostInfo } from '@/modules/api/types/common';
+import type { PostApiResponse, PostsApiItem, PostInfo } from '@/modules/api/types/main.js';
+import type { PageState } from 'primevue';
 import { useI18n } from 'vue-i18n';
 import SecondaryButton from '@/volt/SecondaryButton.vue';
 import { getIsMobileLayout } from '@/utils/main';
 import { i18nKeys } from '@/i18n/utils';
 import TimesIcon from '~icons/prime/times'
-import DownloadIcon from '~icons/prime/download'
+import PrimeCheck from '~icons/prime/check'
 
 const { t } = useI18n();
+
+type DialogButton = {
+    /**
+     * 按钮文本
+     */
+    label: string;
+
+    /**
+     * 按钮类型（颜色）
+     */
+    type: 'primary' | 'secondary';
+
+    /**
+     * 图标组件
+     */
+    icon: Component;
+
+    /**
+     * 是否被禁用
+     */
+    disabled: boolean;
+
+    /**
+     * 按钮点击回调
+     * @param submit 提交已选择的帖子列表并关闭对话框的方法
+     * @param cancel 取消选择并关闭对话框的方法
+     */
+    onclick(submit: () => void, cancel: () => void): void;
+};
 
 // props
 const props = defineProps<{
@@ -49,6 +77,11 @@ const props = defineProps<{
     mode?: 'local' | 'remote';
 
     /**
+     * 对话框按钮
+     */
+    buttons?: DialogButton[];
+
+    /**
      * 当用户触发翻页时的回调函数  
      * 仅在远程模式下有效
      * @param page 翻页信息
@@ -61,6 +94,13 @@ const props = defineProps<{
      * @param keyword 筛选文本
      */
     onFilter?: (keyword: string) => any;
+
+    /**
+     * 当用户点击全选所有页时的回调函数  
+     * 仅在远程模式下有效
+     * @param e 点击事件
+     */
+    onSelectAll?: (e: PointerEvent) => any;
 }>();
 
 // 用于向外传递selection数据的promise
@@ -86,7 +126,12 @@ const emit = defineEmits<{
 }>();
 
 // expose
-defineExpose({ show, hide });
+defineExpose({
+    // 控制方法
+    show, hide,
+    // 模型值访问
+    selectedPosts,
+});
 
 // 是否采用移动端布局
 const mobile = getIsMobileLayout();
@@ -108,7 +153,7 @@ function hide() {
     reject();
 }
 
-function submit(_e: PointerEvent) {
+function submit() {
     // 触发submit事件，传递选中的Posts
     emit('submit', selectedPosts.value);
     resolve(selectedPosts.value);
@@ -126,7 +171,7 @@ watch(visible, (val, oldVal) => oldVal && !val && reject());
         append-to="self"
         :header="header"
         modal
-        pt:root:class="h-[80vh]"
+        pt:root:class="h-[80vh] min-w-[50vw]"
         pt:content:class="h-full"
     >
         <!-- Posts列表 -->
@@ -139,30 +184,60 @@ watch(visible, (val, oldVal) => oldVal && !val && reject());
             :mode="mode"
             @page="p => onPageUpdate?.(p)"
             @filter="keyword => onFilter?.(keyword)"
+            @select-all="e => onSelectAll?.(e)"
         />
 
+        <!-- 底部按钮 -->
         <template #footer>
-            <SecondaryButton
-                :label="t(i18nKeys.$components.$postsSelector.$buttons.$cancel)"
-                :variant="mobile ? undefined : 'text'"
-                :pt:root:class="{ grow: mobile }"
-                @click="hide"
-            >
-                <template #icon>
-                    <TimesIcon />
+            <!-- 允许使用插槽自定义按钮 -->
+            <slot name="buttons">
+                <!-- 也可以通过props声明式定义按钮 -->
+                <template v-if="Array.isArray(buttons)">
+                    <component
+                        v-for="button of buttons"
+                        :is="({
+                            primary: Button,
+                            secondary: SecondaryButton,
+                        })[button.type]"
+                        :disabled="button.disabled"
+                        :label="button.label"
+                        :variant="mobile ? undefined : 'text'"
+                        :pt:root:class="{ grow: mobile }"
+                        @click="() => button.onclick(submit, hide)"
+                    >
+                        <template #icon>
+                            <component :is="button.icon" />
+                        </template>
+                    </component>
                 </template>
-            </SecondaryButton>
-            <Button
-                :disabled="!selectedPosts.length"
-                :label="t(i18nKeys.$components.$postsSelector.$buttons.$ok)"
-                :variant="mobile ? undefined : 'text'"
-                :pt:root:class="{ grow: mobile }"
-                @click="submit"
-            >
-                <template #icon>
-                    <DownloadIcon />
+
+                <!-- 既没有插槽又没有声明按钮props时，使用默认按钮 -->
+                <template v-else>
+                    <!-- 默认取消按钮 -->
+                    <SecondaryButton
+                        :label="t(i18nKeys.$components.$postsSelector.$buttons.$cancel)"
+                        :variant="mobile ? undefined : 'text'"
+                        :pt:root:class="{ grow: mobile }"
+                        @click="hide"
+                    >
+                        <template #icon>
+                            <TimesIcon />
+                        </template>
+                    </SecondaryButton>
+                    <!-- 默认确认按钮 -->
+                    <Button
+                        :disabled="!selectedPosts.length"
+                        :label="t(i18nKeys.$components.$postsSelector.$buttons.$ok)"
+                        :variant="mobile ? undefined : 'text'"
+                        :pt:root:class="{ grow: mobile }"
+                        @click="submit"
+                    >
+                        <template #icon>
+                            <PrimeCheck />
+                        </template>
+                    </Button>
                 </template>
-            </Button>
+            </slot>
         </template>
     </Dialog>
 </template>

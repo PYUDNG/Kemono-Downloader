@@ -123,7 +123,7 @@ export interface DiscordChannelPost {
     channel: string;
 
     /**
-     * 未知：content
+     * 文字内容
      */
     content: string;
 

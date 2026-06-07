@@ -3,9 +3,8 @@ import { inject, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { providerInjectionKey } from '../utils';
 import BaseTaskItem from './BaseTaskItem.vue';
-import { BaseSavefileTask } from '../../types/base/task.js';
 import { i18nKeys } from '@/i18n/utils.js';
-import { Status } from '../../types/interface/task.js';
+import { ISavefileTask, Status } from '../../types/interface/task.js';
 
 const { t } = useI18n();
 const $save = i18nKeys.$downloader.$gui.$taskComponent.$save;
@@ -15,7 +14,7 @@ const { task, isSubtask = false } = defineProps<{
     /**
      * 文件下载任务实例
      */
-    task: BaseSavefileTask;
+    task: ISavefileTask;
 
     /**
      * 当前task是否从属于某父级task
@@ -37,7 +36,7 @@ const loading = ref(false);
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function abort(task: BaseSavefileTask, deleteFiles: boolean) {
+async function abort(task: ISavefileTask, deleteFiles: boolean) {
     loading.value = true;
     await task.abort(deleteFiles);
     loading.value = false;
@@ -48,7 +47,7 @@ async function abort(task: BaseSavefileTask, deleteFiles: boolean) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function remove(task: BaseSavefileTask, deleteFiles: boolean) {
+async function remove(task: ISavefileTask, deleteFiles: boolean) {
     loading.value = true;
     await task.abort(deleteFiles);
     provider.removeTask(task.id);
@@ -60,7 +59,7 @@ async function remove(task: BaseSavefileTask, deleteFiles: boolean) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function restart(task: BaseSavefileTask, deleteFiles: boolean) {
+async function restart(task: ISavefileTask, deleteFiles: boolean) {
     loading.value = true;
     await task.abort(deleteFiles);
     task.run();
@@ -72,7 +71,7 @@ async function restart(task: BaseSavefileTask, deleteFiles: boolean) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function pause(task: BaseSavefileTask) {
+async function pause(task: ISavefileTask) {
     loading.value = true;
     await task.pause();
     loading.value = false;
@@ -83,7 +82,7 @@ async function pause(task: BaseSavefileTask) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function unpause(task: BaseSavefileTask) {
+async function unpause(task: ISavefileTask) {
     loading.value = true;
     await task.unpause();
     loading.value = false;
@@ -94,7 +93,7 @@ async function unpause(task: BaseSavefileTask) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function retry(task: BaseSavefileTask) {
+async function retry(task: ISavefileTask) {
     loading.value = true;
     await task.retry();
     loading.value = false;

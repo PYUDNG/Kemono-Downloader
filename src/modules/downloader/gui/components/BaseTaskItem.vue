@@ -1,6 +1,6 @@
-<script setup lang="ts" generic="T extends BaseTask = BaseTask">
+<script setup lang="ts" generic="T extends ITask = ITask">
 import ProgressBar from '@/volt/ProgressBar.vue';
-import type { Status } from '../../types/interface/main.js';
+import type { ITask, Status } from '../../types/interface/main.js';
 import { useI18n } from 'vue-i18n';
 import { computed, getCurrentInstance, ref, useTemplateRef } from 'vue';
 import type { Component } from 'vue';
@@ -11,7 +11,6 @@ import { useConfirm } from 'primevue/useconfirm';
 import { globalStorage, makeStorageRef } from '@/storage';
 import { v4 as uuid } from 'uuid';
 import { supports } from './utils.js';
-import { BaseTask } from '../../types/base/task.js';
 import Checkbox from '@/volt/Checkbox.vue';
 import ExclamationTriangleIcon from '@primevue/icons/exclamationtriangle';
 import { i18nKeys } from '@/i18n/utils.js';
@@ -24,14 +23,17 @@ import StopIcon from '~icons/prime/stop'
 import RefreshIcon from '~icons/prime/refresh'
 import TrashIcon from '~icons/prime/trash'
 import PrimeEllipsisH from '~icons/prime/ellipsis-h'
+import PrimeCopy from '~icons/prime/copy'
 import { MenuItem } from 'primevue/menuitem';
+import { GM_setClipboard } from '$';
+import { toast } from '@/utils/main.js';
 
 const { t } = useI18n();
 const storage = globalStorage.withKeys('downloader');
 const $common = i18nKeys.$downloader.$gui.$taskComponent.$common;
 
 // props
-const { task, isSubtask = false, loading = false } = defineProps<{
+const { task, isSubtask = false, loading = false, copy } = defineProps<{
     /**
      * 下载任务实例
      */
@@ -48,6 +50,21 @@ const { task, isSubtask = false, loading = false } = defineProps<{
      * @default false
      */
     loading?: boolean;
+
+    /**
+     * 复制菜单项信息
+     */
+    copy?: {
+        /**
+         * 复制菜单项按钮文字
+         */
+        label: string;
+
+        /**
+         * 复制的文本内容
+         */
+        value: string;
+    };
 }>();
 
 // emits
@@ -281,13 +298,18 @@ const confirmRemove = function(_e?: Event) {
 /**
  * 根据任务类型展示对应的图标
  */
-const icon = computed(() => ({
-    savefile: FileIcon,
-    download: DownloadIcon,
-    file: FileIcon,
-    post: FileIcon,
-    posts: FolderIcon,
-})[task.type] as Component);
+const icon = computed(() => {
+    const map: Record<string, Component> = {
+        savefile: FileIcon,
+        download: DownloadIcon,
+        file: FileIcon,
+        post: FileIcon,
+        posts: FolderIcon,
+    };
+    const comp: Component | undefined = map[task.type];
+    if (typeof comp === 'undefined') throw new Error(`task.type (${ task.type }) is not supported`);
+    return comp;
+});
 
 const instance = getCurrentInstance()!;
 const overlayParent = computed(() => instance.root.vnode.el?.parentElement);
@@ -333,6 +355,21 @@ const menuButtons = computed(() => {
             confirmRemove(e.originalEvent);
         },
     }];
+    if (copy) {
+        items.push({
+            label: copy.label,
+            icon: PrimeCopy,
+            command(_e) {
+                GM_setClipboard(copy.value, 'text');
+                toast({
+                    summary: copy.label,
+                    detail: t($common.$copied),
+                    severity: 'success',
+                    life: 3500,
+                });
+            },
+        });
+    }
     return items;
 });
 </script>

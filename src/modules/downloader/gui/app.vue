@@ -1,20 +1,19 @@
 <script setup lang="ts">
 import Dialog from '@/volt/Dialog.vue';
-import { Status } from '../types/interface/main.ts';
+import type { IDownloadProvider, Status } from '../types/interface/main.ts';
 import { computed, provide, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import TabLayout from '@/components/TabLayout/TabLayout.vue';
 import TabPanel from '@/components/TabLayout/TabPanel.vue';
 import TaskItem from './components/TaskItem.vue';
 import { providerInjectionKey } from './utils';
-import { BaseDownloadProvider } from '../types/base/provider.ts';
 import { i18nKeys } from '@/i18n/utils.ts';
 
 const { t } = useI18n();
 
 // props
 const { provider } = defineProps<{
-    provider: BaseDownloadProvider,
+    provider: IDownloadProvider,
 }>();
 
 // provides

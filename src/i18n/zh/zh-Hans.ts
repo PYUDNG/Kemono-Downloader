@@ -4,7 +4,9 @@ export default {
     components: {
         "posts-selector": {
             "selection-buttons": {
+                "select-all-pages": '全选所有页',
                 "select-all": '全选',
+                "clear-all-pages": '清空所有页',
                 clear: '清空',
             },
             list: {
@@ -12,7 +14,7 @@ export default {
             },
             buttons: {
                 "open-post": '打开帖子页面',
-                ok: '下载',
+                ok: '确认',
                 cancel: '取消',
             },
             "image-loading": '加载中...',
@@ -93,6 +95,7 @@ export default {
                     unpause: '取消暂停',
                     retry: '重试',
                     more: '更多',
+                    copied: '已复制',
                     "confirm-delete-files": '同时删除已下载的文件',
                     "confirm-restart": {
                         label: '重新下载',
@@ -124,6 +127,7 @@ export default {
                 },
                 file: {
                     caption: '下载进度: {percentage}%, {finished} / {total}',
+                    copyLink: '复制下载链接',
                 },
                 post: {
                     caption: '共 {total} 个文件，已下载 {finished} 个',
@@ -338,8 +342,16 @@ export default {
         name: '创作者页面',
         gui: {
             download: '下载',
+            "select-all-pages": {
+                summary: '全选所有页',
+                detail: '正在加载全部分页数据...',
+            },
             "posts-selector": {
                 header: '选择要下载的帖子',
+                buttons: {
+                    cancel: '取消',
+                    download: '下载',
+                },
             },
         },
     },

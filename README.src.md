@@ -10,7 +10,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-7.1-646cff?logo=vite)](https://vitejs.dev/)
 
-> 目前项目刚刚发布，仍有可能包含未发现的bug，遇到错误请 [提出issue](https://github.com/PYUDNG/Kemono-Downloader/issues) 共同讨论解决
+> 如遇错误或有功能建议，欢迎 [提出issue](https://github.com/PYUDNG/Kemono-Downloader/issues) 共同讨论解决
 
 ## ✨ 功能特性
 
@@ -40,17 +40,17 @@
 
 ## 截图
 <!-- condition:language=en -->
-![](https://p.sda1.dev/31/9e6b83d1812f98eb2ded188a84d94b24/PostSelector.jpg)
+![](https://p.sda1.dev/32/d5fa056e2fc167000bb0f27d5f1c2bf7/PostsSelector.png)
 ![](https://p.sda1.dev/31/55a983d7d8e4c7957e9cbbb02068c23c/Manager.jpg)
 ![](https://p.sda1.dev/31/d922777e076a727ec4dc32944c3fb941/Settings.jpg)
 <!-- /condition -->
 <!-- condition:language=zh-Hans -->
-![](https://p.sda1.dev/31/ef19e9ffdd4262926f7d6c31c8365f1d/PostSelector.jpg)
+![](https://p.sda1.dev/32/3af729e78e788971b31a130ceb2a9e7f/PostsSelector.png)
 ![](https://p.sda1.dev/31/3e69318e23ec13093a501c07796c6777/Manager.jpg)
 ![](https://p.sda1.dev/31/57289b3c3a6dae2626c0df91fcd4cf7f/Settings.jpg)
 <!-- /condition -->
 <!-- condition:language=zh-Hant -->
-![](https://p.sda1.dev/31/fd55d9dcd9e8e619012b25725900572a/PostSelector.jpg)
+![](https://p.sda1.dev/32/c88e54e8f9b13fc33a8acd35d58bc67e/PostsSelector.png)
 ![](https://p.sda1.dev/31/603cc320752a6167a58473768c553274/Manager.jpg)
 ![](https://p.sda1.dev/31/d16bee941f34ae4abe025201b86e9dc5/Settings.jpg)
 <!-- /condition -->

@@ -5,7 +5,8 @@ import { ToastMessageOptions, useToast } from 'primevue';
 const toast = useToast();
 
 defineExpose({
-    show: (message: ToastMessageOptions) => toast.add(message),
+    add: (message: ToastMessageOptions) => toast.add(message),
+    remove: (message: ToastMessageOptions) => toast.remove(message),
 })
 </script>
 

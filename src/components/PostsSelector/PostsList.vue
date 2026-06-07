@@ -1,20 +1,19 @@
 <script setup lang="ts" generic="T extends PostsApiItem | PostApiResponse">
-import { PostApiResponse } from '@/modules/api/types/post.js';
-import { PostsApiItem } from '@/modules/api/types/posts.js';
+import type { PostApiResponse, PostsApiItem, PostInfo } from '@/modules/api/types/main.js';
 import PostItem from './PostItem.vue';
 import InputText from '@/volt/InputText.vue';
-import { computed, ref, watch } from 'vue';
+import { computed, getCurrentInstance, ref, useTemplateRef, watch } from 'vue';
 import type { Component } from 'vue';
-import { isPostsApiItem } from './utils';
+import { extractPostInfo, isPostsApiItem, isSamePost } from './utils';
 import { useI18n } from 'vue-i18n';
 import Paginator from '@/volt/Paginator.vue';
 import { PageState } from 'primevue';
-import { PostInfo } from '@/modules/api/types/common';
-import { debounce, getIsMobileLayout } from '@/utils/main';
+import { debounce, getIsMobileLayout, popoverLogic } from '@/utils/main';
 import { i18nKeys } from '@/i18n/utils';
 import Button from '@/volt/Button.vue';
 import MaterialSymbolsSelectAllRounded from '~icons/material-symbols/select-all-rounded';
 import MaterialSymbolsDeselectRounded from '~icons/material-symbols/deselect-rounded';
+import Popover from '@/volt/Popover.vue';
 
 const { t } = useI18n();
 const $postsSelector = i18nKeys.$components.$postsSelector;
@@ -60,6 +59,11 @@ const emit = defineEmits<{
      * 当用户改变过滤文本时触发此事件
      */
     filter: [keyword: string];
+
+    /**
+     * 当用户点击全选所有页时触发此事件
+     */
+    'select-all': [event: PointerEvent];
 }>();
 
 //#region 选中
@@ -73,12 +77,7 @@ const selectedPosts = defineModel<PostInfo[]>({ default: () => [] });
  * @returns index（当存在时）或-1（当不存在时）
  */
 function findSelectedIndex(post: T): number {
-    const data = isPostsApiItem(post) ? post : post.post;
-    return selectedPosts.value.findIndex(info => 
-        data.id === info.postId &&
-        data.service === info.service &&
-        data.user === info.creatorId
-    );
+    return selectedPosts.value.findIndex(info => isSamePost(info, post));
 }
 
 /**
@@ -92,20 +91,13 @@ function isPostSelected(post: T): boolean {
  * 处理Post选择状态变化
  */
 function handlePostSelectionChange(post: T, checked: boolean) {
-    const data = isPostsApiItem(post) ? post : post.post;
     const index = findSelectedIndex(post);
 
-    if (checked) {
+    checked ?
         // 添加选中的Post
-        index === -1 && selectedPosts.value.push({
-            service: data.service,
-            creatorId: data.user,
-            postId: data.id
-        });
-    } else {
+        index === -1 && selectedPosts.value.push(extractPostInfo(post)) :
         // 移除取消选中的Post
         index !== -1 && selectedPosts.value.splice(index, 1);
-    }
 }
 //#endregion
 
@@ -231,7 +223,30 @@ interface SelectionButton {
     onClick: (e: PointerEvent) => void,
 }
 const isMobileLayout = getIsMobileLayout();
-const selectionButtions: SelectionButton[] = [{
+const instance = getCurrentInstance();
+const overlayParent = computed(() => instance?.root.vnode.el?.parentElement as HTMLDivElement | undefined);
+const popover = useTemplateRef('popover');
+const popoverText = ref('');
+const logic = computed(() => popover.value ? popoverLogic(popover.value, {
+    longpress: 250,
+    beforeShow(_e, button: SelectionButton) {
+        popoverText.value = button.label;
+    },
+}) : {} as Record<string, undefined>);
+const leftButtons: SelectionButton[] = [{
+    label: t($postsSelector.$selectionButtons.$selectAllPages),
+    icon: MaterialSymbolsSelectAllRounded,
+    onClick(e) {
+        emit('select-all', e);
+    },
+}, {
+    label: t($postsSelector.$selectionButtons.$clearAllPages),
+    icon: MaterialSymbolsDeselectRounded,
+    onClick(_e) {
+        selectedPosts.value.splice(0, selectedPosts.value.length);
+    },
+}];
+const rightButtions: SelectionButton[] = [{
     label: t($postsSelector.$selectionButtons.$selectAll),
     icon: MaterialSymbolsSelectAllRounded,
     onClick(_e) {
@@ -250,7 +265,10 @@ const selectionButtions: SelectionButton[] = [{
     label: t($postsSelector.$selectionButtons.$clear),
     icon: MaterialSymbolsDeselectRounded,
     onClick(_e) {
-        selectedPosts.value.splice(0, selectedPosts.value.length);
+        const posts = selectedPosts.value.filter(post =>
+            props.posts.every(p => !isSamePost(p, post))
+        );
+        selectedPosts.value.splice(0, selectedPosts.value.length, ...posts);
     },
 }];
 </script>
@@ -258,18 +276,26 @@ const selectionButtions: SelectionButton[] = [{
 <template>
     <div ref="div" class="flex flex-col">
         <!-- 选项操作按钮 -->
-        <div class="flex flex-row gap-3 px-3 py-2 items-center justify-end">
-            <Button
-                v-for="button of selectionButtions"
-                :label="isMobileLayout ? '' : button.label"
-                :title="button.label"
-                variant="text"
-                @click="button.onClick"
+        <div class="flex flex-row gap-3 px-3 py-2 items-center justify-between">
+            <Popover v-if="overlayParent" ref="popover" :append-to="overlayParent">{{ popoverText }}</Popover>
+            <div
+                v-for="buttons of [leftButtons, rightButtions]"
+                class="flex flex-row gap-3"
             >
-                <template #icon>
-                    <component :is="button.icon" class="text-xl"></component>
-                </template>
-            </Button>
+                <Button
+                    v-for="button of buttons"
+                    :label="isMobileLayout ? '' : button.label"
+                    :title="button.label"
+                    variant="text"
+                    @click="button.onClick"
+                    @touchstart="e => logic.onTouchStart?.(e, button)"
+                    @touchend="logic.onTouchEnd"
+                >
+                    <template #icon>
+                        <component :is="button.icon" class="text-xl"></component>
+                    </template>
+                </Button>
+            </div>
         </div>
 
         <!-- 搜索框 -->

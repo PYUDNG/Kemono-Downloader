@@ -26,3 +26,10 @@ export interface FileItem {
  * 帖子附件类型
  */
 export type Attachment = FileItem;
+
+/**
+ * API错误返回值类型
+ */
+export type APIErrorResponse = {
+    error: string;
+};

@@ -143,11 +143,17 @@ TODO
 - [ ] Discord支持
   - [x] 创建相关API类型
   - [x] API接口方法实现
-  - [ ] 下载任务接口
-  - [ ] 下载任务基类
+  - [x] 下载任务接口
+  - [x] 下载任务基类
   - [ ] 下载任务实现
-    - [ ] browser
+    - [x] browser
     - [ ] fsa
     - [ ] aria2
   - [ ] UI下载按钮
+  - [ ] Discord下载调用接口
+  - [ ] Discord下载调用基类
+  - [ ] Discord下载调用实现
+    - [ ] browser
+    - [ ] fsa
+    - [ ] aria2
 - [ ] 按照扩展名筛选功能

@@ -19,6 +19,12 @@ export function isPostApiResponse(data: PostsApiItem | PostApiResponse): data is
     return Object.hasOwn(data, 'post');
 }
 
+export function isPostInfo(data: any): data is PostInfo {
+    if (typeof data !== 'object' || data === null) return false;
+    return ['service', 'creatorId', 'postId'].every(key => Object.hasOwn(data, key))
+        && Object.keys(data).length === 3;
+}
+
 /**
  * 从PostsApiItem或PostApiResponse中提取PostInfo
  */
@@ -29,6 +35,20 @@ export function extractPostInfo(data: PostsApiItem | PostApiResponse): PostInfo 
         creatorId: obj.user,
         postId: obj.id
     };
+}
+
+/**
+ * 判断给定的两个对象是否指向同一帖子  
+ * 支持两种API数据格式和PostInfo类型
+ */
+export function isSamePost(
+    item1: PostsApiItem | PostApiResponse | PostInfo,
+    item2: PostsApiItem | PostApiResponse | PostInfo,
+): boolean {
+    const [info1, info2] = [item1, item2].map(item => isPostInfo(item) ? item : extractPostInfo(item));
+    return info1.creatorId === info2.creatorId
+        && info1.postId === info2.postId
+        && info1.service === info2.service;
 }
 
 /**
