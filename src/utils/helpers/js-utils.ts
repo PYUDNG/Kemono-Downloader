@@ -395,6 +395,12 @@ interface Task {
      * 任务状态
      */
     status: 'queue' | 'ongoing' | 'resolved' | 'rejected';
+
+    /**
+     * 任务是否已经实际开始执行（即已经占用过并行槽位）
+     * 用于避免在任务从未开始执行时（如排队中被abort）错误地释放并行槽位
+     */
+    started: boolean;
 };
 
 interface QueueConfig {
@@ -479,7 +485,7 @@ export class Queue {
      */
     enqueue<R>(func: () => R, signal?: AbortSignal): Promise<Awaited<R>> {
         const { promise, reject, resolve } = Promise.withResolvers<Awaited<R>>();
-        const task: Task = { func, reject, resolve, status: 'queue' };
+        const task: Task = { func, reject, resolve, status: 'queue', started: false };
         this.tasks.push(task);
 
         // 任务结束时进行清理
@@ -490,16 +496,19 @@ export class Queue {
             // 更新任务状态
             task.status = 'rejected';
         }).finally(() => {
-            // 释放任务并行槽位
-            this.ongoing--;
+            // 仅当任务已经实际开始执行（占用过并行槽位）时才释放槽位
+            // 排队中被abort的任务从未调用过run()，不应影响ongoing计数
+            if (task.started) this.ongoing--;
             // 从队列移除任务
             this.config.preserve || this.tasks.splice(this.tasks.indexOf(task), 1);
             // 检查是否有待执行的任务
             this.checkTask();
         })
 
-        // 处理abort
-        signal?.addEventListener('abort', () => task.reject('aborted'));
+        // 处理abort：仅在任务尚未结束时才reject，避免重复settle一个已完成的promise
+        signal?.addEventListener('abort', () => {
+            if (task.status === 'queue' || task.status === 'ongoing') task.reject('aborted');
+        });
 
         // 排队执行
         this.checkTask();
@@ -526,12 +535,16 @@ export class Queue {
     private run(task: Task) {
         // 申请任务并行槽位
         this.ongoing++;
+        task.started = true;
 
         // 更新任务状态
         task.status = 'ongoing';
 
         // 根据队列配置延迟执行任务
         setTimeout(async () => {
+            // 任务可能在延迟等待期间被abort（reject），此时不应再执行func或改写其状态
+            if (task.status !== 'ongoing') return;
+
             try {
                 // 执行任务，兼容同步任务和Promise异步任务
                 const val = await Promise.resolve(task.func());

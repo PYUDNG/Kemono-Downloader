@@ -89,4 +89,27 @@ export abstract class BaseFileDownloadTask extends BaseDownloadTask implements I
 export abstract class BaseMultiDownloadTask extends BaseDownloadTask implements IMultiFileDownloadTask {
     public readonly type: string = 'multifile';
     public subTasks: Reactive<BaseDownloadTask[]> = reactive([]);
+
+    /**
+     * 根据子任务的实际状态重新计算自身的进度和状态
+     * 必须在每次run或retry后调用，而不是手动增减`progress.finished`——
+     * 后者无法反映重试失败、部分完成等情况，会导致进度和状态与子任务实际情况不一致
+     */
+    public recomputeProgress(): void {
+        const subTasks = this.subTasks;
+        this.progress.total = subTasks.length;
+        this.progress.finished = subTasks.filter(task => task.progress.status === 'complete').length;
+
+        if (subTasks.length > 0 && subTasks.every(task => task.progress.status === 'complete')) {
+            this.progress.status = 'complete';
+        } else if (subTasks.some(task => task.progress.status === 'error')) {
+            this.progress.status = 'error';
+        } else if (subTasks.some(task => task.progress.status === 'aborted')) {
+            this.progress.status = 'aborted';
+        } else if (subTasks.some(task => task.progress.status === 'paused')) {
+            this.progress.status = 'paused';
+        } else {
+            this.progress.status = 'ongoing';
+        }
+    }
 }

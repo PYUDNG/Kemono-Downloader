@@ -1,6 +1,6 @@
 import { FileItem, PostInfo } from "@/modules/api/types/common.js";
 import { BaseDownloadProvider, Feature } from "../../types/base/provider.js";
-import { BaseDownloadTask, BaseFileDownloadTask, BaseSavefileTask, BaseTask, ProviderType } from "../../types/base/task.js";
+import { BaseDownloadTask, BaseFileDownloadTask, BaseMultiDownloadTask, BaseSavefileTask, BaseTask, ProviderType } from "../../types/base/task.js";
 import { IDiscordChannelDownloadTask, IDiscordServerDownloadTask, IPostDownloadTask, IPostsDownloadTask } from "../../types/interface/post.js";
 import { IDownloadProvider } from "../../types/interface/provider.js";
 import { DownloadFile, IFileDownloadTask, ISavefileTask, SaveFile, Status } from "../../types/interface/task.js";
@@ -221,13 +221,9 @@ class BrowserFileDownloadTask extends BaseFileDownloadTask implements IFileDownl
         await this.abort();
         await this.run();
 
-        // 设置父级任务状态
-        if (this.parent) {
-            const progress = this.parent.progress;
-            progress.finished++;
-            if (progress.finished === progress.total)
-                progress.status = 'complete';
-        }
+        // 根据本任务实际的重试结果，让父级任务重新计算进度和状态
+        // 而不是盲目假设重试一定成功
+        if (this.parent instanceof BaseMultiDownloadTask) this.parent.recomputeProgress();
     }
 }
 
@@ -250,7 +246,7 @@ export class BrowserPostDownloadTask extends BasePostDownloadTask implements IPo
         super(parent, info);
         this.parent = parent ?? null;
 
-        const { promise, resolve } = Promise.withResolvers<void>();
+        const { promise, resolve, reject } = Promise.withResolvers<void>();
         this.init = promise;
 
         // 排队访问API，获取Post数据
@@ -263,6 +259,7 @@ export class BrowserPostDownloadTask extends BasePostDownloadTask implements IPo
 
         // 当api数据获取完毕时
         this.dataPromise.then(async () => {
+          try {
             // 为post任务设置名称
             this.name = this.data!.post.title;
 
@@ -310,7 +307,7 @@ export class BrowserPostDownloadTask extends BasePostDownloadTask implements IPo
                 });
             }
             // 创建任务
-            await Promise.allSettled(files.map(async (subTask, i) => {
+            const results = await Promise.allSettled(files.map(async (subTask, i) => {
                 let taskInstance: typeof this.subTasks[number];
                 switch (subTask.type) {
                     case 'savefile': {
@@ -357,10 +354,25 @@ export class BrowserPostDownloadTask extends BasePostDownloadTask implements IPo
                 this.subTasks.push(taskInstance);
                 await taskInstance.init;
             }));
+
+            // 子任务创建/初始化失败时，不能静默忽略——否则父任务可能在缺失文件的情况下报告"完成"
+            const failed = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+            if (failed.length > 0) {
+                throw new Error(`Failed to initialize ${failed.length}/${files.length} subtask(s): ${failed.map(r => r.reason).join('; ')}`);
+            }
+
             this.progress.total = files.length;
             this.progress.finished = 0;
 
             resolve();
+          } catch (err) {
+            this.progress.status = 'error';
+            reject(err);
+          }
+        }).catch(err => {
+            // dataPromise本身被reject的情况也会走到这里（此时上面的try块从未执行）
+            this.progress.status = 'error';
+            reject(err);
         });
     }
 
@@ -439,13 +451,11 @@ export class BrowserPostDownloadTask extends BasePostDownloadTask implements IPo
                 .map(task => task.retry())
         );
 
-        // 设置父级任务状态
-        if (this.parent) {
-            const progress = this.parent.progress;
-            progress.finished++;
-            if (progress.finished === progress.total)
-                progress.status = 'complete';
-        }
+        // 根据子任务的实际状态重新计算自身进度和状态，而不是盲目假设重试一定成功
+        this.recomputeProgress();
+
+        // 同步通知父级任务根据其子任务的实际状态重新计算进度
+        if (this.parent instanceof BaseMultiDownloadTask) this.parent.recomputeProgress();
     }
 
     /**
@@ -547,13 +557,11 @@ export class BrowserPostsDownloadTask extends BasePostsDownloadTask implements I
                 .map(task => task.retry())
         );
         
-        // 设置父级任务状态
-        if (this.parent) {
-            const progress = this.parent.progress;
-            progress.finished++;
-            if (progress.finished === progress.total)
-                progress.status = 'complete';
-        }
+        // 根据子任务的实际状态重新计算自身进度和状态，而不是盲目假设重试一定成功
+        this.recomputeProgress();
+
+        // 同步通知父级任务根据其子任务的实际状态重新计算进度
+        if (this.parent instanceof BaseMultiDownloadTask) this.parent.recomputeProgress();
     }
 
     /**
@@ -588,7 +596,7 @@ export class BrowserDiscordChannelDownloadTask extends BaseDiscordChannelDownloa
         super(parent, channelId);
 
         // init promise
-        const { promise, resolve } = Promise.withResolvers<void>();
+        const { promise, resolve, reject } = Promise.withResolvers<void>();
         this.init = promise;
 
         // 设置名称
@@ -604,6 +612,7 @@ export class BrowserDiscordChannelDownloadTask extends BaseDiscordChannelDownloa
 
         // 当api数据获取完毕时
         dataPromise.then(async posts => {
+          try {
             // 先创建抽象任务列表，再分别创建实际任务实例
             /**
              * 抽象任务
@@ -652,7 +661,7 @@ export class BrowserDiscordChannelDownloadTask extends BaseDiscordChannelDownloa
             })));
 
             // 按照抽象任务列表创建实际任务
-            await Promise.allSettled(files.map(async (subTask, i) => {
+            const results = await Promise.allSettled(files.map(async (subTask, i) => {
                 let taskInstance: typeof this.subTasks[number];
                 switch (subTask.type) {
                     case 'savefile': {
@@ -696,10 +705,24 @@ export class BrowserDiscordChannelDownloadTask extends BaseDiscordChannelDownloa
                 this.subTasks.push(taskInstance);
                 await taskInstance.init;
             }));
+
+            // 子任务创建/初始化失败时，不能静默忽略——否则父任务可能在缺失文件的情况下报告"完成"
+            const failed = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+            if (failed.length > 0) {
+                throw new Error(`Failed to initialize ${failed.length}/${files.length} subtask(s): ${failed.map(r => r.reason).join('; ')}`);
+            }
+
             this.progress.total = files.length;
             this.progress.finished = 0;
 
             resolve();
+          } catch (err) {
+            this.progress.status = 'error';
+            reject(err);
+          }
+        }).catch(err => {
+            this.progress.status = 'error';
+            reject(err);
         });
     }
 
@@ -782,13 +805,11 @@ export class BrowserDiscordChannelDownloadTask extends BaseDiscordChannelDownloa
                 .map(task => task.retry())
         );
 
-        // 设置父级任务状态
-        if (this.parent) {
-            const progress = this.parent.progress;
-            progress.finished++;
-            if (progress.finished === progress.total)
-                progress.status = 'complete';
-        }
+        // 根据子任务的实际状态重新计算自身进度和状态，而不是盲目假设重试一定成功
+        this.recomputeProgress();
+
+        // 同步通知父级任务根据其子任务的实际状态重新计算进度
+        if (this.parent instanceof BaseMultiDownloadTask) this.parent.recomputeProgress();
     }
 
     /**
@@ -818,7 +839,7 @@ export class BrowserDiscordServerDownloadTask extends BaseDiscordServerDownloadT
         super(parent, serverId);
 
         // init promise
-        const { promise, resolve } = Promise.withResolvers<void>();
+        const { promise, resolve, reject } = Promise.withResolvers<void>();
         this.init = promise;
 
         // 加载API数据
@@ -842,6 +863,10 @@ export class BrowserDiscordServerDownloadTask extends BaseDiscordServerDownloadT
             }
             await Promise.allSettled(this.subTasks.map(t => t.init));
             resolve();
+        }).catch(err => {
+            // dataPromise本身被reject的情况下，上面的then回调不会执行，init会永远pending，因此需要在此显式reject
+            this.progress.status = 'error';
+            reject(err);
         });
     }
 
@@ -924,13 +949,11 @@ export class BrowserDiscordServerDownloadTask extends BaseDiscordServerDownloadT
                 .map(task => task.retry())
         );
 
-        // 设置父级任务状态
-        if (this.parent) {
-            const progress = this.parent.progress;
-            progress.finished++;
-            if (progress.finished === progress.total)
-                progress.status = 'complete';
-        }
+        // 根据子任务的实际状态重新计算自身进度和状态，而不是盲目假设重试一定成功
+        this.recomputeProgress();
+
+        // 同步通知父级任务根据其子任务的实际状态重新计算进度
+        if (this.parent instanceof BaseMultiDownloadTask) this.parent.recomputeProgress();
     }
 
     /**
@@ -975,7 +998,14 @@ export default class BrowserDownloadProvider extends BaseDownloadProvider implem
      */
     private async runWithRetry(task: BaseTask) {
         // 等待任务初始化完毕
-        await task.init;
+        // init可能因为API请求失败、子任务创建失败等原因reject，此时任务状态已在任务内部设置为error，
+        // 这里只需避免产生未处理的promise rejection并中止后续流程
+        try {
+            await task.init;
+        } catch (err) {
+            logger.simple('Error', `task initialization failed: ${err}`);
+            return;
+        }
 
         // 首先执行一次
         await task.run();

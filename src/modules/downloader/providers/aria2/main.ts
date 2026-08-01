@@ -1,6 +1,6 @@
 import { PostInfo } from "@/modules/api/types/common.js";
 import { BaseDownloadProvider, Feature } from "../../types/base/provider.js";
-import { BaseDownloadTask, BaseFileDownloadTask, BaseTask, ProviderType } from "../../types/base/task.js";
+import { BaseDownloadTask, BaseFileDownloadTask, BaseMultiDownloadTask, BaseTask, ProviderType } from "../../types/base/task.js";
 import { IPostDownloadTask, IPostsDownloadTask } from "../../types/interface/post.js";
 import { IDownloadProvider } from "../../types/interface/provider.js";
 import { DownloadFile, IFileDownloadTask, Status } from "../../types/interface/task.js";
@@ -221,6 +221,9 @@ class Aria2FileDownloadTask extends BaseFileDownloadTask implements IFileDownloa
         super(parent, file);
         if (!aria2) {
             this.logger.simple('Error', 'Aria2 not initialized. Check if aria2 provider is the active provider.');
+            // 客户端不可用时必须置为error状态，否则任务会永远停留在非终止状态，
+            // 导致父任务误以为所有子任务都已成功完成
+            this.progress.status = 'error';
             return;
         }
 
@@ -233,7 +236,10 @@ class Aria2FileDownloadTask extends BaseFileDownloadTask implements IFileDownloa
     async run(): Promise<void> {
         if (!aria2) {
             this.logger.simple('Error', 'Aria2 not initialized. Check if aria2 provider is the active provider.');
-            return;
+            // 客户端不可用必须报告为错误并抛出，而不是静默返回——
+            // 否则父任务的Promise.allSettled会将这次run()视为成功完成
+            this.progress.status = 'error';
+            throw new Error('Aria2 client is not initialized');
         }
         if (this.progress.status === 'ongoing') {
             this.logger.simple('Error', 'calling run while status is ongoing');
@@ -361,13 +367,9 @@ class Aria2FileDownloadTask extends BaseFileDownloadTask implements IFileDownloa
         await this.abort();
         await this.run();
 
-        // 设置父级任务状态
-        if (this.parent) {
-            const progress = this.parent.progress;
-            progress.finished++;
-            if (progress.finished === progress.total)
-                progress.status = 'complete';
-        }
+        // 根据本任务实际的重试结果，让父级任务重新计算进度和状态
+        // 而不是盲目假设重试一定成功
+        if (this.parent instanceof BaseMultiDownloadTask) this.parent.recomputeProgress();
     }
 }
 
@@ -389,7 +391,7 @@ export class Aria2PostDownloadTask extends BasePostDownloadTask implements IPost
     constructor(parent: Nullable<BaseDownloadTask>, info: PostInfo) {
         super(parent, info);
 
-        const { promise, resolve } = Promise.withResolvers<void>();
+        const { promise, resolve, reject } = Promise.withResolvers<void>();
         this.init = promise;
 
         // 排队访问API，获取Post数据
@@ -403,13 +405,14 @@ export class Aria2PostDownloadTask extends BasePostDownloadTask implements IPost
 
         // 当api数据获取完毕时
         this.dataPromise.then(async () => {
+          try {
             // 为post任务设置名称
             this.name = this.data!.post.title;
 
             // 为每个文件创建下载任务
             const files = [this.data!.post.file, ...this.data!.post.attachments];
             storage.get('noCoverFile') && files.shift();
-            await Promise.allSettled(files.map(async (file, i) => {
+            const results = await Promise.allSettled(files.map(async (file, i) => {
                 const creator = await profile({
                     service: this.info.service,
                     creatorId: this.info.creatorId
@@ -435,10 +438,25 @@ export class Aria2PostDownloadTask extends BasePostDownloadTask implements IPost
 
                 await fileTask.init;
             }));
+
+            // 子任务创建/初始化失败时，不能静默忽略——否则父任务可能在缺失文件的情况下报告"完成"
+            const failed = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+            if (failed.length > 0) {
+                throw new Error(`Failed to initialize ${failed.length}/${files.length} subtask(s): ${failed.map(r => r.reason).join('; ')}`);
+            }
+
             this.progress.total = files.length;
             this.progress.finished = 0;
 
             resolve();
+          } catch (err) {
+            this.progress.status = 'error';
+            reject(err);
+          }
+        }).catch(err => {
+            // dataPromise本身被reject的情况也会走到这里（此时上面的try块从未执行）
+            this.progress.status = 'error';
+            reject(err);
         });
     }
 
@@ -519,13 +537,11 @@ export class Aria2PostDownloadTask extends BasePostDownloadTask implements IPost
                 .map(task => task.retry())
         );
         
-        // 设置父级任务状态
-        if (this.parent) {
-            const progress = this.parent.progress;
-            progress.finished++;
-            if (progress.finished === progress.total)
-                progress.status = 'complete';
-        }
+        // 根据子任务的实际状态重新计算自身进度和状态，而不是盲目假设重试一定成功
+        this.recomputeProgress();
+
+        // 同步通知父级任务根据其子任务的实际状态重新计算进度
+        if (this.parent instanceof BaseMultiDownloadTask) this.parent.recomputeProgress();
     }
 
     /**
@@ -639,13 +655,11 @@ export class Aria2PostsDownloadTask extends BasePostsDownloadTask implements IPo
                 .map(task => task.retry())
         );
         
-        // 设置父级任务状态
-        if (this.parent) {
-            const progress = this.parent.progress;
-            progress.finished++;
-            if (progress.finished === progress.total)
-                progress.status = 'complete';
-        }
+        // 根据子任务的实际状态重新计算自身进度和状态，而不是盲目假设重试一定成功
+        this.recomputeProgress();
+
+        // 同步通知父级任务根据其子任务的实际状态重新计算进度
+        if (this.parent instanceof BaseMultiDownloadTask) this.parent.recomputeProgress();
     }
 
     /**
@@ -690,7 +704,14 @@ export default class Aria2DownloadProvider extends BaseDownloadProvider implemen
      */
     private async runWithRetry(task: BaseTask) {
         // 等待任务初始化完毕
-        await task.init;
+        // init可能因为API请求失败、子任务创建失败等原因reject，此时任务状态已在任务内部设置为error，
+        // 这里只需避免产生未处理的promise rejection并中止后续流程
+        try {
+            await task.init;
+        } catch (err) {
+            logger.simple('Error', `task initialization failed: ${err}`);
+            return;
+        }
 
         // 首先执行一次
         await task.run();

@@ -239,14 +239,17 @@ export interface DownloadProgress {
  * @param url 下载地址
  * @param fileHandle 已获取的 FileSystemFileHandle 实例
  * @param onProgress 进度回调函数
+ * @param signal 用于终止下载的{@link AbortSignal}；被abort时会立即终止fetch请求与流式读取
  */
 export async function streamDownloadToFileHandle(
     url: string,
     fileHandle: FileSystemFileHandle,
-    onProgress?: (progress: DownloadProgress) => void
+    onProgress?: (progress: DownloadProgress) => void,
+    signal?: AbortSignal,
 ): Promise<void> {
     // 发起请求
-    const response = await fetch(url, { mode: 'cors' });
+    // 传入signal，确保任务被abort时能立即取消底层网络请求，而非任其在后台继续下载
+    const response = await fetch(url, { mode: 'cors', signal });
 
     if (!response.ok)
         throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
@@ -270,6 +273,10 @@ export async function streamDownloadToFileHandle(
     try {
         // 线性流式处理：读取 -> 写入 -> 回调
         while (true) {
+            // signal被abort时（例如fetch因signal被abort而reject）需要尽快退出循环，
+            // 避免在已知任务终止的情况下继续写入
+            if (signal?.aborted) throw signal.reason ?? new Error('aborted');
+
             const { done, value } = await reader.read();
             if (done) break;
 
@@ -279,12 +286,15 @@ export async function streamDownloadToFileHandle(
             // 进度回调
             onProgress && onProgress({ received, total });
         }
+
+        // 正常读完全部数据，提交写入的内容
+        await writable.close();
     } catch (error) {
-        // 可以在此处处理写入中断逻辑
+        // 读取/写入失败或被取消：终止可写流而不是close它，避免将不完整的数据当作正常文件提交
+        await reader.cancel(error).catch(() => {});
+        await writable.abort(error).catch(() => {});
         throw error;
     } finally {
-        // 关闭文件可写流
-        await writable.close();
         reader.releaseLock();
     }
 }

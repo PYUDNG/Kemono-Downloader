@@ -1,5 +1,5 @@
 import { Nullable, Queue, requestBuffer, toast } from "@/utils/main.js";
-import { BaseDownloadTask, BaseFileDownloadTask, BaseSavefileTask, BaseTask, ProviderType } from "../../types/base/task";
+import { BaseDownloadTask, BaseFileDownloadTask, BaseMultiDownloadTask, BaseSavefileTask, BaseTask, ProviderType } from "../../types/base/task";
 import { DownloadFile, IFileDownloadTask, ISavefileTask, SaveFile, Status } from "../../types/interface/task";
 import { logger as globalLogger } from "@/utils/main.js";
 import { globalStorage } from "@/storage";
@@ -283,7 +283,7 @@ class FSAFileDownloadTask extends BaseFileDownloadTask implements IFileDownloadT
                     await streamDownloadToFileHandle(this.file.url, fileHandle, progress => {
                         this.progress.total = progress.total;
                         this.progress.finished = progress.received;
-                    });
+                    }, currentRunSignal);
                 } catch(err) {
                     // 原生fetch报错（预计为cors权限问题），改用GM_xhr兜底
                     logger.simple('Warning', 'native fetch error while downloading, using GM_xmlhttpRequest as fallback')
@@ -294,34 +294,26 @@ class FSAFileDownloadTask extends BaseFileDownloadTask implements IFileDownloadT
                         // @ts-ignore `mode`参数存在，但项目使用的ts类型库'@types/wicg-file-system-access'尚未实现此类型
                         mode: 'exclusive',
                     });
-                    // 为应对GM_xhr也出错（比如网络不稳定情况），使用try-finally保证文件可写流最终一定被关闭
+                    // 注意：不能在onprogress/onload回调中异步分批写入——request()内部在调用onload回调之前
+                    // 就已经resolve了返回的Promise，因此await requestBuffer(...)可能在最后一次异步写入完成前就返回，
+                    // 与随后的writable.close()形成竞态，导致文件被截断。因此改为等待完整响应后一次性写入。
                     try {
-                        let lastBytesLoaded = 0;
-                        const writeChunk = async (buffer: ArrayBuffer) => {
-                            const chunk = buffer.slice(lastBytesLoaded);
-                            if (chunk.byteLength > 0) {
-                                await writable.write(chunk);
-                                lastBytesLoaded += chunk.byteLength;
-                            }
-                        };
-                        await requestBuffer({
+                        const buffer = await requestBuffer({
                             url: this.file.url,
-                            onprogress: async e => {
-                                // 写入文件
-                                if (e.response) await writeChunk(e.response);
-                                // 更新进度
+                            onprogress: e => {
+                                // 仅更新进度，不在此处写入数据
                                 this.progress.total = (e.total ?? e.totalSize ?? -1) || -1;
                                 this.progress.finished = (e.done ?? e.loaded ?? -1) || -1;
                             },
-                            onload: async e => {
-                                // 写入文件
-                                await writeChunk(e.response);
-                                // 更新进度
-                                this.progress.finished = this.progress.total;
-                            }
                         }, currentRunSignal);
-                    } finally {
+
+                        await writable.write(buffer);
+                        this.progress.finished = this.progress.total;
                         await writable.close();
+                    } catch (error) {
+                        // 请求失败或被取消：终止可写流而不是close它，避免提交不完整的数据
+                        await writable.abort(error).catch(() => {});
+                        throw error;
                     }
                 }
 
@@ -395,13 +387,9 @@ class FSAFileDownloadTask extends BaseFileDownloadTask implements IFileDownloadT
         await this.abort(false);
         await this.run();
 
-        // 设置父级任务状态
-        if (this.parent) {
-            const progress = this.parent.progress;
-            progress.finished++;
-            if (progress.finished === progress.total)
-                progress.status = 'complete';
-        }
+        // 根据本任务实际的重试结果，让父级任务重新计算进度和状态
+        // 而不是盲目假设重试一定成功
+        if (this.parent instanceof BaseMultiDownloadTask) this.parent.recomputeProgress();
     }
 }
 
@@ -424,7 +412,7 @@ export class FSAPostDownloadTask extends BasePostDownloadTask implements IPostDo
         super(parent, info);
         this.parent = parent ?? null;
 
-        const { promise, resolve } = Promise.withResolvers<void>();
+        const { promise, resolve, reject } = Promise.withResolvers<void>();
         this.init = promise;
 
         // 排队访问API，获取Post数据
@@ -438,6 +426,7 @@ export class FSAPostDownloadTask extends BasePostDownloadTask implements IPostDo
 
         // 当api数据获取完毕时
         this.dataPromise.then(async () => {
+          try {
             // 为post任务设置名称
             this.name = this.data!.post.title;
 
@@ -486,7 +475,7 @@ export class FSAPostDownloadTask extends BasePostDownloadTask implements IPostDo
             }
 
             // 为每个文件创建下载任务
-            await Promise.allSettled(files.map(async (subTask, i) => {
+            const results = await Promise.allSettled(files.map(async (subTask, i) => {
                 let taskInstance: typeof this.subTasks[number];
 
                 switch (subTask.type) {
@@ -535,10 +524,25 @@ export class FSAPostDownloadTask extends BasePostDownloadTask implements IPostDo
                 this.subTasks.push(taskInstance);
                 await taskInstance.init;
             }));
+
+            // 子任务创建/初始化失败时，不能静默忽略——否则父任务可能在缺失文件的情况下报告"完成"
+            const failed = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+            if (failed.length > 0) {
+                throw new Error(`Failed to initialize ${failed.length}/${files.length} subtask(s): ${failed.map(r => r.reason).join('; ')}`);
+            }
+
             this.progress.total = files.length;
             this.progress.finished = 0;
 
             resolve();
+          } catch (err) {
+            this.progress.status = 'error';
+            reject(err);
+          }
+        }).catch(err => {
+            // dataPromise本身被reject的情况也会走到这里（此时上面的try块从未执行）
+            this.progress.status = 'error';
+            reject(err);
         });
     }
 
@@ -619,13 +623,11 @@ export class FSAPostDownloadTask extends BasePostDownloadTask implements IPostDo
                 .map(task => task.retry())
         );
         
-        // 设置父级任务状态
-        if (this.parent) {
-            const progress = this.parent.progress;
-            progress.finished++;
-            if (progress.finished === progress.total)
-                progress.status = 'complete';
-        }
+        // 根据子任务的实际状态重新计算自身进度和状态，而不是盲目假设重试一定成功
+        this.recomputeProgress();
+
+        // 同步通知父级任务根据其子任务的实际状态重新计算进度
+        if (this.parent instanceof BaseMultiDownloadTask) this.parent.recomputeProgress();
     }
 
     /**
@@ -730,13 +732,11 @@ export class FSAPostsDownloadTask extends BasePostsDownloadTask implements IPost
                 .map(task => task.retry())
         );
         
-        // 设置父级任务状态
-        if (this.parent) {
-            const progress = this.parent.progress;
-            progress.finished++;
-            if (progress.finished === progress.total)
-                progress.status = 'complete';
-        }
+        // 根据子任务的实际状态重新计算自身进度和状态，而不是盲目假设重试一定成功
+        this.recomputeProgress();
+
+        // 同步通知父级任务根据其子任务的实际状态重新计算进度
+        if (this.parent instanceof BaseMultiDownloadTask) this.parent.recomputeProgress();
     }
 
     /**
@@ -789,7 +789,14 @@ export default class FSADownloadProvider extends BaseDownloadProvider implements
      */
     private async runWithRetry(task: BaseTask) {
         // 等待任务初始化完毕
-        await task.init;
+        // init可能因为API请求失败、子任务创建失败等原因reject，此时任务状态已在任务内部设置为error，
+        // 这里只需避免产生未处理的promise rejection并中止后续流程
+        try {
+            await task.init;
+        } catch (err) {
+            logger.simple('Error', `task initialization failed: ${err}`);
+            return;
+        }
 
         // 首先执行一次
         await task.run();

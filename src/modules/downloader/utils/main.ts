@@ -4,7 +4,7 @@ import { PostApiResponse } from "@/modules/api/types/post";
 import { PostsApiResponse } from "@/modules/api/types/posts";
 import { ProfileApiResponse } from "@/modules/api/types/profile";
 import { globalStorage } from "@/storage";
-import { $CrE, Nullable, ReplaceRule, safeBatchReplace } from "@/utils/main";
+import { $CrE, logger as globalLogger, Nullable, ReplaceRule, safeBatchReplace } from "@/utils/main";
 import { Conn } from "maria2";
 import { v4 as uuid } from "uuid";
 import { fullFileURL } from "./murmurhash";
@@ -171,7 +171,7 @@ export class Aria2IntervalCallsManager {
     private tasks: Record<string, Aria2Call> = {};
 
     /**
-     * aria2实例  
+     * aria2实例
      * 允许设置为null，设置为null时无法启动循环，如果循环已启动，则会自动停止
      */
     public aria2: Nullable<Conn>;
@@ -182,10 +182,19 @@ export class Aria2IntervalCallsManager {
     private interval: number;
 
     /**
-     * 周期任务setInterval句柄  
+     * 周期任务setInterval句柄
      * 为空时表示周期任务不在运行
      */
     private handle: Nullable<number> = null;
+
+    /**
+     * 是否有一次轮询正在进行中
+     * 用于防止上一次multicall尚未返回时又发起新一次调用——否则响应可能乱序返回，
+     * 用较早请求的（更旧的）结果覆盖较新的任务状态
+     */
+    private inFlight: boolean = false;
+
+    private logger = globalLogger.withPath('downloader', 'utils', 'Aria2IntervalCallsManager');
 
     constructor(aria2: Nullable<Conn> = null, interval: number = 1000) {
         this.aria2 = aria2;
@@ -200,13 +209,25 @@ export class Aria2IntervalCallsManager {
         if (this.handle !== null) return;
 
         // 开始周期执行
-        this.handle = setInterval(async () => {
-            if (this.aria2 === null) {
-                this.stop();
-                return;
-            }
-            if (Object.keys(this.tasks).length === 0) return;
+        this.handle = setInterval(() => this.tick(), this.interval);
+    }
 
+    /**
+     * 执行一次轮询：拉取所有已注册任务的最新状态并分发回调
+     * 单次RPC失败或单个回调出错都不应影响后续轮询或其他任务的回调
+     */
+    private async tick() {
+        // 上一次轮询尚未完成时跳过本次，避免请求堆叠、响应乱序
+        if (this.inFlight) return;
+
+        if (this.aria2 === null) {
+            this.stop();
+            return;
+        }
+        if (Object.keys(this.tasks).length === 0) return;
+
+        this.inFlight = true;
+        try {
             // 提取任务参数和回调
             const values = Object.values(this.tasks);
             const calls = structuredClone(values.map(call => call.call));
@@ -220,13 +241,27 @@ export class Aria2IntervalCallsManager {
                 { method: 'system.multicall', secret: false },
                 calls,
             );
-            this.aria2.sendRequest
 
-            // 回调
-            results.forEach((val, i) => 
-                callbacks[i](Array.isArray(val) ? val[0] : val)
-            );
-        }, this.interval);
+            // 结果数量/形状与请求不匹配时，不能盲目按下标分发回调（可能导致状态错配）
+            if (!Array.isArray(results) || results.length !== callbacks.length) {
+                throw new Error(`multicall result count/shape mismatch: expected ${callbacks.length} results`);
+            }
+
+            // 回调：单个回调抛出的错误不应阻止其余任务的回调被执行
+            results.forEach((val, i) => {
+                try {
+                    callbacks[i](Array.isArray(val) ? val[0] : val);
+                } catch (err) {
+                    this.logger.simple('Error', `callback error for aria2 interval call: ${err}`);
+                }
+            });
+        } catch (err) {
+            // RPC失败（连接错误、服务端异常、响应格式异常等）：
+            // 记录错误但不抛出，让下一次轮询自然重试，避免产生未处理的promise rejection
+            this.logger.simple('Error', `aria2 multicall polling failed: ${err}`);
+        } finally {
+            this.inFlight = false;
+        }
     }
 
     /**
