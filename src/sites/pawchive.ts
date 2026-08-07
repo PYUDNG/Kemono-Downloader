@@ -1,0 +1,85 @@
+import { globalStorage } from '@/storage.js';
+import { isErrorResponse } from '@/modules/api/main.js';
+import type { APIErrorResponse } from '@/modules/api/types/common.js';
+import type { PostApiResponse } from '@/modules/api/types/post.js';
+import { createPostsApi } from './api.js';
+import { createKemonoStylePages } from './pages.js';
+import { createPostsResolver, expandPostResource } from './post-resource.js';
+import { registerSiteFilenameSetting } from './settings.js';
+import type { Resource } from '@/modules/downloader/types/model.js';
+import type { Site } from './types.js';
+
+const storage = globalStorage.withKeys('downloader');
+
+// —— API响应归一化（站点相关）——
+
+/**
+ * 将pawchive的扁平帖子详情归一化为canonical `PostApiResponse`  
+ * pawchive的post详情为扁平结构（无`post`/`attachments`/`previews`/`props`包装）
+ * @param raw 原始API响应
+ */
+function normalizePost(raw: any): PostApiResponse | APIErrorResponse {
+    if (isErrorResponse(raw)) return raw;
+    // 防御：若已是canonical结构（如未来API变化），直接返回
+    if (raw && typeof raw === 'object' && Object.hasOwn(raw, 'post')) return raw;
+    return {
+        post: raw,
+        attachments: raw.attachments ?? [],
+        previews: undefined,
+        props: undefined,
+    };
+}
+
+// —— 资产URL生成（站点相关）——
+
+const assets: Site['assets'] = {
+    thumbnail(path) {
+        return `https://img.${ location.host }/thumbnail/data${ path }`;
+    },
+
+    /**
+     * pawchive全量文件统一由`file.`子域提供（实测验证）  
+     * 缩略图设置下回退到`img.`子域的缩略图
+     */
+    fullFile(file, _data) {
+        return storage.get('downloadOriginalImage') ?
+            `https://file.${ location.host }/data${ file.path }` :
+            `https://img.${ location.host }/thumbnail/data${ file.path }`;
+    },
+};
+
+const api = createPostsApi(normalizePost);
+const pages = createKemonoStylePages();
+const resolve = createPostsResolver();
+
+/**
+ * 展开资源  
+ * 委托给Kemono系站点通用展开逻辑；本站点能力：pending帖子跳过（内容未完整导入）
+ */
+async function expand(resource: Resource): Promise<void> {
+    await expandPostResource(pawchive, resource);
+}
+
+// —— 站点定义 ——
+
+export const pawchive: Site = {
+    id: 'pawchive',
+    label: 'Pawchive',
+    hosts: [
+        'pawchive.pw',
+    ],
+    pages,
+    api,
+    assets,
+    capabilities: {
+        // pawchive搜索接口要求关键字至少3个字符
+        searchMinLength: 3,
+        // 未完整导入（仅预览）的帖子跳过下载
+        pendingPosts: 'skip',
+    },
+    resolve,
+    expand,
+};
+
+// 站点专属设置（文件名模板，优先级高于通用模板）
+registerSiteFilenameSetting(pawchive);

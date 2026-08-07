@@ -1,11 +1,13 @@
 import type { Site } from './types.js';
 import { kemono } from './kemono.js';
+import { pawchive } from './pawchive.js';
 
 /**
  * 全部已实现的站点 adapter
  */
 const sites: Site[] = [
     kemono,
+    pawchive,
 ];
 
 /**
