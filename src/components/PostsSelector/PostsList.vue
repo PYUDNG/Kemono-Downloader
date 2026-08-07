@@ -279,11 +279,13 @@ const rightButtions: SelectionButton[] = [{
         <div class="flex flex-row gap-3 px-3 py-2 items-center justify-between">
             <Popover v-if="overlayParent" ref="popover" :append-to="overlayParent">{{ popoverText }}</Popover>
             <div
-                v-for="buttons of [leftButtons, rightButtions]"
+                v-for="(buttons, i) of [leftButtons, rightButtions]"
+                :key="i"
                 class="flex flex-row gap-3"
             >
                 <Button
                     v-for="button of buttons"
+                    :key="button.label"
                     :label="isMobileLayout ? '' : button.label"
                     :title="button.label"
                     variant="text"

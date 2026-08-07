@@ -45,7 +45,7 @@ type DialogButton = {
 };
 
 // props
-const props = defineProps<{
+defineProps<{
     /**
      * Dialog标题
      */
@@ -194,7 +194,8 @@ watch(visible, (val, oldVal) => oldVal && !val && reject());
                 <!-- 也可以通过props声明式定义按钮 -->
                 <template v-if="Array.isArray(buttons)">
                     <component
-                        v-for="button of buttons"
+                        v-for="(button, i) of buttons"
+                        :key="i"
                         :is="({
                             primary: Button,
                             secondary: SecondaryButton,

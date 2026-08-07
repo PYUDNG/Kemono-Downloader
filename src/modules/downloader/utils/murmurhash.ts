@@ -25,7 +25,7 @@ const FILESERVERS: { percent: number | "", value: string }[] = [
 // See https://github.com/nginx/nginx/blob/1a82df8cca80458fc3da0968f64624f40cafdf37/src/stream/ngx_stream_split_clients_module.c
 
 function calculateBounds(values: { percent: number | "", value: string }[]): { maxHash: number, value: string }[] {
-  let maxHash = 2 ** 32 - 1;
+  const maxHash = 2 ** 32 - 1;
   let sum = 0;
   let last = 0;
 
@@ -59,6 +59,6 @@ export function getFileserverForValue(value: string): string {
 }
 
 export function fullFileURL(value: string): string {
-  let path = `/data${value}`;
+  const path = `/data${value}`;
   return `${getFileserverForValue(path)}${path}`;
 }

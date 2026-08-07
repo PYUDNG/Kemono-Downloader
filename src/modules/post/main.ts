@@ -11,7 +11,7 @@ import { App } from 'vue';
 
 const t = i18n.global.t;
 const logger = globalLogger.withPath('post');
-const regPath = /^\/(boosty|dlsite|fanbox|fantia|gumroad|patreon|subscribestar)\/user\/([^\/]+)\/post\/([^\/]+)$/;
+const regPath = /^\/(boosty|dlsite|fanbox|fantia|gumroad|patreon|subscribestar)\/user\/([^/]+)\/post\/([^/]+)$/;
 
 export default defineModule({
     id: 'post',

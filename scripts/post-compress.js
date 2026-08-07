@@ -95,7 +95,7 @@ async function formatCodeWithPrettier(code) {
             const projectConfig = JSON.parse(configContent);
             prettierConfig = { ...prettierConfig, ...projectConfig };
             console.log('📋 使用项目 Prettier 配置');
-        } catch (configError) {
+        } catch (_configError) {
             // 如果没有项目配置文件，使用默认配置
             console.log('📋 使用默认 Prettier 配置');
         }

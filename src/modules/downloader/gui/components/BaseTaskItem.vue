@@ -79,7 +79,7 @@ const emit = defineEmits<{
 }>();
 
 // 插槽定义
-const slots = defineSlots<{
+defineSlots<{
     /**
      * 标题插槽
      */

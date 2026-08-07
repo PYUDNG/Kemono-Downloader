@@ -32,7 +32,7 @@ const checked = defineModel<boolean>({ default: false });
 // 生成唯一的id：如果props.id存在则使用，否则生成内部唯一id
 const uniqueId = computed(() => id ?? `post-item-${ uuid() }`);
 
-const emit = defineEmits<{
+defineEmits<{
     click: [event: PointerEvent];
 }>();
 

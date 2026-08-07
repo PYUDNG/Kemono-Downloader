@@ -48,7 +48,7 @@ function copy(markup: string) {
     <div class="grid grid-cols-[min-content_1fr] my-2 border-3 border-solid border-surface-200 dark:border-surface-800">
         <div class="font-bold flex flex-row items-center justify-center py-2 border-r-3 border-b-3 border-solid border-surface-200 dark:border-surface-800">{{ t($filename.$help.$markup) }}</div>
         <div class="font-bold flex flex-row items-center justify-start py-2 px-3 border-b-3 border-solid border-surface-200 dark:border-surface-800">{{ t($filename.$help.$desc) }}</div>
-        <template v-for="markup of markups">
+        <template v-for="markup of markups" :key="markup">
             <div class="border-r-3 border-b border-solid border-surface-200 dark:border-surface-800">
                 <Button
                     variant="text"

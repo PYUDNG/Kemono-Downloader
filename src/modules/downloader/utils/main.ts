@@ -112,8 +112,8 @@ export function constructFilename(
 
     // 由于浏览器安全规则，文件名/文件夹名不得以空格和点号结尾（开头未测试），这里为了确保文件能保存，进行掐头去尾
     filepath = filepath
-        .replaceAll(/(^|[\/\\])[ \.]+/g, '$1')
-        .replaceAll(/[ \.]+(^|[\/\\])/g, '$1')
+        .replaceAll(/(^|[/\\])[ .]+/g, '$1')
+        .replaceAll(/[ .]+(^|[/\\])/g, '$1')
 
     // 返回文件名
     return filepath;

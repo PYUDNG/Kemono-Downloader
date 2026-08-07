@@ -77,7 +77,8 @@ function computeClasses(val: string | Record<string, boolean>): string {
                 <div v-if="caption" :title="caption" class="text-sm text-surface-500 dark:text-surface-400 line-clamp-2">
                     {{ caption }}
                 </div>
-                <div v-for="ex of extras"
+                <div v-for="(ex, i) of extras"
+                    :key="i"
                     class="text-sm"
                     v-bind="typeof ex === 'object' ? ex.props ?? {} : {}"
                 >{{ typeof ex === 'string' ? ex : ex.text }}</div>

@@ -37,6 +37,7 @@ export interface IDownloadProvider {
 }
 
 // 静态属性扩展
+// eslint-disable-next-line @typescript-eslint/no-namespace -- 使用 namespace 合并接口与静态常量，与实现类 `static features` 对应
 export namespace IDownloadProvider {
     /**
      * 下载器支持的features列表（静态属性）

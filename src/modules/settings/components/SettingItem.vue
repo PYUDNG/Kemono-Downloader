@@ -111,6 +111,7 @@ const itemValStr = computed<string>(() => {
         case 'switch': return t($gui.$valueString.$switch[item.value ? '$true' : '$false']);
         case 'select': return item.props!.options.find((val: any) => val[item.props!.optionValue] === item.value)![item.props!.optionLabel];
         case 'button': return item.value;
+        default: return '';
     }
 });
 </script>

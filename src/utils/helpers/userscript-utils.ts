@@ -416,7 +416,7 @@ export class UserscriptStyling {
      */
     applyTo(doc: Document | ShadowRoot): () => void {
         const doApply = () => {
-            let fontFaceCSS: string[] = [];
+            const fontFaceCSS: string[] = [];
             const stylesheets = Object.values(this.styles.value).map(css => {
                 // 制作成CSSStyleSheet
                 const sheet = new CSSStyleSheet();

@@ -88,9 +88,8 @@ onModuleRegistered('downloader', () => {
                         const content = await file.text();
                         if (content !== CONTENT)
                             throw new Error(`file content not match: ${JSON.stringify(content)} !== ${JSON.stringify(CONTENT)}`);
-                    } catch(err) {
+                    } catch (_err) {
                         // 出错就向下传递
-                        throw err;
                     } finally {
                         // 无论是否出错，都清理测试文件
                         await handle.removeEntry(DIR_NAME, { recursive: true });
@@ -291,7 +290,7 @@ class FSAFileDownloadTask extends BaseFileDownloadTask implements IFileDownloadT
 
                     const writable = await fileHandle.createWritable({
                         keepExistingData: false,
-                        // @ts-ignore `mode`参数存在，但项目使用的ts类型库'@types/wicg-file-system-access'尚未实现此类型
+                        // @ts-expect-error `mode`参数存在，但项目使用的ts类型库'@types/wicg-file-system-access'尚未实现此类型
                         mode: 'exclusive',
                     });
                     // 为应对GM_xhr也出错（比如网络不稳定情况），使用try-finally保证文件可写流最终一定被关闭

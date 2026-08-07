@@ -10,7 +10,7 @@ import { i18nKeys } from '@/i18n/utils';
 
 const { t } = useI18n();
 
-const props = defineProps<{
+defineProps<{
     items: UnwrapNestedRefs<SettingItem>[];
     group: SettingGroup;
 }>();

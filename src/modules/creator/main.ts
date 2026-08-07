@@ -18,7 +18,7 @@ import PrimeTimes from '~icons/prime/times';
 const t = i18n.global.t;
 const $creator = i18nKeys.$creator;
 const logger = globalLogger.withPath('creator');
-const regPath = /^\/(boosty|dlsite|fanbox|fantia|gumroad|patreon|subscribestar)\/user\/([^\/]+)$/;
+const regPath = /^\/(boosty|dlsite|fanbox|fantia|gumroad|patreon|subscribestar)\/user\/([^/]+)$/;
 
 export default defineModule({
     id: 'creator',

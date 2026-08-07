@@ -95,6 +95,7 @@ defineExpose({ visible, tab });
                 <TaskItem
                     v-for="task of initTasks"
                     :task="task"
+                    :key="task.id"
                 />
             </TabPanel>
 
@@ -103,6 +104,7 @@ defineExpose({ visible, tab });
                 <TaskItem
                     v-for="task of queueTasks"
                     :task="task"
+                    :key="task.id"
                 />
             </TabPanel>
 
@@ -111,6 +113,7 @@ defineExpose({ visible, tab });
                 <TaskItem
                     v-for="task of ongoingTasks"
                     :task="task"
+                    :key="task.id"
                 />
             </TabPanel>
 
@@ -119,6 +122,7 @@ defineExpose({ visible, tab });
                 <TaskItem
                     v-for="task of pausedTasks"
                     :task="task"
+                    :key="task.id"
                 />
             </TabPanel>
 
@@ -127,6 +131,7 @@ defineExpose({ visible, tab });
                 <TaskItem
                     v-for="task of completedTasks"
                     :task="task"
+                    :key="task.id"
                 />
             </TabPanel>
 
@@ -135,6 +140,7 @@ defineExpose({ visible, tab });
                 <TaskItem
                     v-for="task of abortedTasks"
                     :task="task"
+                    :key="task.id"
                 />
             </TabPanel>
 
@@ -143,6 +149,7 @@ defineExpose({ visible, tab });
                 <TaskItem
                     v-for="task of errorTasks"
                     :task="task"
+                    :key="task.id"
                 />
             </TabPanel>
         </TabLayout>

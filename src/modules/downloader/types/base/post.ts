@@ -11,7 +11,7 @@ export abstract class BasePostDownloadTask extends BaseMultiDownloadTask impleme
     public data: PostApiResponse | null = null;
     public abstract dataPromise: Promise<PostApiResponse>;
 
-    public readonly type: 'post' = 'post';
+    public readonly type = 'post' as const;
 
     /**
      * 接收并设置post信息
@@ -26,7 +26,7 @@ export abstract class BasePostDownloadTask extends BaseMultiDownloadTask impleme
 export abstract class BasePostsDownloadTask extends BaseMultiDownloadTask implements IPostsDownloadTask {
     public infos: PostInfo[];
     public abstract subTasks: Reactive<BasePostDownloadTask[]>;
-    public readonly type: 'posts' = 'posts';
+    public readonly type = 'posts' as const;
 
     /**
      * 接收并设置posts信息
@@ -39,7 +39,7 @@ export abstract class BasePostsDownloadTask extends BaseMultiDownloadTask implem
 }
 
 export abstract class BaseDiscordChannelDownloadTask extends BaseMultiDownloadTask implements IDiscordChannelDownloadTask {
-    public readonly type: 'discord-channel' = 'discord-channel';
+    public readonly type = 'discord-channel' as const;
     public channelId: string;
     public abstract data: Nullable<DiscordChannelApiResponse>;
     public abstract subTasks: Reactive<(BaseFileDownloadTask | BaseSavefileTask)[]>;
@@ -55,7 +55,7 @@ export abstract class BaseDiscordChannelDownloadTask extends BaseMultiDownloadTa
 }
 
 export abstract class BaseDiscordServerDownloadTask extends BaseMultiDownloadTask implements IDiscordServerDownloadTask {
-    public readonly type: 'discord-server' = 'discord-server';
+    public readonly type = 'discord-server' as const;
     public serverId: string;
     public abstract data: Nullable<DiscordServerApiResponse>;
     public abstract subTasks: Reactive<BaseDiscordChannelDownloadTask[]>;

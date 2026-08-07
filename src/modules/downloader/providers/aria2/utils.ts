@@ -36,7 +36,7 @@ export function path2DirFile(path: string) {
 }
 
 function extractSeparator(path: string): string | undefined {
-    const sepReg = /[\/\\]/;
+    const sepReg = /[/\\]/;
     return path.match(sepReg)?.[0];
 }
 

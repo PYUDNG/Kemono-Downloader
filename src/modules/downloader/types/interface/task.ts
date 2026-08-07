@@ -81,21 +81,21 @@ export interface ITask {
      * 如果是异步任务，应当返回一个在任务完成时resolve的Promise  
      * 如果任务过程中出现错误，应当捕获错误并将任务状态设置为`'error'`
      */
-    run: Function;
+    run: (...args: any[]) => unknown;
 
     /**
      * 暂停任务  
      * 如果暂停操作是一个耗时操作，则应返回一个暂停成功时resolve的Promise  
      * 如果不支持暂停功能则应抛出IFeatureNotSupportedError
      */
-    pause: Function;
+    pause: (...args: any[]) => unknown;
 
     /**
      * 取消暂停任务  
      * 如果取消暂停操作是一个耗时操作，则应返回一个暂停成功时resolve的Promise  
      * 如果不支持暂停功能则应抛出错误IFeatureNotSupportedError
      */
-    unpause: Function;
+    unpause: (...args: any[]) => unknown;
 
     /**
      * 终止任务  
@@ -103,13 +103,13 @@ export interface ITask {
      * 如果任务过程中出现错误，应当捕获错误并保持任务状态不变
      * 仅当任务处于`'queue'`或`'ongoing'`状态时有效  
      */
-    abort: Function;
+    abort: (...args: any[]) => unknown;
 
     /**
      * 重试任务失败部分  
      * 将任务整体重试或者出错部分重试，取决于任务性质与具体实现
      */
-    retry: Function;
+    retry: (...args: any[]) => unknown;
 
     /**
      * 子任务列表
