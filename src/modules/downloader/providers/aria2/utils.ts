@@ -1,5 +1,5 @@
 import { HintedString } from "@/utils/main";
-import { Status } from "../../types/interface/task";
+import { Status } from "../../types/model";
 
 /**
  * 将两个路径连接为一个路径  

@@ -1,6 +1,6 @@
-<script setup lang="ts" generic="T extends ITask = ITask">
+<script setup lang="ts" generic="T extends TaskLike = TaskLike">
 import ProgressBar from '@/volt/ProgressBar.vue';
-import type { ITask, Status } from '../../types/interface/main.js';
+import type { Status, TaskLike } from '../../types/model.js';
 import { useI18n } from 'vue-i18n';
 import { computed, getCurrentInstance, ref, useTemplateRef } from 'vue';
 import type { Component } from 'vue';
@@ -11,6 +11,7 @@ import { useConfirm } from 'primevue/useconfirm';
 import { globalStorage, makeStorageRef } from '@/storage';
 import { v4 as uuid } from 'uuid';
 import { supports } from './utils.js';
+import { getResourceTypeUI } from '../../resource-types.js';
 import Checkbox from '@/volt/Checkbox.vue';
 import ExclamationTriangleIcon from '@primevue/icons/exclamationtriangle';
 import { i18nKeys } from '@/i18n/utils.js';
@@ -299,16 +300,12 @@ const confirmRemove = function(_e?: Event) {
  * 根据任务类型展示对应的图标
  */
 const icon = computed(() => {
-    const map: Record<string, Component> = {
-        savefile: FileIcon,
-        download: DownloadIcon,
-        file: FileIcon,
-        post: FileIcon,
-        posts: FolderIcon,
-    };
-    const comp: Component | undefined = map[task.type];
-    if (typeof comp === 'undefined') throw new Error(`task.type (${ task.type }) is not supported`);
-    return comp;
+    // 文件任务：按资源类型（网络下载/内存保存）区分
+    if (task.type === 'file') {
+        return task.target.kind === 'save' ? FileIcon : DownloadIcon;
+    }
+    // 资源任务：按资源语义类型查表（站点注册 → 核心默认 → 通用文件夹图标）
+    return getResourceTypeUI(task.resource.type)?.icon ?? FolderIcon;
 });
 
 const instance = getCurrentInstance()!;

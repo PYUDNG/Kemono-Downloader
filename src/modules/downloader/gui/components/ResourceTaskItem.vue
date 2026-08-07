@@ -6,18 +6,18 @@ import BaseTaskItem from './BaseTaskItem.vue';
 import AppTaskDetail from '../app-taskdetail.vue';
 import { createShadowApp } from '@/utils/main.js';
 import { i18nKeys } from '@/i18n/utils.js';
-import { IPostDownloadTask } from '../../types/interface/post.js';
+import type { TaskLike } from '../../types/model.js';
 
 const { t } = useI18n();
 const $common = i18nKeys.$downloader.$gui.$taskComponent.$common;
-const $post = i18nKeys.$downloader.$gui.$taskComponent.$post;
+const $resource = i18nKeys.$downloader.$gui.$taskComponent.$resource;
 
 // props
 const { task, isSubtask = false } = defineProps<{
     /**
-     * Post下载任务实例
+     * 资源任务实例
      */
-    task: IPostDownloadTask;
+    task: TaskLike & { type: 'resource' };
 
     /**
      * 当前task是否从属于某父级task
@@ -45,7 +45,7 @@ const toProgressString = (num: number) => num > -1 ? num.toString() : t($common.
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function abort(task: IPostDownloadTask, deleteFiles: boolean) {
+async function abort(task: TaskLike, deleteFiles: boolean) {
     loading.value = true;
     await task.abort(deleteFiles);
     loading.value = false;
@@ -56,7 +56,7 @@ async function abort(task: IPostDownloadTask, deleteFiles: boolean) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function remove(task: IPostDownloadTask, deleteFiles: boolean) {
+async function remove(task: TaskLike, deleteFiles: boolean) {
     loading.value = true;
     await task.abort(deleteFiles);
     provider.removeTask(task.id);
@@ -68,7 +68,7 @@ async function remove(task: IPostDownloadTask, deleteFiles: boolean) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function restart(task: IPostDownloadTask, deleteFiles: boolean) {
+async function restart(task: TaskLike, deleteFiles: boolean) {
     loading.value = true;
     await task.abort(deleteFiles);
     task.run();
@@ -80,7 +80,7 @@ async function restart(task: IPostDownloadTask, deleteFiles: boolean) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function pause(task: IPostDownloadTask) {
+async function pause(task: TaskLike) {
     loading.value = true;
     await task.pause();
     loading.value = false;
@@ -91,7 +91,7 @@ async function pause(task: IPostDownloadTask) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function unpause(task: IPostDownloadTask) {
+async function unpause(task: TaskLike) {
     loading.value = true;
     await task.unpause();
     loading.value = false;
@@ -102,7 +102,7 @@ async function unpause(task: IPostDownloadTask) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function retry(task: IPostDownloadTask) {
+async function retry(task: TaskLike) {
     loading.value = true;
     await task.retry();
     loading.value = false;
@@ -113,7 +113,7 @@ async function retry(task: IPostDownloadTask) {
  * @param _e 点击事件
  * @param task 任务实例，和props传入的task应当相同
  */
-function detail(_e: PointerEvent, task: IPostDownloadTask) {
+function detail(_e: PointerEvent, task: TaskLike) {
     // 创建并展示子任务窗口
     const { host, app, root } = createShadowApp(AppTaskDetail, {
         props: { provider, tasks: [], name: task.name },
@@ -155,7 +155,7 @@ function detail(_e: PointerEvent, task: IPostDownloadTask) {
         @retry="retry"
         @click="detail"
     >
-        <!-- 标题插槽：当post api尚未加载完成时，先展示占位文本 -->
+        <!-- 标题插槽：当资源尚未展开完成时，先展示占位文本 -->
         <template #title>
             {{ task.name ?? t($common.$titleNodata) }}
         </template>
@@ -163,13 +163,13 @@ function detail(_e: PointerEvent, task: IPostDownloadTask) {
         <!-- 副标题-进度文本插槽 -->
         <template #progress>
             <span>{{
-                t($post.$caption, {
+                t($resource.$caption, {
                     total: toProgressString(task.progress.total),
                     finished: toProgressString(task.progress.finished),
                 })
             }}</span>
             <span v-if="task.subTasks.some(t => t.progress.status === 'aborted')">{{
-                t($post.$captionAborted, {
+                t($resource.$captionAborted, {
                     aborted: task.subTasks.filter(t => t.progress.status === 'aborted').length
                 })
             }}</span>

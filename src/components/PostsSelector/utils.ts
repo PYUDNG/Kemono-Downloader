@@ -9,7 +9,7 @@ import { PostInfo } from "@/modules/api/types/common";
  * @param path {@link FileItem} 或 {@link Attachment} 的 `path`
  */
 export const getAssetServer = (data: PostApiResponse, path: string): string => {
-    return data.previews.find(p => p.path === path)?.server ?? `n1.${ location.host }`;
+    return data.previews?.find(p => p.path === path)?.server ?? `n1.${ location.host }`;
 };
 
 export function isPostsApiItem(data: PostsApiItem | PostApiResponse): data is PostsApiItem {

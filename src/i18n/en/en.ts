@@ -137,6 +137,17 @@ export default {
                     caption: '{total} posts total, {finished} downloaded',
                     "caption-aborted": ', {aborted} aborted',
                 },
+                resource: {
+                    caption: '{total} items total, {finished} downloaded',
+                    "caption-aborted": ', {aborted} aborted',
+                },
+                "resource-types": {
+                    post: 'Post',
+                    posts: 'Posts',
+                    creator: 'Creator',
+                    server: 'Server',
+                    channel: 'Channel',
+                },
             }
         },
         settings: {
@@ -184,7 +195,8 @@ export default {
                     header: dedent`
                         You can use slashes to create directory structures: "\" for Windows, "/" for Apple/Linux/Android.
                         If folders are not created despite using slashes, please try switching to another downloader, such as File System API or Aria2.
-                        The following templates can be used in custom filenames (case-insensitive). Keep the curly braces (click to copy):
+                        The following recommended template variables can be used in custom filenames (case-insensitive). Keep the curly braces (click to copy):
+Each site adapter provides as many of these variables as possible; the site-specific template (in each site's settings group) takes priority over the general one.
                     `.replaceAll('\n', '<br>'),
                     markup: 'Template',
                     desc: 'Description',

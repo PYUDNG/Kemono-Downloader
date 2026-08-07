@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Dialog from '@/volt/Dialog.vue';
-import type { IDownloadProvider, Status } from '../types/interface/main.ts';
+import type { BaseDownloadProvider } from '../types/base/provider.ts';
+import type { Status } from '../types/model.ts';
 import { computed, provide, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import TabLayout from '@/components/TabLayout/TabLayout.vue';
@@ -13,7 +14,7 @@ const { t } = useI18n();
 
 // props
 const { provider } = defineProps<{
-    provider: IDownloadProvider,
+    provider: BaseDownloadProvider,
 }>();
 
 // provides

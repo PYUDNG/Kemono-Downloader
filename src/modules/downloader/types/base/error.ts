@@ -1,5 +1,19 @@
-import { IFeatureNotSupportedError } from "../interface/error";
-import { ProviderType } from "../base/task";
+import { ProviderType } from "./provider.js";
+
+/**
+ * 功能不受支持错误接口
+ */
+export interface IFeatureNotSupportedError {
+    /**
+     * 错误描述
+     */
+    description: string;
+
+    /**
+     * 不支持的provider
+     */
+    provider: ProviderType;
+}
 
 export class FeatureNotSupportedError extends Error implements IFeatureNotSupportedError {
     public description: string;

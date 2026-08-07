@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { i18nKeys } from '@/i18n/utils';
 import { useI18n } from 'vue-i18n';
-import { ProviderType } from '../../types/base/task';
+import { ProviderType } from '../../types/base/provider';
 import { GM_info } from '$';
 import { isMobileAgent, popoverLogic } from '@/utils/main';
 import { checkCompatibility } from '../../providers/fsa/utils';

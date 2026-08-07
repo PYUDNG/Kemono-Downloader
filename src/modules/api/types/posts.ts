@@ -33,5 +33,19 @@ export interface PostsApiItem {
      * 创作者ID
      */
     user: string;
+
+    // —— 站点扩展字段（可选） ——
+    /** 内容是否已完整导入（false = 仅预览） */
+    has_full?: boolean;
+    /** 导入状态 */
+    preview_state?: string | null;
+    /** 内容来源站点 */
+    origin?: string | null;
+    /** 导入尝试次数 */
+    preview_attempts?: number;
+    /** 详情是否已抓取 */
+    detail_fetched?: boolean;
+    /** 导入大小上限 */
+    import_size_cap_gb?: number | null;
 };
 export type PostsApiResponse = PostsApiItem[];
