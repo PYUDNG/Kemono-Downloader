@@ -239,9 +239,10 @@ GM_registerMenuCommand(t($downloader.$showUi), _e => showUI('ongoing'))
  * @param expand 站点adapter提供的展开函数
  * @param siteId 站点ID（用于解析站点专属文件名模板）
  */
-export function downloadResource(resource: Resource, expand: ExpandFn, siteId?: string) {
+export async function downloadResource(resource: Resource, expand: ExpandFn, siteId?: string) {
     const template = getFilenameTemplate(siteId);
-    const taskId = provider.download(resource, expand, template);
+    // 注：provider的download可能为异步（如fsa需先获取目录句柄），统一await后取得任务ID
+    const taskId = await Promise.resolve(provider.download(resource, expand, template));
     const status = provider.tasks.find(t => t.id === taskId)!.progress.status;
     root.tab = status;
     root.visible = true;

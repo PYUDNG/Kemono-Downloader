@@ -25,7 +25,7 @@ import RefreshIcon from '~icons/prime/refresh'
 import TrashIcon from '~icons/prime/trash'
 import PrimeEllipsisH from '~icons/prime/ellipsis-h'
 import PrimeCopy from '~icons/prime/copy'
-import { MenuItem } from 'primevue/menuitem';
+import type { MenuItem } from 'primevue/menuitem';
 import { GM_setClipboard } from '$';
 import { toast } from '@/utils/main.js';
 
