@@ -47,11 +47,13 @@ export default defineConfig({
                     'http*://*.kemono.party/*',
                     'http*://*.kemono.su/*',
                     'http*://*.kemono.cr/*',
+                    'http*://*.pawchive.st/*',
                 ],
                 connect: [
                     'kemono.party',
                     'kemono.su',
                     'kemono.cr',
+                    'pawchive.st',
                     // Kemono swiches between domains frequently, so we add 'self' and '*' to accept all domains
                     'self',
                     '*',
