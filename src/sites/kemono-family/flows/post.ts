@@ -8,7 +8,7 @@ import type { PageDefinition } from '../types.js';
 import { App } from 'vue';
 import { i18nKeys } from '@/i18n/utils.js';
 import i18n from '@/i18n/main.js';
-import { mountDownloadButton } from './mount.js';
+import { mountDownloadButton, waitForDetach } from './mount.js';
 
 const t = i18n.global.t;
 const logger = globalLogger.withPath('pages', 'post');
@@ -42,8 +42,10 @@ export function createKemonoPostModule({ site, page }: KemonoPostContext) {
         async enter() {
             // 记录本次挂载代次：若挂载等待期间发生leave（页面再次跳转），放弃本次挂载
             const generation = this.context!.generation;
+            // 同类型跳转重新挂载：宿主SPA尚未重渲染，旧挂载点可能仍在文档中；先等它被替换，避免挂进即将被丢弃的旧元素
+            this.context!.mountTarget && await waitForDetach(this.context!.mountTarget);
             // 挂载下载按钮
-            const { container, app } = await mountDownloadButton(page.mount, {
+            const { container, app, mountTarget } = await mountDownloadButton(page.mount, {
                 loading: false,
                 label: t(i18nKeys.$post.$gui.$download),
                 onClick(_e) {
@@ -69,6 +71,7 @@ export function createKemonoPostModule({ site, page }: KemonoPostContext) {
             }
             this.context!.container = container;
             this.context!.app = app;
+            this.context!.mountTarget = mountTarget;
         },
         leave() {
             // 自增代次，使挂载中（await）的enter失效
@@ -81,6 +84,8 @@ export function createKemonoPostModule({ site, page }: KemonoPostContext) {
         context: {
             container: undefined as Optional<HTMLElement>,
             app: undefined as Optional<App>,
+            /** 上次挂载点元素（leave时不清理，供下次enter等待其被SPA替换） */
+            mountTarget: undefined as Optional<HTMLElement>,
             /** 挂载代次：leave时自增，用于取消等待中的enter挂载 */
             generation: 0,
         },
