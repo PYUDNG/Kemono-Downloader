@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { FileSpec } from '@/modules/downloader/types/model.js';
+import { testChecker } from '@/utils/main.js';
 import { __clearResponses, __clearStorage, __setResponse } from '../../tests/mocks/gm.js';
 
 // #region mock：避免加载浏览器UI/i18n/IndexedDB相关模块
@@ -24,10 +25,14 @@ vi.mock('@/modules/api/cache.js', () => ({
 vi.mock('@/styling.js', () => ({
     styling: { applyTo: () => () => {} },
 }));
+vi.mock('@/modules/downloader/main.js', () => ({
+    // 站点测试只关心resolve/expand/资产URL；下载器主模块会连带加载providers（maria2/fsa的IndexedDB副作用），与测试无关
+    downloadResource: vi.fn(),
+}));
 
 // #endregion
 
-import { pawchive } from './pawchive.js';
+import { pawchive, assets, capabilities } from './pawchive.js';
 import { globalStorage } from '@/storage.js';
 
 const storage = globalStorage.withKeys('downloader');
@@ -261,19 +266,30 @@ describe('pawchive.expand', () => {
 
 describe('pawchive.assets', () => {
     it('thumbnail生成img子域缩略图URL', () => {
-        expect(pawchive.assets.thumbnail('/a/b.jpg'))
+        expect(assets.thumbnail('/a/b.jpg'))
             .toBe('https://img.pawchive.pw/thumbnail/data/a/b.jpg');
     });
 
     it('fullFile生成file子域URL', () => {
-        expect(pawchive.assets.fullFile({ path: '/a/b.jpg' }, {} as any))
+        expect(assets.fullFile({ path: '/a/b.jpg' }, {} as any))
             .toBe('https://file.pawchive.pw/data/a/b.jpg');
     });
 });
 
 describe('pawchive.capabilities', () => {
     it('搜索最小长度为3，pending帖子策略为thumbnail-only', () => {
-        expect(pawchive.capabilities.searchMinLength).toBe(3);
-        expect(pawchive.capabilities.pendingPosts).toBe('thumbnail-only');
+        expect(capabilities.searchMinLength).toBe(3);
+        expect(capabilities.pendingPosts).toBe('thumbnail-only');
+    });
+});
+
+describe('pawchive.hosts', () => {
+    it('命中主域与子域，不命中其他站点', () => {
+        expect(testChecker(pawchive.hosts)).toBe(true); // beforeEach已设location.host为pawchive.pw
+        (globalThis as any).location.host = 'sub.pawchive.pw';
+        expect(testChecker(pawchive.hosts)).toBe(true);
+        (globalThis as any).location.host = 'kemono.cr';
+        expect(testChecker(pawchive.hosts)).toBe(false);
+        (globalThis as any).location.host = 'pawchive.pw';
     });
 });

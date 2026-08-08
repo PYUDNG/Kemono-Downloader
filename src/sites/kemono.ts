@@ -1,9 +1,11 @@
 import { murmur2 } from 'murmurhash-js';
 import { globalStorage } from '@/storage.js';
-import { createPostsApi } from './api.js';
-import { createKemonoStylePages } from './pages.js';
-import { createPostsResolver, expandPostResource } from './post-resource.js';
-import { registerSiteFilenameSetting } from './settings.js';
+import { createPostsApi } from './kemono-family/api.js';
+import { createKemonoStylePages } from './kemono-family/pages.js';
+import { createPostsResolver, expandPostResource } from './kemono-family/post-resource.js';
+import { registerSiteFilenameSetting } from './kemono-family/settings.js';
+import { createKemonoCreatorModule, createKemonoPostModule } from './kemono-family/flows/index.js';
+import type { SiteAssets, SiteCapabilities } from './kemono-family/types.js';
 import type { Resource } from '@/modules/downloader/types/model.js';
 import type { Site } from './types.js';
 
@@ -60,7 +62,7 @@ function fullFileURL(value: string): string {
     return `${ getFileserverForValue(path) }${ path }`;
 }
 
-const assets: Site['assets'] = {
+export const assets: SiteAssets = {
     thumbnail(path) {
         return `https://img.${ location.host }/thumbnail/data${ path }`;
     },
@@ -83,7 +85,17 @@ const assets: Site['assets'] = {
 
 // #endregion
 
-const api = createPostsApi();
+// #region API与能力位（站点相关）
+
+export const api = createPostsApi();
+
+export const capabilities: SiteCapabilities = {
+    searchMinLength: 0,
+    pendingPosts: 'none',
+};
+
+// #endregion
+
 const pages = createKemonoStylePages();
 const resolve = createPostsResolver();
 
@@ -92,7 +104,7 @@ const resolve = createPostsResolver();
  * 委托给Kemono系站点通用展开逻辑（本站点能力：无pending限制）
  */
 async function expand(resource: Resource): Promise<void> {
-    await expandPostResource(kemono, resource);
+    await expandPostResource({ api, assets, capabilities }, resource);
 }
 
 // #region 站点定义
@@ -100,22 +112,29 @@ async function expand(resource: Resource): Promise<void> {
 export const kemono: Site = {
     id: 'kemono',
     label: 'Kemono',
+    // 主域 + 子域折叠（endhost带前导点避免fakekemono.cr误命中）
     hosts: [
-        'kemono.party',
-        'kemono.su',
-        'kemono.cr',
+        { type: 'host', value: 'kemono.party' }, { type: 'endhost', value: '.kemono.party' },
+        { type: 'host', value: 'kemono.su' }, { type: 'endhost', value: '.kemono.su' },
+        { type: 'host', value: 'kemono.cr' }, { type: 'endhost', value: '.kemono.cr' },
     ],
-    pages,
-    api,
-    assets,
-    capabilities: {
-        searchMinLength: 0,
-        pendingPosts: 'none',
+    modules: {
+        creator: site => createKemonoCreatorModule({
+            site,
+            page: pages.creator!,
+            api,
+            capabilities,
+        }),
+        post: site => createKemonoPostModule({
+            site,
+            page: pages.post!,
+        }),
     },
     resolve,
     expand,
 };
 
+// #endregion
+
 // 站点专属设置（文件名模板，优先级高于通用模板）
 registerSiteFilenameSetting(kemono);
-// #endregion

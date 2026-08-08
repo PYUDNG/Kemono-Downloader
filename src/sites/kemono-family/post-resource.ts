@@ -6,7 +6,8 @@ import { formatContentHTML, formatContentText } from '@/modules/downloader/utils
 import type { PostInfo } from '@/modules/api/types/common.js';
 import type { PostApiResponse } from '@/modules/api/types/post.js';
 import type { FileSpec, Resource, ResourceMeta } from '@/modules/downloader/types/model.js';
-import type { DownloadRequest, Site } from './types.js';
+import type { DownloadRequest } from '../types.js';
+import type { KemonoFamilyDeps } from './types.js';
 
 const storage = globalStorage.withKeys('downloader');
 
@@ -79,10 +80,10 @@ export function buildPostMeta(data: PostApiResponse, creator: { name: string }):
 /**
  * 展开帖子资源（Kemono系站点通用）  
  * 拉取帖子+创作者数据，构建meta与文件列表  
- * 站点差异（文件URL、pending策略）通过`site`参数传入
+ * 站点差异（文件URL、pending策略）通过`family`依赖传入
  */
 export async function expandPostResource(
-    site: Pick<Site, 'api' | 'assets' | 'capabilities'>,
+    family: KemonoFamilyDeps,
     resource: Resource,
 ): Promise<void> {
     // 合集：子资源各自展开，无需处理
@@ -93,11 +94,11 @@ export async function expandPostResource(
     const source = resource.source as { service: string; creatorId: string; postId: string };
 
     // 排队访问API，获取帖子数据
-    const data = await queueApi.enqueue(() => site.api.post(source as PostInfo));
+    const data = await queueApi.enqueue(() => family.api.post(source as PostInfo));
     if (isErrorResponse(data)) throw new Error(data.error);
 
     // 获取创作者数据（文件名模板需要）
-    const creator = await queueApi.enqueue(() => site.api.profile({
+    const creator = await queueApi.enqueue(() => family.api.profile({
         service: source.service,
         creatorId: source.creatorId,
     }));
@@ -106,8 +107,8 @@ export async function expandPostResource(
     // 内容未完整导入（仅预览）时按站点能力处理：
     // - 'skip'：跳过该帖所有文件（不填充名称/meta）
     // - 'thumbnail-only'：全量文件未导入，图片仅在“下载原图”关闭时以缩略图形式下载；文字内容按设置照常保存
-    const pending = site.capabilities.pendingPosts !== 'none' && data.post.has_full === false;
-    if (pending && site.capabilities.pendingPosts === 'skip') {
+    const pending = family.capabilities.pendingPosts !== 'none' && data.post.has_full === false;
+    if (pending && family.capabilities.pendingPosts === 'skip') {
         resource.available = false;
         resource.files = [];
         return;
@@ -143,7 +144,7 @@ export async function expandPostResource(
                 kind: 'download',
                 name: file.name ?? file.path.substring(file.path.lastIndexOf('/') + 1),
                 path: file.path,
-                url: site.assets.fullFile(file, data),
+                url: family.assets.fullFile(file, data),
             });
         }
 
@@ -155,7 +156,7 @@ export async function expandPostResource(
                 kind: 'download',
                 name: coverFile.name ?? coverFile.path.substring(coverFile.path.lastIndexOf('/') + 1),
                 path: coverFile.path,
-                url: site.assets.fullFile(coverFile, data),
+                url: family.assets.fullFile(coverFile, data),
             });
         }
     }

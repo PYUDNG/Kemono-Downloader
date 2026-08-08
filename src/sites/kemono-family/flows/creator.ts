@@ -1,16 +1,17 @@
-// 创作者页面流程：挂载下载按钮，弹出帖子选择器，下载所选帖子
+// 创作者页面流程（Kemono系）：挂载下载按钮，弹出帖子选择器，下载所选帖子
 
 import { createShadowApp, logger as globalLogger, Nullable, Optional, toast } from '@/utils/main.js';
-import { defineModule } from '../types.js';
-import { downloadResource } from '../downloader/main.js';
+import { defineModule } from '@/modules/types.js';
+import { downloadResource } from '@/modules/downloader/main.js';
 import PostsDialog from '@/components/PostsSelector/PostsDialog.vue';
-import { isErrorResponse } from '../api/main.js';
-import type { Site, DownloadRequest } from '@/sites/types.js';
-import type { PostInfo } from '../api/types/common.js';
+import { isErrorResponse } from '@/modules/api/main.js';
+import type { Site, DownloadRequest } from '../../types.js';
+import type { PageDefinition, SiteApi, SiteCapabilities } from '../types.js';
+import type { PostInfo } from '@/modules/api/types/common.js';
 import { App, reactive, watch } from 'vue';
 import { ComponentProps } from 'vue-component-type-helpers';
 import i18n, { i18nKeys } from '@/i18n/main.js';
-import type { PostsApiItem } from '../api/types/posts.js';
+import type { PostsApiItem } from '@/modules/api/types/posts.js';
 import { ToastMessageOptions } from 'primevue';
 import PrimeDownload from '~icons/prime/download';
 import PrimeTimes from '~icons/prime/times';
@@ -21,13 +22,32 @@ const $creator = i18nKeys.$creator;
 const logger = globalLogger.withPath('pages', 'creator');
 
 /**
- * 创建创作者页面模块  
- * 站点无关：页面URL解析、API访问、能力差异全部来自站点adapter
- * @param site 当前站点adapter
+ * 创作者页面流程所需的上下文（Kemono系家族依赖 + 通用site）
  */
-export function createCreatorPageModule(site: Site) {
-    const page = site.pages.creator!;
+export interface KemonoCreatorContext {
+    /**
+     * 通用site（提供resolve/expand/id）
+     */
+    site: Site;
+    /**
+     * 创作者页定义（URL匹配/挂载点/请求解析）
+     */
+    page: PageDefinition;
+    /**
+     * 家族API访问
+     */
+    api: SiteApi;
+    /**
+     * 家族能力位（如搜索最小长度）
+     */
+    capabilities: SiteCapabilities;
+}
 
+/**
+ * 创建创作者页面模块（Kemono系）  
+ * 页面URL解析、API访问、能力差异全部来自上下文
+ */
+export function createKemonoCreatorModule({ site, page, api, capabilities }: KemonoCreatorContext) {
     /**
      * 存储当前用户输入的筛选文本  
      * 以方便在翻页时使用同样的筛选文本访问api
@@ -62,7 +82,7 @@ export function createCreatorPageModule(site: Site) {
             },
         }],
         async onPageUpdate(page) {
-            const allPosts = await site.api.posts({
+            const allPosts = await api.posts({
                 ...currentRequest()!,
                 index: page.first,
                 query: search,
@@ -72,9 +92,9 @@ export function createCreatorPageModule(site: Site) {
         },
         async onFilter(keyword) {
             // 站点能力：搜索关键字最小长度（如pawchive要求至少3字符）
-            if (keyword.length < site.capabilities.searchMinLength) return;
+            if (keyword.length < capabilities.searchMinLength) return;
             search = keyword;
-            const allPosts = await site.api.posts({
+            const allPosts = await api.posts({
                 ...currentRequest()!,
                 query: keyword,
             });
@@ -94,7 +114,7 @@ export function createCreatorPageModule(site: Site) {
             // 加载全部页数据
             const allPosts: PostsApiItem[] = [];
             for (let i = 0; ; i += 50) {
-                const page = await site.api.posts({
+                const page = await api.posts({
                     ...currentRequest()!,
                     index: i,
                     query: search,
@@ -156,11 +176,11 @@ export function createCreatorPageModule(site: Site) {
                         if (!request) return;
 
                         const [creator, allPosts] = await Promise.all([
-                            site.api.profile({
+                            api.profile({
                                 service: request.service,
                                 creatorId: request.creatorId,
                             }),
-                            site.api.posts({
+                            api.posts({
                                 service: request.service,
                                 creatorId: request.creatorId,
                             }),

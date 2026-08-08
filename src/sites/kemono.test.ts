@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { FileSpec } from '@/modules/downloader/types/model.js';
+import { testChecker } from '@/utils/main.js';
 import { __clearResponses, __clearStorage, __setResponse } from '../../tests/mocks/gm.js';
 
 // #region mock：避免加载浏览器UI/i18n/IndexedDB相关模块
@@ -24,10 +25,14 @@ vi.mock('@/modules/api/cache.js', () => ({
 vi.mock('@/styling.js', () => ({
     styling: { applyTo: () => () => {} },
 }));
+vi.mock('@/modules/downloader/main.js', () => ({
+    // 站点测试只关心resolve/expand/资产URL；下载器主模块会连带加载providers（maria2/fsa的IndexedDB副作用），与测试无关
+    downloadResource: vi.fn(),
+}));
 
 // #endregion
 
-import { kemono } from './kemono.js';
+import { kemono, assets } from './kemono.js';
 import { globalStorage } from '@/storage.js';
 
 const storage = globalStorage.withKeys('downloader');
@@ -201,17 +206,37 @@ describe('kemono.expand', () => {
 
 describe('kemono.assets', () => {
     it('thumbnail生成img子域缩略图URL', () => {
-        expect(kemono.assets.thumbnail('/a/b.jpg'))
+        expect(assets.thumbnail('/a/b.jpg'))
             .toBe('https://img.kemono.cr/thumbnail/data/a/b.jpg');
     });
 
     it('fullFile优先使用previews.server', () => {
-        const url = kemono.assets.fullFile({ path: '/a/b.jpg' }, POST_RESPONSE as any);
+        const url = assets.fullFile({ path: '/a/b.jpg' }, POST_RESPONSE as any);
         expect(url).toBe('https://n3.kemono.cr/data/a/b.jpg');
     });
 
     it('fullFile无previews时回退n1', () => {
-        const url = kemono.assets.fullFile({ path: '/x/y.png' }, POST_RESPONSE as any);
+        const url = assets.fullFile({ path: '/x/y.png' }, POST_RESPONSE as any);
         expect(url).toBe('https://n1.kemono.cr/data/x/y.png');
+    });
+});
+
+describe('kemono.hosts', () => {
+    it('命中主域与子域，不命中其他站点/伪域名', () => {
+        const setHost = (host: string) => (globalThis as any).location.host = host;
+        setHost('kemono.cr');
+        expect(testChecker(kemono.hosts)).toBe(true);
+        setHost('www.kemono.cr');
+        expect(testChecker(kemono.hosts)).toBe(true);
+        setHost('n1.kemono.cr');
+        expect(testChecker(kemono.hosts)).toBe(true);
+        setHost('kemono.party');
+        expect(testChecker(kemono.hosts)).toBe(true);
+        setHost('fakekemono.cr');
+        expect(testChecker(kemono.hosts)).toBe(false);
+        setHost('pawchive.pw');
+        expect(testChecker(kemono.hosts)).toBe(false);
+        // 还原测试环境
+        setHost('kemono.cr');
     });
 });

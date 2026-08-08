@@ -4,7 +4,7 @@ import { onModuleRegistered, registerGroup, registerItem, registerModule } from 
 import FilenameHelpComp from '@/modules/downloader/gui/setting-help/Filename.vue';
 import i18n, { i18nKeys } from '@/i18n/main.js';
 import FileEditIcon from '~icons/prime/file-edit';
-import type { Site } from './types.js';
+import type { Site } from '../types.js';
 
 const t = i18n.global.t;
 const storage = globalStorage.withKeys('downloader');

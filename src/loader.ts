@@ -1,5 +1,5 @@
 import { logger as globalLogger, testChecker, URLChangeMonitor } from '@/utils/main';
-import * as modules from '@/modules/main.js';
+import { modules } from '@/modules/main.js';
 export { modules };
 
 const logger = globalLogger.withPath('loader');

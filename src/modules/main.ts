@@ -1,13 +1,28 @@
 import { site } from '@/sites/main.js';
-import { createCreatorPageModule } from './pages/creator.js';
-import { createPostPageModule } from './pages/post.js';
-export * as settings from './settings/main.js';
-export * as api from './api/main.js';
-export * as downloader from './downloader/main.js';
-export * as debugging from './debugging/main.js';
-export * as self from './self/main.js';
+import type { Module } from './types.js';
+import * as settings from './settings/main.js';
+import * as api from './api/main.js';
+import * as downloader from './downloader/main.js';
+import * as debugging from './debugging/main.js';
+import * as self from './self/main.js';
 
-// 页面模块：由站点adapter驱动（checkers/挂载点/请求解析均来自当前站点）
-// 注意：与`export * as`导出的命名空间结构保持一致（{ default: Module }），loader直接消费
-export const creator = { default: createCreatorPageModule(site) };
-export const post = { default: createPostPageModule(site) };
+// 站点声明的页面模块：包装成 { default: Module } 形状后并入
+const siteModules: Record<string, { default: Module<unknown> }> = {};
+if (site) {
+    for (const [id, factory] of Object.entries(site.modules)) {
+        siteModules[id] = { default: factory(site) };
+    }
+}
+
+/**
+ * 全部模块：脚本原生模块 + 当前站点声明的模块  
+ * 注：站点模块的key/id不应与原生模块（settings/api/downloader/debugging/self）冲突
+ */
+export const modules = {
+    settings,
+    api,
+    downloader,
+    debugging,
+    self,
+    ...siteModules,
+};

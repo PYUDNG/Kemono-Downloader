@@ -31,6 +31,11 @@ export default defineConfig({
                 'src/modules/downloader/utils/**',
                 'src/modules/downloader/types/**',
             ],
+            exclude: [
+                // 页面流程为浏览器UI挂载逻辑（Shadow DOM/对话框），不在单测范围
+                'src/sites/kemono-family/flows/**',
+                '**/*.test.*',
+            ],
             thresholds: {
                 lines: 60,
                 statements: 55,

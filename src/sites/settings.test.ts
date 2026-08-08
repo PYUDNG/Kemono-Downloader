@@ -26,7 +26,7 @@ vi.mock('@/styling.js', () => ({
 // #endregion
 
 import { modules } from '@/modules/settings/main.js';
-import { registerSiteFilenameSetting } from './settings.js';
+import { registerSiteFilenameSetting } from './kemono-family/settings.js';
 import { globalStorage } from '@/storage.js';
 import type { Site } from './types.js';
 
