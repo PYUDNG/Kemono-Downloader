@@ -130,7 +130,7 @@ describe('BaseResourceTask', () => {
                 { kind: 'download', name: 'b.jpg', path: '/b.jpg', url: 'https://x/b.jpg' },
             ],
             fileTaskFactory: (parent, target) =>
-                target.name === 'a.jpg' ?
+                target.path === 'a.jpg' ?
                     new FakeFileTask(parent, target) :
                     new FailingFileTask(parent, target),
         });

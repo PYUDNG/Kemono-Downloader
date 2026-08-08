@@ -125,10 +125,6 @@ export interface Resource {
 export interface DownloadTarget {
     kind: 'download' | 'save';
     /**
-     * 展示名（原始文件名）
-     */
-    name: string;
-    /**
      * 最终保存路径（文件名模板结果）
      */
     path: string;

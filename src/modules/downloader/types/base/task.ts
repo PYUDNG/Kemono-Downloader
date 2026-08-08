@@ -258,7 +258,6 @@ function buildDownloadTarget(
     const path = constructFilename(metaChain, file, p, template);
     return {
         kind: file.kind,
-        name: file.name,
         path,
         ...(file.kind === 'download' ? { url: file.url } : { data: file.data }),
     };
@@ -286,7 +285,8 @@ export abstract class BaseFileTask {
     constructor(parent: Nullable<BaseResourceTask>, target: DownloadTarget) {
         this.parent = parent ?? null;
         this.target = target;
-        this.name = target.name;
+        // 展示文件名模板编译后的最终路径（即实际保存的文件名）
+        this.name = target.path;
     }
 
     /**
