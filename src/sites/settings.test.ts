@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// —— mock：避免加载浏览器UI/i18n/IndexedDB相关模块 ——
+// #region mock：避免加载浏览器UI/i18n/IndexedDB相关模块
 
 vi.mock('@/i18n/main.js', async () => ({
     default: { global: { t: (key: string) => key } },
@@ -22,6 +22,8 @@ vi.mock('@/modules/api/cache.js', () => ({
 vi.mock('@/styling.js', () => ({
     styling: { applyTo: () => () => {} },
 }));
+
+// #endregion
 
 import { modules } from '@/modules/settings/main.js';
 import { registerSiteFilenameSetting } from './settings.js';

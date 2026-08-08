@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// —— mock：避免加载浏览器UI/i18n相关模块 ——
+// #region mock：避免加载浏览器UI/i18n相关模块
 
 vi.mock('@/i18n/main.js', () => ({
     default: { global: { t: (key: string) => key } },
@@ -11,6 +11,8 @@ vi.mock('@/utils/helpers/toast/main.js', () => ({
 vi.mock('@/styling.js', () => ({
     styling: { applyTo: () => () => {} },
 }));
+
+// #endregion
 
 import { constructFilename, getFilenameTemplate } from './main.js';
 import { globalStorage } from '@/storage.js';

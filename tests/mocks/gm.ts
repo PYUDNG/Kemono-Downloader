@@ -102,7 +102,7 @@ export const GM_info = {
     sandbox: {} as any,
 };
 
-// —— 测试辅助 ——
+// #region 测试辅助
 
 /** 注册GM_xmlhttpRequest响应（返回注册数量） */
 export const __setResponse = (url: string, status: number, data: unknown) => {
@@ -118,3 +118,4 @@ export const __clearResponses = () => responses.clear();
 
 /** 清空内存存储 */
 export const __clearStorage = () => storage.clear();
+// #endregion

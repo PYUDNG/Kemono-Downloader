@@ -68,13 +68,14 @@ export interface Post {
     next: string;
     prev: string;
 
-    // —— 站点扩展字段（可选） ——
+    // #region 站点扩展字段（可选）
     /** 内容是否已完整导入（false = 仅预览） */
     has_full?: boolean;
     /** 导入状态 */
     preview_state?: string | null;
     /** 内容来源站点 */
     origin?: string | null;
+    // #endregion
 }
 
 /**

@@ -29,7 +29,7 @@ export interface ProfileApiResponse {
   share_count?: number;
   relation_id: Nullable<string>;
 
-  // —— 站点扩展字段（可选） ——
+  // #region 站点扩展字段（可选）
   /** 是否曾从其他站点导入（如pawchive） */
   ever_imported?: boolean;
   /** Kemono收藏数（如pawchive） */
@@ -38,4 +38,5 @@ export interface ProfileApiResponse {
   import_size_cap_gb?: number | null;
   /** 最近一次导入收藏时间（如pawchive） */
   last_import_favs?: unknown;
+  // #endregion
 }

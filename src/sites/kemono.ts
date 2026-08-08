@@ -9,7 +9,7 @@ import type { Site } from './types.js';
 
 const storage = globalStorage.withKeys('downloader');
 
-// —— 资产URL生成（站点相关）——
+// #region 资产URL生成（站点相关）
 
 /**
  * Kemono文件服务器列表（与原 murmurhash.ts 一致）
@@ -81,6 +81,8 @@ const assets: Site['assets'] = {
     },
 };
 
+// #endregion
+
 const api = createPostsApi();
 const pages = createKemonoStylePages();
 const resolve = createPostsResolver();
@@ -93,7 +95,7 @@ async function expand(resource: Resource): Promise<void> {
     await expandPostResource(kemono, resource);
 }
 
-// —— 站点定义 ——
+// #region 站点定义
 
 export const kemono: Site = {
     id: 'kemono',
@@ -116,3 +118,4 @@ export const kemono: Site = {
 
 // 站点专属设置（文件名模板，优先级高于通用模板）
 registerSiteFilenameSetting(kemono);
+// #endregion

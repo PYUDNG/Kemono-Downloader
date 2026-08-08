@@ -11,7 +11,7 @@ import type { Site } from './types.js';
 
 const storage = globalStorage.withKeys('downloader');
 
-// —— API响应归一化（站点相关）——
+// #region API响应归一化（站点相关）
 
 /**
  * 将pawchive的扁平帖子详情归一化为canonical `PostApiResponse`  
@@ -30,7 +30,9 @@ function normalizePost(raw: any): PostApiResponse | APIErrorResponse {
     };
 }
 
-// —— 资产URL生成（站点相关）——
+// #endregion
+
+// #region 资产URL生成（站点相关）
 
 const assets: Site['assets'] = {
     thumbnail(path) {
@@ -48,6 +50,8 @@ const assets: Site['assets'] = {
     },
 };
 
+// #endregion
+
 const api = createPostsApi(normalizePost);
 const pages = createKemonoStylePages();
 const resolve = createPostsResolver();
@@ -60,7 +64,7 @@ async function expand(resource: Resource): Promise<void> {
     await expandPostResource(pawchive, resource);
 }
 
-// —— 站点定义 ——
+// #region 站点定义
 
 export const pawchive: Site = {
     id: 'pawchive',
@@ -83,3 +87,4 @@ export const pawchive: Site = {
 
 // 站点专属设置（文件名模板，优先级高于通用模板）
 registerSiteFilenameSetting(pawchive);
+// #endregion

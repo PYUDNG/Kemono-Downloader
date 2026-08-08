@@ -34,7 +34,7 @@ export interface PostsApiItem {
      */
     user: string;
 
-    // —— 站点扩展字段（可选） ——
+    // #region 站点扩展字段（可选）
     /** 内容是否已完整导入（false = 仅预览） */
     has_full?: boolean;
     /** 导入状态 */
@@ -47,5 +47,6 @@ export interface PostsApiItem {
     detail_fetched?: boolean;
     /** 导入大小上限 */
     import_size_cap_gb?: number | null;
+    // #endregion
 };
 export type PostsApiResponse = PostsApiItem[];

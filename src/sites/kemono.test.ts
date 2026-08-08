@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { FileSpec } from '@/modules/downloader/types/model.js';
 import { __clearResponses, __clearStorage, __setResponse } from '../../tests/mocks/gm.js';
 
-// —— mock：避免加载浏览器UI/i18n/IndexedDB相关模块 ——
+// #region mock：避免加载浏览器UI/i18n/IndexedDB相关模块
 
 vi.mock('@/i18n/main.js', async () => ({
     default: { global: { t: (key: string) => key } },
@@ -24,6 +24,8 @@ vi.mock('@/modules/api/cache.js', () => ({
 vi.mock('@/styling.js', () => ({
     styling: { applyTo: () => () => {} },
 }));
+
+// #endregion
 
 import { kemono } from './kemono.js';
 import { globalStorage } from '@/storage.js';

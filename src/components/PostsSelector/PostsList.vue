@@ -215,6 +215,7 @@ const displayPostItems = computed(() =>
         isSelected: isPostSelected(post)
     }))
 );
+//#endregion
 
 //#region 选项操作按钮
 interface SelectionButton {
@@ -271,6 +272,7 @@ const rightButtions: SelectionButton[] = [{
         selectedPosts.value.splice(0, selectedPosts.value.length, ...posts);
     },
 }];
+//#endregion
 </script>
 
 <template>
