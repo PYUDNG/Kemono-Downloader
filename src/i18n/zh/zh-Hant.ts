@@ -348,6 +348,11 @@ export default {
             },
         },
     },
+    sites: {
+        settings: {
+            label: '站點設置',
+        },
+    },
     creator: {
         name: '創作者頁面',
         gui: {

@@ -350,6 +350,11 @@ export default {
             },
         },
     },
+    sites: {
+        settings: {
+            label: '站点设置',
+        },
+    },
     creator: {
         name: '创作者页面',
         gui: {

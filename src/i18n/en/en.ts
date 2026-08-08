@@ -348,6 +348,11 @@ Each site adapter provides as many of these variables as possible; the site-spec
             },
         },
     },
+    sites: {
+        settings: {
+            label: 'Site Settings',
+        },
+    },
     creator: {
         name: 'Creator Page',
         gui: {
