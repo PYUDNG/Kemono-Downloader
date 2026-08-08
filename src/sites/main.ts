@@ -6,7 +6,7 @@ import { pawchive } from './pawchive.js';
 /**
  * 全部已实现的站点 adapter
  */
-const sites: Site[] = [
+const allSites: Site[] = [
     kemono,
     pawchive,
 ];
@@ -15,8 +15,9 @@ const sites: Site[] = [
  * 根据当前页面域名判断命中哪个站点 adapter  
  * 命中规则由各站点自行声明（`site.hosts`，复用checker机制）  
  * 未命中返回`null`（不加载任何站点模块）
+ * @param sites 候选站点列表（默认全部已注册adapter；测试可注入）
  */
-export function detectSite(): Site | null {
+export function detectSite(sites: Site[] = allSites): Site | null {
     return sites.find(site => testChecker(site.hosts)) ?? null;
 }
 
