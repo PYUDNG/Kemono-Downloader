@@ -6,8 +6,8 @@ import TaskItem from './components/TaskItem.vue';
 import { providerInjectionKey } from './utils.js';
 import { Nullable } from '@/utils/main.ts';
 import { i18nKeys } from '@/i18n/utils.ts';
-import { IDownloadTask } from '../types/interface/task.ts';
-import { IDownloadProvider } from '../types/interface/provider.ts';
+import type { TaskLike } from '../types/model.ts';
+import type { BaseDownloadProvider } from '../types/base/provider.ts';
 
 const { t } = useI18n();
 
@@ -16,12 +16,12 @@ const { provider, tasks } = defineProps<{
     /**
      * 展示的任务所属的provider实例
      */
-    provider: IDownloadProvider;
+    provider: BaseDownloadProvider;
 
     /**
      * 需要展示的任务列表
      */
-    tasks: IDownloadTask[];
+    tasks: TaskLike[];
 
     /**
      * 父级任务名称
@@ -40,7 +40,7 @@ const visible = ref(false);
 /**
  * 内部管理的任务列表（响应式）
  */
-const internalTasks = ref<IDownloadTask[]>([]);
+const internalTasks = ref<TaskLike[]>([]);
 
 /**
  * 内部管理的父级任务名称（响应式
@@ -50,14 +50,14 @@ const internalName = ref<Nullable<string>>(null);
 /**
  * 更新任务列表的方法
  */
-function updateTasks(newTasks: IDownloadTask[]) {
+function updateTasks(newTasks: TaskLike[]) {
     internalTasks.value = [...newTasks];
 }
 
 /**
  * 显示对话框并设置任务
  */
-function showWithTasks(tasks: IDownloadTask[], name: Nullable<string>) {
+function showWithTasks(tasks: TaskLike[], name: Nullable<string>) {
     updateTasks(tasks);
     internalName.value = name;
     visible.value = true;

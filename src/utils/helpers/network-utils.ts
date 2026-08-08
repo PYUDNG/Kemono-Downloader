@@ -114,10 +114,10 @@ export async function download(options: GmDownloadOptions, signal?: AbortSignal)
     const { promise, reject, resolve } = Promise.withResolvers<void>();
     const { abort } = GM_download({
         ...options,
-        onload() {
-            // 实际上Tampermonkey提供了一个参数包含响应信息，但是vite-plugin-monkey的类型认为没有，因此通过arguments访问
+        onload(...args: any[]) {
+            // 实际上Tampermonkey提供了一个参数包含响应信息，但是vite-plugin-monkey的类型认为没有，因此通过参数访问
             // Violentmonkey也提供了一个参数，但仅有loaded/mode/total信息，因此不能完全依赖参数
-            const status = arguments[0]?.status ?? null;
+            const status = args[0]?.status ?? null;
             status === null || status < 400 ? resolve() : reject();
             options.onload?.call(this);
         },
@@ -127,7 +127,7 @@ export async function download(options: GmDownloadOptions, signal?: AbortSignal)
         },
         onabort(e: any) {
             reject(e);
-            // @ts-ignore
+            // @ts-expect-error `onabort` 不在类型中但实际存在
             options.onabort?.call(this, e);
         }
     } as GmDownloadOptions);

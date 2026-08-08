@@ -1,5 +1,5 @@
 import { HintedString } from "@/utils/main";
-import { Status } from "../../types/interface/task";
+import { Status } from "../../types/model";
 
 /**
  * 将两个路径连接为一个路径  
@@ -36,7 +36,7 @@ export function path2DirFile(path: string) {
 }
 
 function extractSeparator(path: string): string | undefined {
-    const sepReg = /[\/\\]/;
+    const sepReg = /[/\\]/;
     return path.match(sepReg)?.[0];
 }
 

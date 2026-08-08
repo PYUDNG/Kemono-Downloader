@@ -1,76 +1,81 @@
-import { FileItem } from "@/modules/api/types/common";
-import { DiscordChannelPost } from "@/modules/api/types/discord";
-import { PostApiResponse } from "@/modules/api/types/post";
-import { PostsApiResponse } from "@/modules/api/types/posts";
-import { ProfileApiResponse } from "@/modules/api/types/profile";
 import { globalStorage } from "@/storage";
 import { $CrE, Nullable, ReplaceRule, safeBatchReplace } from "@/utils/main";
 import { Conn } from "maria2";
 import { v4 as uuid } from "uuid";
-import { fullFileURL } from "./murmurhash";
+import type { FileSpec, ResourceMeta } from "../types/model.js";
 
 const storage = globalStorage.withKeys('downloader');
 
 /**
- * 用于构建文件名的api数据和必要信息
+ * 推荐文件名模板变量词汇表  
+ * 各站点adapter应尽量在资源meta中实现这些键，使用户可以用一套模板跨站适配
  */
-interface FilenameInfo {
-    /** api数据 */
-    data: {
-        posts?: Nullable<PostsApiResponse>;
-        post?: Nullable<PostApiResponse>;
-        file?: Nullable<FileItem>;
-        creator?: Nullable<ProfileApiResponse>;
-        discord?: Nullable<DiscordChannelPost>
-    };
+export const RECOMMENDED_META_KEYS = [
+    'PostID',
+    'CreatorID',
+    'Service',
+    'Title',
+    'Creator',
+    'Year',
+    'Month',
+    'Date',
+    'Hour',
+    'Minute',
+    'Second',
+    'Timestamp',
+    'TimeText',
+] as const;
 
-    /** 该文件在当前文件夹层级中是第几个文件 */
-    p: number;
+/**
+ * 获取文件名模板（站点专属优先于通用）
+ * @param siteId 站点ID（如`kemono`）；提供时优先使用该站点的专属模板
+ */
+export function getFilenameTemplate(siteId?: string): string {
+    const bySite = storage.get('filenameBySite') as Record<string, string> | undefined;
+    return bySite?.[siteId ?? ''] || storage.get('filename');
 }
 
 /**
- * 为一个文件，根据其api数据和用户设置的文件名模板构建文件名（路径）  
- * @param data 用于构建文件名的api数据和必要api信息
- * @param template 文件名模板，如果未传入，则从存储中读取
- * @param placeholder 当模板中某markup所需的信息在给定的信息中缺失时，该模板用什么填充；null代表使用模板自身填充
+ * 为一个文件，根据其祖先资源meta链和用户设置的文件名模板构建文件名（路径）
+ * @param metaChain 祖先资源meta链（root在前，最近一层在后），键查找"就近优先"
+ * @param file 文件信息（用于`Name`/`Base`/`Ext`等键）
+ * @param p 该文件在当前资源文件列表中的序号（从1开始）
+ * @param template 文件名模板，未传入时从存储读取
+ * @param placeholder 当模板中某markup所需的信息在给定的信息中缺失时，该模板用什么填充；null代表使用markup的键名填充
  */
 export function constructFilename(
-    info: FilenameInfo,
+    metaChain: ResourceMeta[],
+    file: Nullable<Pick<FileSpec, 'name' | 'path'>>,
+    p: number,
     template?: string,
     placeholder: Nullable<string> = null,
 ) {
     // 参数处理
-    const data = info.data;
     template = template ?? storage.get('filename');
 
-    // 模板数据所用到的值
-    const origName = data.file ?
-        data.file.name ?? data.file.path.substring(data.file.path.lastIndexOf('/') + 1) :
+    // 合并meta链（近者优先）
+    const merged: ResourceMeta = {};
+    for (const meta of metaChain) Object.assign(merged, meta);
+
+    // 文件自身信息
+    const origName = file ?
+        file.name ?? (file.path ? file.path.substring(file.path.lastIndexOf('/') + 1) : null) :
         null;
-    const dotIndex = data.file ? origName?.lastIndexOf('.') : null;
-    const dateText = (data.post?.post ?? data.discord)?.published ?? null;
-    const date = dateText ? new Date(dateText) : null;
+    const dotIndex = origName?.lastIndexOf('.') ?? null;
 
     // 合成模板数据
-    const templateData: Record<string, undefined | null | string | number> = {
-        PostID: data.post?.post.id ?? data.discord?.channel,
-        CreatorID: data.post?.post.user ?? data.discord?.author.id,
-        Service: data.post?.post.service ?? 'discord',
-        P: info.p,
-        Name: origName,
-        Base: origName?.substring(0, dotIndex!),
-        Ext: origName?.substring(dotIndex! + 1),
-        Title: data.post?.post.title,
-        Creator: data.creator?.name,
-        Year: date?.getFullYear(),
-        Month: date ? date?.getMonth() + 1 : null,
-        Date: date?.getDate(),
-        Hour: date?.getHours(),
-        Minute: date?.getMinutes(),
-        Second: date?.getSeconds(),
-        Timestamp: date?.getTime(),
-        TimeText: date?.toLocaleString(),
-    };
+    // 注：始终包含推荐词汇表全量键（缺失时为undefined→占位符），保证模板中的推荐键总能被解析
+    const templateData: Record<string, undefined | null | string | number> = Object.assign(
+        Object.fromEntries(RECOMMENDED_META_KEYS.map(key => [key, undefined])),
+        merged,
+        {
+            P: p,
+            Name: origName,
+            Base: origName?.substring(0, dotIndex!),
+            Ext: origName?.substring(dotIndex! + 1),
+        }
+    );
+
     // 模板数据转字符串，并将文件名非法字符转全角
     /**
      * 文件名非法字符与对应的全角字符映射表  
@@ -112,32 +117,11 @@ export function constructFilename(
 
     // 由于浏览器安全规则，文件名/文件夹名不得以空格和点号结尾（开头未测试），这里为了确保文件能保存，进行掐头去尾
     filepath = filepath
-        .replaceAll(/(^|[\/\\])[ \.]+/g, '$1')
-        .replaceAll(/[ \.]+(^|[\/\\])/g, '$1')
+        .replaceAll(/(^|[/\\])[ .]+/g, '$1')
+        .replaceAll(/[ .]+(^|[/\\])/g, '$1')
 
     // 返回文件名
     return filepath;
-}
-
-/**
- * 取得文件资源对应的带服务器域名部分的完整URL  
- * - 如果传入了PostApiResponse作为data，则根据其中的预览图部分提供的server服务器域名信息补全为完整的url  
- *   如果没有对应文件的预览信息，或预览信息中没有serve字段，就使用`'n1.${ location.host }'`
- * - 如果没有传入data参数，则使用murmur2算法计算使用的服务器（和Kemono前端代码Discord部分逻辑相同）
- */
-export function getFullUrl(file: FileItem, data?: PostApiResponse): string {
-    if (storage.get('downloadOriginalImage')) {
-      if (data) {
-          const preview = data.previews.find(p => p.path === file.path);
-          // preview.server be like: 'https://n3.kemono.cr'
-          const server = preview?.server ?? `https://n1.${ location.host }`;
-          return `${server}/data${file.path}`;
-      } else {
-          return fullFileURL(file.path);
-      }
-    } else {
-      return `https://img.${location.host}/thumbnail/data${file.path}`;
-    }
 }
 
 /**

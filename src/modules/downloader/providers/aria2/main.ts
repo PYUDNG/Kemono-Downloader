@@ -1,21 +1,16 @@
-import { PostInfo } from "@/modules/api/types/common.js";
-import { BaseDownloadProvider, Feature } from "../../types/base/provider.js";
-import { BaseDownloadTask, BaseFileDownloadTask, BaseTask, ProviderType } from "../../types/base/task.js";
-import { IPostDownloadTask, IPostsDownloadTask } from "../../types/interface/post.js";
-import { IDownloadProvider } from "../../types/interface/provider.js";
-import { DownloadFile, IFileDownloadTask, Status } from "../../types/interface/task.js";
-import { PostApiResponse } from "@/modules/api/types/post.js";
-import { debounce, logger as globalLogger, Nullable, Queue, toast } from "@/utils/main.js";
-import { isErrorResponse, post, profile } from "@/modules/api/main.js";
-import { BasePostDownloadTask, BasePostsDownloadTask } from "../../types/base/post.js";
-import { Reactive, reactive, ref, watch } from "vue";
-import { Aria2IntervalCallsManager, constructFilename, getFullUrl } from "../../utils/main.js";
+import { debounce, logger as globalLogger, Nullable, saveAs, toast } from "@/utils/main.js";
+import { BaseFileTask, BaseResourceTask } from "../../types/base/task.js";
+import { BaseDownloadProvider, createResourceTask, Feature } from "../../types/base/provider.js";
 import { globalStorage, makeStorageRef } from "@/storage.js";
 import { onModuleRegistered, registerGroup, registerItem } from "@/modules/settings/main.js";
 import i18n, { i18nKeys } from "@/i18n/main.js";
-import { open, createWebSocket, createHTTP, Aria2RpcWebSocketUrl, Aria2RpcHTTPUrl, OpenOptions, close, Conn } from "maria2";
-import { buildPath, path2DirFile, ARIA2_STATUS_MAP, Aria2Status} from "./utils.js";
+import { open, createWebSocket, createHTTP, Aria2RpcWebSocketUrl, Aria2RpcHTTPUrl, Aria2ServerVersion, OpenOptions, close, Conn } from "maria2";
+import { buildPath, path2DirFile, ARIA2_STATUS_MAP, Aria2Status } from "./utils.js";
+import { Aria2IntervalCallsManager } from "../../utils/main.js";
 import mitt from "mitt";
+import { ref, watch } from "vue";
+import type { DownloadTarget, ExpandFn, Resource } from "../../types/model.js";
+import type { ProviderType } from "../../types/base/provider.js";
 import ServerIcon from '~icons/prime/server'
 import WifiIcon from '~icons/prime/wifi'
 import FolderIcon from '~icons/prime/folder'
@@ -24,7 +19,6 @@ import ClockIcon from '~icons/prime/clock'
 
 const t = i18n.global.t;
 const logger = globalLogger.withPath('downloader', 'provider', 'aria2');
-const storage = globalStorage.withKeys('downloader');
 const providerStorage = globalStorage.withKeys('downloader').withKeys('providerSettings').withKeys('aria2');
 
 /**
@@ -33,14 +27,6 @@ const providerStorage = globalStorage.withKeys('downloader').withKeys('providerS
  */
 const ARIA2_INTERVAL = providerStorage.get('interval') * 1000;
 const manager = new Aria2IntervalCallsManager(null, ARIA2_INTERVAL);
-
-/**
- * Aria2Provider 全局共享API访问队列
- */
-const queueApi = new Queue({
-    max: 3,
-    sleep: 500,
-});
 
 // 设置
 const $settings = i18nKeys.$downloader.$provider.$aria2.$settings;
@@ -105,24 +91,16 @@ onModuleRegistered('downloader', () => {
         props: {
             async onClick() {
                 const $toast = $settings.$connectionTest.$toast;
-                if (!aria2) {
-                    toast({
-                        severity: 'error',
-                        life: 3000,
-                        summary: t($toast.$notEnabled.$title),
-                        detail: t($toast.$notEnabled.$message),
-                    });
-                    return;
-                }
-
-                type Aria2Version = {
-                    version: string;
-                    enabledFeatures: string[];
-                };
-
-                await aria2.sendRequest<Aria2Version>(
-                    { method: 'aria2.getVersion' },
-                ).then(version => {
+                // 使用当前配置创建临时连接测试，不依赖当前下载器是否为aria2
+                let conn: Nullable<Conn> = null;
+                try {
+                    conn = await createAria2Connection(
+                        providerStorage.get('endpoint'),
+                        { secret: providerStorage.get('secret') || undefined },
+                    );
+                    const version = await conn.sendRequest<Aria2ServerVersion>(
+                        { method: 'aria2.getVersion' },
+                    );
                     // 连接成功
                     logger.simple('Detail', 'aria2 server connection ok');
                     logger.asLevel('Detail', version);
@@ -132,7 +110,7 @@ onModuleRegistered('downloader', () => {
                         summary: t($toast.$granted.$title),
                         detail: t($toast.$granted.$message, { version: version.version }),
                     });
-                }, err => {
+                } catch (err) {
                     // 存在授权或其他问题
                     logger.simple('Error', 'error connecting aria2 server');
                     logger.asLevel('Error', err);
@@ -142,7 +120,9 @@ onModuleRegistered('downloader', () => {
                         summary: t($toast.$failed.$title),
                         detail: t($toast.$failed.$message),
                     });
-                });
+                } finally {
+                    conn && close(conn);
+                }
             }
         },
         group: 'aria2',
@@ -157,6 +137,21 @@ providerStorage.watch('interval', (_key, _oldVal, newVal, _remote) => {
 const currentProvider = makeStorageRef('provider', globalStorage.withKeys('downloader'));
 const serverUrl = makeStorageRef('endpoint', providerStorage);
 const secret = makeStorageRef('secret', providerStorage);
+
+/**
+ * 创建Aria2 RPC连接  
+ * 协议由URL决定：ws://wss://使用WebSocket，其余使用HTTP
+ * @param serverUrl RPC服务器地址
+ * @param options 连接选项（secret、超时、错误回调等）
+ */
+function createAria2Connection(serverUrl: string, options: Partial<OpenOptions> = {}): Promise<Conn> {
+    const isWebSocket = serverUrl.startsWith('ws://') || serverUrl.startsWith('wss://');
+    return open(
+        isWebSocket ?
+            createWebSocket(serverUrl as Aria2RpcWebSocketUrl, options) :
+            createHTTP(serverUrl as Aria2RpcHTTPUrl, options)
+    );
+}
 
 /**
  * Aria2实例
@@ -181,56 +176,53 @@ watch(() => ({
 
     // 如果aria2是当前provder，开启新连接
     if (currentProvider === 'aria2') {
-        const isWebSocket = serverUrl.startsWith('ws://') || serverUrl.startsWith('wss://');
-        // 即使协议不合法这里也进行连接，目的是保证aria2变量有值；后续报错交由后续逻辑处理
-        //const isHTTP = serverUrl.startsWith('http://') || serverUrl.startsWith('https://');
-        //if (!isWebSocket && !isHTTP) return;
-
-        const options: Partial<OpenOptions> = {
+        aria2 = await createAria2Connection(serverUrl, {
             secret: secret || undefined,
             onServerError(err) {
                 logger.simple('Error', 'aria2 server error');
                 logger.asLevel('Error', err);
             },
-        };
-        aria2 = await open(
-            isWebSocket ?
-                createWebSocket(serverUrl as Aria2RpcWebSocketUrl, options) :
-                createHTTP(serverUrl as Aria2RpcHTTPUrl, options)
-        );
+        });
         manager.aria2 = aria2;
         manager.run();
     }
 }, 500), { immediate: true, deep: true });
 
 /**
- * 单文件下载任务  
- * 浏览器内置下载器实现
+ * 文件任务（叶子）  
+ * Aria2 RPC实现：网络资源交由aria2服务端下载并轮询进度；内存资源回退到浏览器保存
  */
-class Aria2FileDownloadTask extends BaseFileDownloadTask implements IFileDownloadTask {
+export class Aria2FileTask extends BaseFileTask {
     public provider: ProviderType = 'aria2';
-    public init: Promise<void> = Promise.resolve();
 
-    private logger = logger.withPath('Aria2FileDownloadTask');
+    private logger = logger.withPath('Aria2FileTask');
     private gid?: string;
     private emmiter = mitt<{
         abort: void;
     }>();
 
-    constructor(parent: Nullable<BaseDownloadTask>, file: DownloadFile) {
-        super(parent, file);
-        if (!aria2) {
-            this.logger.simple('Error', 'Aria2 not initialized. Check if aria2 provider is the active provider.');
-            return;
-        }
-
+    constructor(parent: Nullable<BaseResourceTask>, target: DownloadTarget) {
+        super(parent, target);
         this.progress.status = 'queue';
     }
 
     /**
-     * 开始下载文件
+     * 开始下载/保存文件
      */
     async run(): Promise<void> {
+        // 内存资源（如文字内容）：aria2无法保存本地数据，回退到浏览器保存
+        if (this.target.kind === 'save') {
+            this.progress.status = 'ongoing';
+            this.progress.finished = 0;
+            this.progress.total = 1;
+
+            await saveAs(this.target.data!, this.target.path);
+
+            this.progress.finished = 1;
+            this.progress.status = 'complete';
+            return;
+        }
+
         if (!aria2) {
             this.logger.simple('Error', 'Aria2 not initialized. Check if aria2 provider is the active provider.');
             return;
@@ -243,14 +235,14 @@ class Aria2FileDownloadTask extends BaseFileDownloadTask implements IFileDownloa
 
         // 下载完成时resolve的Promise
         const { resolve, promise } = Promise.withResolvers<void>();
-        
+
         // 创建Aria2任务
         const userDir = providerStorage.get('dir');
-        const fullPath = buildPath(userDir, this.file.path);
+        const fullPath = buildPath(userDir, this.target.path);
         const { dir, file: out } = path2DirFile(fullPath);
         const gid: string = await aria2.sendRequest(
             { method: 'aria2.addUri' },
-            [ this.file.url ],
+            [ this.target.url! ],
             { dir, out }
         );
         this.gid = gid;
@@ -294,10 +286,9 @@ class Aria2FileDownloadTask extends BaseFileDownloadTask implements IFileDownloa
     }
 
     /**
-     * aria2下载方式不支持暂停功能
+     * 暂停任务
      */
     async pause(): Promise<void> {
-        //throw new FeatureNotSupportedError('Unsupported feature: pause', this.provider);
         if (!aria2) {
             this.logger.simple('Error', 'Aria2 not initialized. Check if aria2 provider is the active provider.');
             return;
@@ -305,16 +296,15 @@ class Aria2FileDownloadTask extends BaseFileDownloadTask implements IFileDownloa
         if (!this.gid) return;
 
         await aria2.sendRequest(
-            { method: 'aria2.pause'},
+            { method: 'aria2.pause' },
             this.gid,
         );
     }
-    
+
     /**
-     * aria2下载方式不支持暂停功能
+     * 取消暂停任务
      */
     async unpause(): Promise<void> {
-        //throw new FeatureNotSupportedError('Unsupported feature: pause', this.provider);
         if (!aria2) {
             this.logger.simple('Error', 'Aria2 not initialized. Check if aria2 provider is the active provider.');
             return;
@@ -322,12 +312,15 @@ class Aria2FileDownloadTask extends BaseFileDownloadTask implements IFileDownloa
         if (!this.gid) return;
 
         await aria2.sendRequest(
-            { method: 'aria2.unpause'},
+            { method: 'aria2.unpause' },
             this.gid,
         );
     }
 
-    async abort(): Promise<void> {
+    /**
+     * 终止任务
+     */
+    async abort(_deleteFiles: boolean = false): Promise<void> {
         if (this.progress.status !== 'queue' && this.progress.status !== 'ongoing') return;
         if (!aria2) {
             this.logger.simple('Error', 'Aria2 not initialized. Check if aria2 provider is the active provider.');
@@ -343,7 +336,7 @@ class Aria2FileDownloadTask extends BaseFileDownloadTask implements IFileDownloa
 
         // 广播abort事件
         this.emmiter.emit('abort');
-        
+
         // 无需等待run运行完毕，接收到abort事件后run会静默退出且不更改任务status
         // 设置停止状态
         this.progress.status = 'aborted';
@@ -356,9 +349,9 @@ class Aria2FileDownloadTask extends BaseFileDownloadTask implements IFileDownloa
     async retry(): Promise<void> {
         // 如果没有错误就什么都不干
         if (this.progress.status !== 'error') return;
-        
+
         // 重试
-        await this.abort();
+        await this.abort(false);
         await this.run();
 
         // 设置父级任务状态
@@ -371,338 +364,26 @@ class Aria2FileDownloadTask extends BaseFileDownloadTask implements IFileDownloa
     }
 }
 
-export class Aria2PostDownloadTask extends BasePostDownloadTask implements IPostDownloadTask {
-    public provider: ProviderType = 'aria2';
-    public name: Nullable<string> = null;
-    public data: Nullable<PostApiResponse> = null;
-    public subTasks: Reactive<BaseFileDownloadTask[]> = reactive([]);
-    public dataPromise: Promise<PostApiResponse>;
-    public init: Promise<void>;
-
-    /**
-     * 一个run过程中pending、run完毕后resolve的Promise  
-     * 用于等待run执行完毕  
-     * 注意：此Promise和直接调用`run`返回的Promise不是同一个
-     */
-    private runPromise: Promise<void> = Promise.resolve();
-
-    constructor(parent: Nullable<BaseDownloadTask>, info: PostInfo) {
-        super(parent, info);
-
-        const { promise, resolve } = Promise.withResolvers<void>();
-        this.init = promise;
-
-        // 排队访问API，获取Post数据
-        this.dataPromise = queueApi.enqueue(async () => {
-            const data = await post(this.info);
-            if (isErrorResponse(data)) throw new Error(data.error);
-            this.data = data;
-            return this.data;
-        });
-
-
-        // 当api数据获取完毕时
-        this.dataPromise.then(async () => {
-            // 为post任务设置名称
-            this.name = this.data!.post.title;
-
-            // 为每个文件创建下载任务
-            const files = [this.data!.post.file, ...this.data!.post.attachments];
-            storage.get('noCoverFile') && files.shift();
-            await Promise.allSettled(files.map(async (file, i) => {
-                const creator = await profile({
-                    service: this.info.service,
-                    creatorId: this.info.creatorId
-                });
-                if (isErrorResponse(creator)) throw new Error(creator.error);
-                const filename = constructFilename({
-                    data: {
-                        creator: creator,
-                        post: this.data!,
-                        file: file,
-                    },
-                    p: i + 1,
-                });
-                const downloadUrl = getFullUrl(file, this.data!);
-                const fileTask = new Aria2FileDownloadTask(
-                    this,
-                    {
-                        url: downloadUrl,
-                        path: filename,
-                    }
-                );
-                this.subTasks.push(fileTask);
-
-                await fileTask.init;
-            }));
-            this.progress.total = files.length;
-            this.progress.finished = 0;
-
-            resolve();
-        });
-    }
-
-    /**
-     * 下载post
-     */
-    async run() {
-        // 更新runPromise
-        const { promise, resolve } = Promise.withResolvers<void>();
-        this.runPromise = promise;
-
-        // 确保api数据已获取完毕
-        await this.dataPromise;
-
-        // 排队下载所有文件
-        this.progress.status = 'ongoing' as Status;
-        this.progress.finished = 0;
-        this.progress.total = this.subTasks.length;
-        await Promise.allSettled(this.subTasks.map(subTask =>
-            // fileTask.run内部已存在错误处理逻辑，即使下载出错，这里也不应报错（除非是代码错误）
-            subTask.run().then(() => subTask.progress.status === 'complete' && this.progress.finished++)
-        ));
-
-        // 下载完毕，设置任务状态
-        this.progress.status = this.progress.status === 'aborted' ?
-            // 如果任务已取消，则状态依然aborted
-            'aborted' :
-            // 如果任务没有被取消
-            this.hasTaskStatus('error') ?
-                // 如果任一文件下载子任务存在错误，即视作任务整体出错
-                'error' :
-                // 一个错误也没有，任务完成
-                'complete';
-
-        // 下载完毕，resolve runPromise
-        resolve();
-    }
-
-    /**
-     * aria2下载方式不支持暂停功能
-     */
-    async pause(): Promise<void> {
-        //throw new FeatureNotSupportedError('Unsupported feature: pause', this.provider);
-        await Promise.allSettled(this.subTasks.map(task => task.pause()));
-        this.progress.status = 'paused';
-    }
-    
-    /**
-     * aria2下载方式不支持暂停功能
-     */
-    async unpause(): Promise<void> {
-        //throw new FeatureNotSupportedError('Unsupported feature: pause', this.provider);
-        this.progress.status = 'ongoing';
-        await Promise.allSettled(this.subTasks.map(task => task.unpause()));
-    }
-
-    async abort(): Promise<void> {
-        if (this.progress.status !== 'queue' && this.progress.status !== 'ongoing') return;
-        // 首先设置为aborted状态
-        this.progress.status = 'aborted';
-        // 然后停止所有子任务
-        await Promise.allSettled(this.subTasks.map(task => task.abort()));
-        // 等待本次run执行完毕后返回
-        await this.runPromise;
-    }/**
-     * 重试任务  
-     * 重试所有失败的子任务
-     */
-    async retry(): Promise<void> {
-        // 如果没有错误就什么都不干
-        if (this.progress.status !== 'error') return;
-        
-        // 重试
-        this.progress.status = 'ongoing';
-        await Promise.allSettled(
-            this.subTasks
-                .filter(task => task.progress.status === 'error')
-                .map(task => task.retry())
-        );
-        
-        // 设置父级任务状态
-        if (this.parent) {
-            const progress = this.parent.progress;
-            progress.finished++;
-            if (progress.finished === progress.total)
-                progress.status = 'complete';
-        }
-    }
-
-    /**
-     * 检查所有subTasks中是否存在给定状态的task
-     */
-    hasTaskStatus(status: Status) {
-        return this.subTasks.some(task => task.progress.status === status);
-    }
-
-    /**
-     * 检查所有subTasks中是否均为给定状态的task
-     */
-    allTaskStatus(status: Status) {
-        return this.subTasks.every(task => task.progress.status === status);
-    }
-}
-
-export class Aria2PostsDownloadTask extends BasePostsDownloadTask implements IPostsDownloadTask {
-    public provider: ProviderType = 'aria2';
-    public subTasks: Reactive<Aria2PostDownloadTask[]>;
-    public name: string;
-    public init: Promise<void>;
-
-    /**
-     * @param name 下载任务名称
-     * @param infos 需要下载的posts信息列表
-     */
-    constructor(parent: Nullable<BaseDownloadTask>, name: string, infos: PostInfo[]) {
-        super(parent, infos);
-
-        // 设置名称
-        this.name = name;
-        
-        // 为所有post创建子任务
-        this.subTasks = this.infos.map(info => new Aria2PostDownloadTask(this, info));
-
-        // 设置进度
-        this.progress.total = this.subTasks.length;
-
-        // 当所有子任务初始化完毕时，当前任务初始化完毕
-        const { promise, resolve } = Promise.withResolvers<void>();
-        this.init = promise;
-        Promise.allSettled(this.subTasks.map(subTask => subTask.init)).then(() => resolve());
-    }
-
-    async run(): Promise<void> {
-        // 防止重复运行
-        if (this.progress.status === 'ongoing') return;
-
-        // 开始下载
-        this.progress.finished = 0;
-        this.progress.status = 'ongoing' as Status;
-        this.progress.total = this.subTasks.length;
-        await Promise.allSettled(this.subTasks.map(async task => {
-            await task.run();
-            task.progress.status === 'complete' && this.progress.finished++;
-        }));
-
-        // 设置下载完成状态
-        this.progress.status = this.progress.status === 'aborted' ?
-            // 如果任务已取消，则状态依然aborted
-            'aborted' :
-            // 如果任务没有被取消
-            this.hasTaskStatus('error') ?
-                // 如果任一文件下载子任务存在错误，即视作任务整体出错
-                'error' :
-                // 一个错误也没有，任务完成
-                'complete';
-    }
-
-    /**
-     * aria2下载方式不支持暂停功能
-     */
-    async pause(): Promise<void> {
-        //throw new FeatureNotSupportedError('Unsupported feature: pause', this.provider);
-        await Promise.allSettled(this.subTasks.map(task => task.pause()));
-        this.progress.status = 'paused';
-    }
-    
-    /**
-     * aria2下载方式不支持暂停功能
-     */
-    async unpause(): Promise<void> {
-        //throw new FeatureNotSupportedError('Unsupported feature: pause', this.provider);
-        this.progress.status = 'ongoing';
-        await Promise.allSettled(this.subTasks.map(task => task.unpause()));
-    }
-
-    async abort(): Promise<void> {
-        if (this.progress.status !== 'queue' && this.progress.status !== 'ongoing') return;
-        // 设置abort状态
-        this.progress.status = 'aborted';
-        // 终止每一个子任务
-        await Promise.allSettled(this.subTasks.map(task => task.abort()));
-        // 等待本次run完成后返回：由于此时每个子任务都已完成（终止），run自然就已经完成，因此无需额外等待
-    }
-
-    /**
-     * 重试任务  
-     * 重试所有失败的子任务
-     */
-    async retry(): Promise<void> {
-        // 如果没有错误就什么都不干
-        if (this.progress.status !== 'error') return;
-        
-        // 重试
-        this.progress.status = 'ongoing';
-        await Promise.allSettled(
-            this.subTasks
-                .filter(task => task.progress.status === 'error')
-                .map(task => task.retry())
-        );
-        
-        // 设置父级任务状态
-        if (this.parent) {
-            const progress = this.parent.progress;
-            progress.finished++;
-            if (progress.finished === progress.total)
-                progress.status = 'complete';
-        }
-    }
-
-    /**
-     * 检查所有subTasks中是否存在给定状态的task
-     */
-    hasTaskStatus(status: Status) {
-        return this.subTasks.some(task => task.progress.status === status);
-    }
-}
-
-export default class Aria2DownloadProvider extends BaseDownloadProvider implements IDownloadProvider {
+export default class Aria2DownloadProvider extends BaseDownloadProvider {
     public name: ProviderType = 'aria2';
     static features: Feature[] = ['pause'];
 
     /**
-     * 下载单Post
-     * @param info 下载任务信息
-     * @returns 
+     * 下载一个资源
+     * @param resource 站点 adapter 解析出的资源
+     * @param expand 展开函数
+     * @param template 文件名模板
+     * @returns 任务ID
      */
-    downloadPost(info: PostInfo): string {
-        const task = new Aria2PostDownloadTask(null, info);
+    download(resource: Resource, expand: ExpandFn, template: string): string {
+        const task: BaseResourceTask = createResourceTask(this, {
+            resource,
+            expand,
+            template,
+            fileTaskFactory: (parent, target) => new Aria2FileTask(parent, target),
+        });
         this.tasks.push(task);
         this.runWithRetry(task);
         return task.id;
-    }
-
-    /**
-     * 下载多Post
-     * @param name 下载任务名称
-     * @param infos 需要下载的posts信息列表
-     */
-    downloadPosts(name: string, infos: PostInfo[]): string {
-        const task = new Aria2PostsDownloadTask(null, name, infos);
-        this.tasks.push(task);
-        this.runWithRetry(task);
-        return task.id;
-    }
-    
-    /**
-     * 带自动错误重试逻辑地执行任务
-     * @param task 需要执行的任务
-     */
-    private async runWithRetry(task: BaseTask) {
-        // 等待任务初始化完毕
-        await task.init;
-
-        // 首先执行一次
-        await task.run();
-
-        // 后续错误重试逻辑
-        for (
-            // 用户设定的重试最大次数，当设置为负数时无限重试
-            let retries = storage.get('autoRetry');
-            // 当重试次数归零，或者未处于错误状态时，不继续重试
-            retries !== 0 && task.progress.status === 'error';
-            // 重试次数递减
-            retries--
-        ) await task.retry();
     }
 }

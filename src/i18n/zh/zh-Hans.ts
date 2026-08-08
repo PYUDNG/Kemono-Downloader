@@ -137,6 +137,17 @@ export default {
                     caption: '共 {total} 个帖子，已下载 {finished} 个',
                     "caption-aborted": '，已取消 {aborted} 个',
                 },
+                resource: {
+                    caption: '共 {total} 项，已下载 {finished} 项',
+                    "caption-aborted": '，已取消 {aborted} 项',
+                },
+                "resource-types": {
+                    post: '帖子',
+                    posts: '帖子合集',
+                    creator: '创作者',
+                    server: '服务器',
+                    channel: '频道',
+                },
             }
         },
         settings: {
@@ -186,7 +197,8 @@ export default {
                     header: dedent`
                         您可以使用斜杠创建文件夹结构，windows使用"\"，苹果/linux/安卓使用"/"
                         如果发现使用了斜杠依然无法创建文件夹，请尝试修改设置使用其他下载器，比如FileSystemAPI或者Aria2
-                        以下模板可在自定义文件名中使用，不区分大小写，使用时需保留大括号（可直接点击复制）
+                        以下是推荐通用模板变量，可在自定义文件名中使用，不区分大小写，使用时需保留大括号（可直接点击复制）
+各站点适配器会尽量提供这些变量；站点专属模板（各站点设置组中）优先级高于通用模板
                     `.replaceAll('\n', '<br>'),
                     markup: '模板',
                     desc: '说明',
@@ -316,14 +328,6 @@ export default {
                         caption: '使用当前配置尝试连接Aria2服务器',
                         button: '测试',
                         toast: {
-                            "not-enabled": {
-                                title: '未启用aria2下载器',
-                                message: '请先将下载器设置为aria2，再进行测试',
-                            },
-                            "not-ready": {
-                                title: '未连接aria2下载器',
-                                message: 'aria2下载器尚未准备好，请检查配置进行测试',
-                            },
                             granted: {
                                 title: '连接成功',
                                 message: '已连接到Aria2服务器，版本 {version}',
@@ -336,6 +340,11 @@ export default {
                     },
                 }
             },
+        },
+    },
+    sites: {
+        settings: {
+            label: '站点设置',
         },
     },
     creator: {

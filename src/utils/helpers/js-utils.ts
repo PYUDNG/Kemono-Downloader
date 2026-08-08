@@ -16,7 +16,7 @@ const checkers = {
     'starturl': (val: string) => location.href.startsWith(val),
     'startpath': (val: string) => location.pathname.startsWith(val),
     'endhost': (val: string) => location.host.endsWith(val),
-    'func': (val: Function) => !!val(),
+    'func': (val: () => unknown) => !!val(),
 };
 
 export type CheckerType = keyof typeof checkers;
@@ -84,22 +84,22 @@ class Logger {
      */
     public static readonly Level = {
         /** 调试输出，必须对用户不可见 */
-        Debug: 0 as 0,
+        Debug: 0 as const,
 
         /** 详细信息输出 */
-        Detail: 1 as 1,
+        Detail: 1 as const,
 
         /** 常规信息输出 */
-        Info: 2 as 2,
+        Info: 2 as const,
 
         /** 警告信息输出，用于输出不影响运行的异常等 */
-        Warning: 3 as 3,
+        Warning: 3 as const,
 
         /** 错误信息输出，用于输出影响运行的错误 */
-        Error: 4 as 4,
+        Error: 4 as const,
 
         /** 重要信息输出，应当对用户可见 */
-        Important: 5 as 5,
+        Important: 5 as const,
     };
 
     /**
@@ -379,17 +379,17 @@ interface Task {
     /**
      * 任务执行的函数/方法
      */
-    func: Function;
+    func: () => unknown;
 
     /**
      * 任务完成时，提交返回值的回调
      */
-    resolve: Function;
+    resolve: (value: any) => void;
 
     /**
      * 任务报错时，处理错误的回调
      */
-    reject: Function;
+    reject: (reason?: any) => void;
 
     /**
      * 任务状态
@@ -733,7 +733,7 @@ export function safeSerialize(val: any, depth = 5, visited = new WeakSet()): any
         const tagName = val.tagName.toLowerCase();
 
         // 每个属性值最多展示50个字符
-        let attrList: string[] = [];
+        const attrList: string[] = [];
         for (const attr of val.attributes) {
             const value = attr.value.length > 50 ?
                 attr.value.substring(0, 50) + `[${ attr.value.length - 50 } more...]` :

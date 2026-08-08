@@ -7,14 +7,15 @@ import { globalStorage, makeStorageRef } from '@/storage.js';
 import App from './gui/app.vue';
 import AppTaskDetail from './gui/app-taskdetail.vue';
 import { computed, markRaw, reactive } from "vue";
-import { PostInfo } from "../api/types/common.js";
 import { rootTaskDetailInjectionKey } from "./gui/utils.js";
 import FilenameHelpComp from "./gui/setting-help/Filename.vue";
 import ProviderHelpComp from "./gui/setting-help/Provider.vue";
-import { ProviderType } from "./types/base/task.js";
+import { ProviderType } from "./types/base/provider.js";
 import { DisabledGUI } from "../settings/types.js";
 import { BaseDownloadProvider, Feature } from "./types/base/provider.js";
-import { Status } from "./types/interface/task.js";
+import { Status } from "./types/model.js";
+import { getFilenameTemplate } from "./utils/main.js";
+import type { ExpandFn, Resource } from "./types/model.js";
 import { GM_registerMenuCommand } from "$";
 export { default as gui } from './gui/app.vue';
 import DownloadIcon from '~icons/prime/download';
@@ -179,7 +180,7 @@ registerModule({
         disabled: (function() {
             const provider = makeStorageRef('provider', storage);
             return computed(() => 
-                providers[provider.value].features.includes('abortFiles') ?
+                providers[provider.value as ProviderType].features.includes('abortFiles') ?
                     false :
                     ({
                         text: t($settings.$featureNotSupported, {
@@ -204,7 +205,7 @@ registerModule({
 
 // 初始化下载器Provider
 const providerType: ProviderType = storage.get('provider');
-const provider: BaseDownloadProvider = reactive(new providers[providerType]);
+const provider = reactive(new providers[providerType]) as unknown as BaseDownloadProvider;
 
 // 创建GUI
 const { app, root: rootTaskDetail } = createShadowApp(AppTaskDetail, {
@@ -231,15 +232,17 @@ const { root } = createShadowApp(App, {
 
 GM_registerMenuCommand(t($downloader.$showUi), _e => showUI('ongoing'))
 
-export async function downloadPost(info: PostInfo) {
-    const taskId = await Promise.resolve(provider.downloadPost(info));
-    const status = provider.tasks.find(t => t.id === taskId)!.progress.status;
-    root.tab = status;
-    root.visible = true;
-}
-
-export async function downloadPosts(name: string, infos: PostInfo[]) {
-    const taskId = await Promise.resolve(provider.downloadPosts(name, infos));
+/**
+ * 下载一个资源（资源树根）  
+ * 页面流工厂在调用前先用站点adapter将下载意图解析为资源
+ * @param resource 站点adapter解析出的资源
+ * @param expand 站点adapter提供的展开函数
+ * @param siteId 站点ID（用于解析站点专属文件名模板）
+ */
+export async function downloadResource(resource: Resource, expand: ExpandFn, siteId?: string) {
+    const template = getFilenameTemplate(siteId);
+    // 注：provider的download可能为异步（如fsa需先获取目录句柄），统一await后取得任务ID
+    const taskId = await Promise.resolve(provider.download(resource, expand, template));
     const status = provider.tasks.find(t => t.id === taskId)!.progress.status;
     root.tab = status;
     root.visible = true;
@@ -260,14 +263,14 @@ function featureRelatedDisabled(
     feature: Feature,
     gui: Partial<Record<ProviderType, Partial<DisabledGUI>>>) {
     return computed<boolean | DisabledGUI>(() => 
-        providers[currentProvider.value].features.includes(feature) ?
+        providers[currentProvider.value as ProviderType].features.includes(feature) ?
             false :
             ({
-                text: gui[currentProvider.value]?.text ??
+                text: gui[currentProvider.value as ProviderType]?.text ??
                     t($settings.$featureNotSupported, { provider: currentProvider.value }),
-                props: gui[currentProvider.value]?.props ??
+                props: gui[currentProvider.value as ProviderType]?.props ??
                     { class: 'text-yellow-500' },
-                value: gui[currentProvider.value]?.value,
+                value: gui[currentProvider.value as ProviderType]?.value,
             })
     );
 }

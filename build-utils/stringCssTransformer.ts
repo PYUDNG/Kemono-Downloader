@@ -32,7 +32,7 @@ const stringCssTransformer = (): PluginOption => {
                         from: id,
                         to: id,
                     });
-                } catch(err) {
+                } catch (_err) {
                     // 如果压缩失败，就说明不是css代码
                     // 这时直接返回null，表示保留原始代码不进行更改
                     return null;

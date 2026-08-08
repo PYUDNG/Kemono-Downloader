@@ -36,18 +36,18 @@ export interface Module<C = undefined> {
     /**
      * [生命周期钩子] 进入页面
      */
-    enter?: Function,
+    enter?: () => unknown,
 
     /**
      * [生命周期钩子] 离开页面
      */
-    leave?: Function,
+    leave?: () => unknown,
 
     /**
      * [生命周期钩子] 进入或离开页面  
      * 执行顺序在enter和leave之后
      */
-    toggle?: Function,
+    toggle?: () => unknown,
 
     /**
      * 生命周期钩子之间的共享变量空间

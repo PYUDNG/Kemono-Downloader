@@ -1,0 +1,178 @@
+<script setup lang="ts">
+import { inject, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { providerInjectionKey } from '../utils.js';
+import BaseTaskItem from './BaseTaskItem.vue';
+import AppTaskDetail from '../app-taskdetail.vue';
+import { createShadowApp } from '@/utils/main.js';
+import { i18nKeys } from '@/i18n/utils.js';
+import type { TaskLike } from '../../types/model.js';
+
+const { t } = useI18n();
+const $common = i18nKeys.$downloader.$gui.$taskComponent.$common;
+const $resource = i18nKeys.$downloader.$gui.$taskComponent.$resource;
+
+// props
+const { task, isSubtask = false } = defineProps<{
+    /**
+     * 资源任务实例
+     */
+    task: TaskLike & { type: 'resource' };
+
+    /**
+     * 当前task是否从属于某父级task
+     */
+    isSubtask?: boolean;
+}>();
+
+// injects
+const provider = inject(providerInjectionKey)!;
+
+/**
+ * 加载状态  
+ * 当前任务是否正在执行某些独占操作且不允许再进行额外操作时，将此置为true
+ */
+const loading = ref(false);
+
+/**
+ * 适配Progress类型的数值转字符串：当数值为-1时，展示“未知”；其余数值展示原值的字符串表示
+ * @param num 进度数值
+ */
+const toProgressString = (num: number) => num > -1 ? num.toString() : t($common.$unknown);
+
+/**
+ * 用户停止下载任务
+ * @param task 任务实例，和props传入的task应当相同
+ * @param deleteFiles 是否删除已下载的文件
+ */
+async function abort(task: TaskLike, deleteFiles: boolean) {
+    loading.value = true;
+    await task.abort(deleteFiles);
+    loading.value = false;
+}
+
+/**
+ * 用户移除下载任务
+ * @param task 任务实例，和props传入的task应当相同
+ * @param deleteFiles 是否删除已下载的文件
+ */
+async function remove(task: TaskLike, deleteFiles: boolean) {
+    loading.value = true;
+    await task.abort(deleteFiles);
+    provider.removeTask(task.id);
+    loading.value = false;
+}
+
+/**
+ * 用户重新开始下载任务
+ * @param task 任务实例，和props传入的task应当相同
+ * @param deleteFiles 是否删除已下载的文件
+ */
+async function restart(task: TaskLike, deleteFiles: boolean) {
+    loading.value = true;
+    await task.abort(deleteFiles);
+    task.run();
+    loading.value = false;
+}
+
+/**
+ * 用户暂停下载任务
+ * @param task 任务实例，和props传入的task应当相同
+ * @param deleteFiles 是否删除已下载的文件
+ */
+async function pause(task: TaskLike) {
+    loading.value = true;
+    await task.pause();
+    loading.value = false;
+}
+
+/**
+ * 用户取消暂停下载任务
+ * @param task 任务实例，和props传入的task应当相同
+ * @param deleteFiles 是否删除已下载的文件
+ */
+async function unpause(task: TaskLike) {
+    loading.value = true;
+    await task.unpause();
+    loading.value = false;
+}
+
+/**
+ * 用户重试下载任务
+ * @param task 任务实例，和props传入的task应当相同
+ * @param deleteFiles 是否删除已下载的文件
+ */
+async function retry(task: TaskLike) {
+    loading.value = true;
+    await task.retry();
+    loading.value = false;
+}
+
+/**
+ * 用户查看任务详情
+ * @param _e 点击事件
+ * @param task 任务实例，和props传入的task应当相同
+ */
+function detail(_e: PointerEvent, task: TaskLike) {
+    // 创建并展示子任务窗口
+    const { host, app, root } = createShadowApp(AppTaskDetail, {
+        props: { provider, tasks: [], name: task.name },
+        options: {
+            app: {
+                classes: 'dark'
+            }
+        }
+    });
+    root.showWithTasks(task.subTasks, task.name);
+
+    // 当tasks变化时更新到UI
+    const handleTaskUpdate = watch(task.subTasks, () => {
+        root.tasks = task.subTasks;
+    }, { deep: true });
+
+    // 当子任务窗口隐藏（被关闭）时销毁它
+    const handleClose = watch(() => root.visible, (newVal, oldVal) => {
+        if (!newVal && oldVal) {
+            app.unmount();
+            host.remove();
+            handleTaskUpdate.stop();
+            handleClose.stop();
+        }
+    });
+}
+</script>
+
+<template>
+    <BaseTaskItem
+        :task="task"
+        :is-subtask="isSubtask"
+        :loading="loading"
+        @abort="abort"
+        @remove="remove"
+        @restart="restart"
+        @pause="pause"
+        @unpause="unpause"
+        @retry="retry"
+        @click="detail"
+    >
+        <!-- 标题插槽：当资源尚未展开完成时，先展示占位文本 -->
+        <template #title>
+            {{ task.name ?? t($common.$titleNodata) }}
+        </template>
+
+        <!-- 副标题-进度文本插槽 -->
+        <template #progress>
+            <span>{{
+                t($resource.$caption, {
+                    total: toProgressString(task.progress.total),
+                    finished: toProgressString(task.progress.finished),
+                })
+            }}</span>
+            <span v-if="task.subTasks.some(t => t.progress.status === 'aborted')">{{
+                t($resource.$captionAborted, {
+                    aborted: task.subTasks.filter(t => t.progress.status === 'aborted').length
+                })
+            }}</span>
+        </template>
+    </BaseTaskItem>
+</template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { i18nKeys } from '@/i18n/utils';
 import { useI18n } from 'vue-i18n';
-import { ProviderType } from '../../types/base/task';
+import { ProviderType } from '../../types/base/provider';
 import { GM_info } from '$';
 import { isMobileAgent, popoverLogic } from '@/utils/main';
 import { checkCompatibility } from '../../providers/fsa/utils';
@@ -141,7 +141,7 @@ function isQuestionable(comp: Compatibiliy): comp is Compatibiliy & { questionab
             {{ t($help.$table.$provider.$aria2) }}
         </div>
         <!-- 表身: 兼容性数据 -->
-        <template v-for="(support, i) of Object.values(results)">
+        <template v-for="(support, i) of Object.values(results)" :key="support.name">
             <!-- 每行的表头 -->
             <div
                 class="font-bold flex flex-row items-center justify-center py-2 px-3 border-r-3 border-b-3 border-solid border-surface-200 dark:border-surface-800"
@@ -149,7 +149,7 @@ function isQuestionable(comp: Compatibiliy): comp is Compatibiliy & { questionab
                 {{ support.name }}
             </div>
             <!-- 每行的兼容性数据 -->
-            <template v-for="(comp, j) of Object.values(support.support)">
+            <template v-for="(comp, j) of Object.values(support.support)" :key="j">
                 <div
                     class="font-bold flex flex-row items-center justify-center py-2 px-3 border-r border-b border-solid border-surface-200 dark:border-surface-800"
                     :class="{ 'border-b-3': i === Object.keys(results).length - 1, 'border-r-3': j === Object.keys(results).length - 1 }"

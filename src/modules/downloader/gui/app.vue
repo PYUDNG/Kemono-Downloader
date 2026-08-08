@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Dialog from '@/volt/Dialog.vue';
-import type { IDownloadProvider, Status } from '../types/interface/main.ts';
+import type { BaseDownloadProvider } from '../types/base/provider.ts';
+import type { Status } from '../types/model.ts';
 import { computed, provide, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import TabLayout from '@/components/TabLayout/TabLayout.vue';
@@ -13,7 +14,7 @@ const { t } = useI18n();
 
 // props
 const { provider } = defineProps<{
-    provider: IDownloadProvider,
+    provider: BaseDownloadProvider,
 }>();
 
 // provides
@@ -95,6 +96,7 @@ defineExpose({ visible, tab });
                 <TaskItem
                     v-for="task of initTasks"
                     :task="task"
+                    :key="task.id"
                 />
             </TabPanel>
 
@@ -103,6 +105,7 @@ defineExpose({ visible, tab });
                 <TaskItem
                     v-for="task of queueTasks"
                     :task="task"
+                    :key="task.id"
                 />
             </TabPanel>
 
@@ -111,6 +114,7 @@ defineExpose({ visible, tab });
                 <TaskItem
                     v-for="task of ongoingTasks"
                     :task="task"
+                    :key="task.id"
                 />
             </TabPanel>
 
@@ -119,6 +123,7 @@ defineExpose({ visible, tab });
                 <TaskItem
                     v-for="task of pausedTasks"
                     :task="task"
+                    :key="task.id"
                 />
             </TabPanel>
 
@@ -127,6 +132,7 @@ defineExpose({ visible, tab });
                 <TaskItem
                     v-for="task of completedTasks"
                     :task="task"
+                    :key="task.id"
                 />
             </TabPanel>
 
@@ -135,6 +141,7 @@ defineExpose({ visible, tab });
                 <TaskItem
                     v-for="task of abortedTasks"
                     :task="task"
+                    :key="task.id"
                 />
             </TabPanel>
 
@@ -143,6 +150,7 @@ defineExpose({ visible, tab });
                 <TaskItem
                     v-for="task of errorTasks"
                     :task="task"
+                    :key="task.id"
                 />
             </TabPanel>
         </TabLayout>

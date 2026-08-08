@@ -10,7 +10,11 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+coverage
 *.local
+
+# 临时工作目录
+.cowork-temp/
 
 # Editor directories and files
 .vscode/*

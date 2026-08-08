@@ -1,7 +1,7 @@
 import { GM_getValue, GM_setValue, GM_deleteValue, GM_listValues, GM_addValueChangeListener } from "$";
 import { deepEqual, HintedString, UserscriptStorage } from "@/utils/main.js";
 import { ref, watch } from "vue";
-import { ProviderType } from "./modules/downloader/types/base/task.js";
+import type { ProviderType } from "./modules/downloader/types/base/provider.js";
 import { LogPage } from "./modules/debugging/types.js";
 
 /**
@@ -24,9 +24,14 @@ export const globalStorage = new UserscriptStorage(
             provider: 'browser' as ProviderType,
 
             /**
-             * 文件名命名模板
+             * 文件名命名模板（通用，所有站点兜底）
              */
             filename: '{Name}' as string,
+
+            /**
+             * 各站点的专属文件名命名模板（优先级高于通用模板）
+             */
+            filenameBySite: {} as Record<string, string>,
 
             /**
              * 是否不下载封面图文件

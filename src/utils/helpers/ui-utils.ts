@@ -90,9 +90,9 @@ document.addEventListener = function(
                     return new Proxy(target[prop], {
                         apply(target, thisArg, argArray: []) {
                             if (thisArg === receiver) {
-                                return (target as Function).apply(event, argArray);
+                                return (target as (...args: any[]) => any).apply(event, argArray);
                             }
-                            return (target as Function).apply(thisArg, argArray);
+                            return (target as (...args: any[]) => any).apply(thisArg, argArray);
                         },
                     });
                 }
@@ -110,7 +110,7 @@ document.addEventListener = function(
 };
 
 // 异步导入styling，防止循环导入初始化死锁
-let styling = import('@/styling.js');
+const styling = import('@/styling.js');
 
 /**
  * 挂载Shadowroot，并在其中创建Vue App
@@ -437,7 +437,7 @@ export function popoverLogic<
     }, { signal: controller.signal });
 
     // 处理长按
-    let longPressID: Nullable<number> = null;
+    const longPressID: Nullable<number> = null;
     const cancelDelay = () => longPressID !== null && clearTimeout(longPressID);
     const delayedShow = (e: Event, target: any, ...params: P) => setTimeout(() => {
         // 使用setTimeout会导致currentTarget丢失（事件处理器外该属性为null），因此需要显式传入

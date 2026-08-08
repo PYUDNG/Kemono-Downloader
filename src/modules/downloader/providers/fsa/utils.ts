@@ -17,7 +17,7 @@ interface StoreType extends DBSchema {
 /**
  * 具备读写权限的下载目录Handle
  */
-let dlDirHandle = ref<Nullable<FileSystemDirectoryHandle>>(null);
+const dlDirHandle = ref<Nullable<FileSystemDirectoryHandle>>(null);
 getHandleFromIndexedDB().then(handle => handle && (dlDirHandle.value = handle));
 
 /**
@@ -261,7 +261,7 @@ export async function streamDownloadToFileHandle(
     // 创建可写流
     const writable = await fileHandle.createWritable({
         keepExistingData: false,
-        // @ts-ignore `mode`参数存在，但项目使用的ts类型库'@types/wicg-file-system-access'尚未实现此类型
+        // @ts-expect-error `mode`参数存在，但项目使用的ts类型库'@types/wicg-file-system-access'尚未实现此类型
         mode: 'exclusive',
     });
 
@@ -279,9 +279,6 @@ export async function streamDownloadToFileHandle(
             // 进度回调
             onProgress && onProgress({ received, total });
         }
-    } catch (error) {
-        // 可以在此处处理写入中断逻辑
-        throw error;
     } finally {
         // 关闭文件可写流
         await writable.close();

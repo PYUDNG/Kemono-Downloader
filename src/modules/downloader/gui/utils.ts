@@ -1,5 +1,5 @@
 import { InjectionKey } from "vue";
-import { IDownloadProvider } from "../types/interface/provider";
+import type { BaseDownloadProvider } from "../types/base/provider";
 
-export const providerInjectionKey = Symbol('provider injection key') as InjectionKey<IDownloadProvider>;
+export const providerInjectionKey = Symbol('provider injection key') as InjectionKey<BaseDownloadProvider>;
 export const rootTaskDetailInjectionKey = Symbol('rootTaskDetail injection key') as InjectionKey<InstanceType<typeof import('./app-taskdetail.vue').default>>

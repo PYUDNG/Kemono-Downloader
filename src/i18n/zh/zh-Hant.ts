@@ -137,6 +137,17 @@ export default {
                     caption: '共 {total} 篇貼文，已下載 {finished} 篇',
                     "caption-aborted": '，已取消 {aborted} 篇',
                 },
+                resource: {
+                    caption: '共 {total} 項，已下載 {finished} 項',
+                    "caption-aborted": '，已取消 {aborted} 項',
+                },
+                "resource-types": {
+                    post: '貼文',
+                    posts: '貼文合輯',
+                    creator: '創作者',
+                    server: '伺服器',
+                    channel: '頻道',
+                },
             }
         },
         settings: {
@@ -184,7 +195,8 @@ export default {
                     header: dedent`
                         您可以使用斜線建立資料夾結構，Windows 使用 "\"，Apple/Linux/Android 使用 "/"
                         如果發現使用了斜線依然無法建立資料夾，請嘗試修改設定使用其他下載器，例如 File System API 或 Aria2
-                        以下範本可在自訂檔名中使用，不區分大小寫，使用時需保留大括號（可直接點擊複製）
+                        以下是推薦通用範本變數，可在自訂檔名中使用，不區分大小寫，使用時需保留大括號（可直接點擊複製）
+各站點適配器會盡量提供這些變數；站點專屬範本（各站點設定組中）優先級高於通用範本
                     `.replaceAll('\n', '<br>'),
                     markup: '範本',
                     desc: '說明',
@@ -314,14 +326,6 @@ export default {
                         caption: '使用目前配置嘗試連線至 Aria2 伺服器',
                         button: '測試',
                         toast: {
-                            "not-enabled": {
-                                title: '未啟用 Aria2 下載器',
-                                message: '請先將下載器設定為 Aria2 再進行測試',
-                            },
-                            "not-ready": {
-                                title: '未連接 Aria2 下載器',
-                                message: 'Aria2 下載器尚未就緒，請檢查配置後測試',
-                            },
                             granted: {
                                 title: '連線成功',
                                 message: '已連線至 Aria2 伺服器，版本 {version}',
@@ -334,6 +338,11 @@ export default {
                     },
                 }
             },
+        },
+    },
+    sites: {
+        settings: {
+            label: '站點設置',
         },
     },
     creator: {

@@ -59,6 +59,7 @@ defineExpose({ visible });
         >
             <TabPanel 
                 v-for="module of modules" 
+                :key="module.id"
                 :name="module.id" 
                 class="w-full h-full"
             >

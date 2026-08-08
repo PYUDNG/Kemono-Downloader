@@ -1,11 +1,7 @@
 import { requestJson, toast } from "@/utils/main.js";
 import { defineModule } from "../types.js";
-import type { PostApiResponse } from "./types/post.js";
-import type { KemonoService, PostInfo, APIErrorResponse } from "./types/common.js";
-import type { PostsApiResponse } from "./types/posts.js";
-import type { ProfileApiResponse } from "./types/profile.js";
 import type { GmXmlhttpRequestOption } from "$";
-import type { DiscordChannelApiResponse, DiscordServerApiResponse } from "./types/discord.js";
+import type { APIErrorResponse } from "./types/common.js";
 import i18n, { i18nKeys } from "@/i18n/main.js";
 import { groupExists, onModuleRegistered, registerGroup, registerItem } from "../settings/main.js";
 import { ref } from "vue";
@@ -31,21 +27,17 @@ const defaultOptions: ApiOptions = {
 };
 
 /**
- * 发送api请求到Kemono服务器
+ * 发送api请求到当前站点服务器（站点无关：URL由站点adapter构造）
  * @returns response的Promise
  */
-export async function api<
-    C = undefined
->(request: GmXmlhttpRequestOption<'text', C>, options: ApiOptions = defaultOptions) {
+export async function apiRequest<C = undefined>(
+    request: GmXmlhttpRequestOption<'text', C>,
+    options: ApiOptions = defaultOptions,
+) {
     // 检查是否可以使用缓存
     if (options.cache && hasCache(request))
         return JSON.parse(await getCache(request)!);
 
-    // Kemono的API要求headers标明Accept:text/css
-    const headers = { Accept: 'text/css' };
-    request.headers = typeof request.headers === 'object' ?
-        Object.assign(headers, request.headers) : headers;
-    
     // 发送请求，并将请求缓存
     const promise = requestJson(request);
     const jsonTextPromise = promise.then(response => JSON.stringify(response));
@@ -57,7 +49,7 @@ export async function api<
         // 取得response，并更新缓存
         response = await promise;
         saveCache(request, JSON.stringify(response));
-    } catch(err) {
+    } catch (err) {
         // 发生错误，清除缓存，并抛出错误
         removeCache(request);
         throw err;
@@ -68,62 +60,8 @@ export async function api<
 }
 
 /**
- * 获取post信息
+ * 判断API响应是否为错误响应
  */
-export function post({
-    service, creatorId, postId,
-}: PostInfo, options?: ApiOptions): Promise<PostApiResponse | APIErrorResponse> {
-    return api({
-        method: 'GET',
-        url: `https://${ location.host }/api/v1/${ service }/user/${ creatorId }/post/${ postId }`,
-    }, options);
-}
-
-/**
- * 获取创作者posts
- */
-export function posts({ service, creatorId, index, query }: { service: KemonoService, creatorId: string, index?: number, query?: string }, options?: ApiOptions): Promise<PostsApiResponse | APIErrorResponse> {
-    const url = new URL(`https://${ location.host }/api/v1/${ service }/user/${ creatorId }/posts`);
-    typeof index === 'number' && url.searchParams.set('o', index.toString());
-    typeof query === 'string' && url.searchParams.set('q', query);
-    
-    return api({
-        method: 'GET',
-        url: url.href
-    }, options);
-}
-
-/**
- * 获取创作者信息
- */
-export function profile({ service, creatorId }: { service: KemonoService, creatorId: string }, options?: ApiOptions): Promise<ProfileApiResponse | APIErrorResponse> {
-    return api({
-        method: 'GET',
-        url: `https://${ location.host }/api/v1/${ service }/user/${ creatorId }/profile`
-    }, options);
-}
-
-/**
- * 获取discord服务器或频道信息
- * @returns 如果提供了ChannelID，则返回Channel信息，否则返回Server信息
- */
-export function discord({ serverId }: { serverId: string }): Promise<DiscordServerApiResponse | APIErrorResponse>
-export function discord({ channelId }: { channelId: string }): Promise<DiscordChannelApiResponse | APIErrorResponse>
-export function discord({ serverId, channelId }: { serverId?: string, channelId?: string }): Promise<DiscordServerApiResponse | DiscordChannelApiResponse | APIErrorResponse> {
-    if (typeof channelId === 'undefined') {
-        if (typeof serverId === 'undefined') throw new TypeError('both serverId and channelId omitted');
-        return api({
-            method: 'GET',
-            url: `https://${ location.host }/api/v1/discord/server/${ serverId }`,
-        });
-    } else {
-        return api({
-            method: 'GET',
-            url: `https://${ location.host }/api/v1/discord/channel/${ channelId }`,
-        });
-    }
-}
-
 export function isErrorResponse(data: any): data is APIErrorResponse {
     return Object.hasOwn(data, 'error');
 }
@@ -147,7 +85,7 @@ onModuleRegistered('self', () => {
         props: {
             placeholder: storage.default('cacheExpires').toString(),
         },
-        value:  makeStorageRef('cacheExpires', storage, true, false),
+        value: makeStorageRef('cacheExpires', storage, true, false),
         group: 'cache',
     }, {
         id: 'clear-api-cache',

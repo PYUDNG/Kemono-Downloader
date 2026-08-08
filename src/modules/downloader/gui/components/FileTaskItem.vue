@@ -5,18 +5,19 @@ import { providerInjectionKey } from '../utils';
 import BaseTaskItem from './BaseTaskItem.vue';
 import { stringifyBytes } from '@/utils/main.js';
 import { i18nKeys } from '@/i18n/utils.js';
-import { IFileDownloadTask } from '../../types/interface/task.js';
+import type { Status, TaskLike } from '../../types/model.js';
 
 const { t } = useI18n();
 const $common = i18nKeys.$downloader.$gui.$taskComponent.$common;
 const $file = i18nKeys.$downloader.$gui.$taskComponent.$file;
+const $save = i18nKeys.$downloader.$gui.$taskComponent.$save;
 
 // props
 const { task, isSubtask = false } = defineProps<{
     /**
-     * 文件下载任务实例
+     * 文件任务实例（网络下载或内存保存）
      */
-    task: IFileDownloadTask;
+    task: TaskLike & { type: 'file' };
 
     /**
      * 当前task是否从属于某父级task
@@ -48,7 +49,7 @@ const toProgressString = (num: number, formatter?: (num: number) => string) =>
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function abort(task: IFileDownloadTask, deleteFiles: boolean) {
+async function abort(task: TaskLike, deleteFiles: boolean) {
     loading.value = true;
     await task.abort(deleteFiles);
     loading.value = false;
@@ -59,7 +60,7 @@ async function abort(task: IFileDownloadTask, deleteFiles: boolean) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function remove(task: IFileDownloadTask, deleteFiles: boolean) {
+async function remove(task: TaskLike, deleteFiles: boolean) {
     loading.value = true;
     await task.abort(deleteFiles);
     provider.removeTask(task.id);
@@ -71,7 +72,7 @@ async function remove(task: IFileDownloadTask, deleteFiles: boolean) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function restart(task: IFileDownloadTask, deleteFiles: boolean) {
+async function restart(task: TaskLike, deleteFiles: boolean) {
     loading.value = true;
     await task.abort(deleteFiles);
     task.run();
@@ -83,7 +84,7 @@ async function restart(task: IFileDownloadTask, deleteFiles: boolean) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function pause(task: IFileDownloadTask) {
+async function pause(task: TaskLike) {
     loading.value = true;
     await task.pause();
     loading.value = false;
@@ -94,7 +95,7 @@ async function pause(task: IFileDownloadTask) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function unpause(task: IFileDownloadTask) {
+async function unpause(task: TaskLike) {
     loading.value = true;
     await task.unpause();
     loading.value = false;
@@ -105,7 +106,7 @@ async function unpause(task: IFileDownloadTask) {
  * @param task 任务实例，和props传入的task应当相同
  * @param deleteFiles 是否删除已下载的文件
  */
-async function retry(task: IFileDownloadTask) {
+async function retry(task: TaskLike) {
     loading.value = true;
     await task.retry();
     loading.value = false;
@@ -117,7 +118,7 @@ async function retry(task: IFileDownloadTask) {
         :task="task"
         :is-subtask="isSubtask"
         :loading="loading"
-        :copy="{ label: t($file.$copyLink), value: task.file.url }"
+        :copy="task.target.kind === 'download' ? { label: t($file.$copyLink), value: task.target.url! } : undefined"
         @abort="abort"
         @remove="remove"
         @restart="restart"
@@ -127,16 +128,28 @@ async function retry(task: IFileDownloadTask) {
     >
         <!-- 副标题-进度文本插槽 -->
         <template #progress>
-            {{
-                // 根据进度状态展示副标题
-                t($file.$caption, {
-                    // 仅当进度数字都大于-1（即为有意义值）、且总量大于零（可以作为除数）时
-                    percentage: (task.progress.finished | (task.progress.total - 1)) > 0 ?
-                        Math.floor(task.progress.finished / task.progress.total * 100 * 100) / 100 : '0',
-                    finished: toProgressString(task.progress.finished, stringifyBytes),
-                    total: toProgressString(task.progress.total, stringifyBytes),
-                })
-            }}
+            <!-- 内存资源：瞬时保存，无进度百分比 -->
+            <template v-if="task.target.kind === 'save'">
+                {{
+                    ({
+                        ongoing: t($save.$caption.$ongoing),
+                        complete: t($save.$caption.$complete),
+                    } as Partial<Record<Status, string>>) [task.progress.status] ?? ''
+                }}
+            </template>
+            <!-- 网络资源：下载进度 -->
+            <template v-else>
+                {{
+                    // 根据进度状态展示副标题
+                    t($file.$caption, {
+                        // 仅当进度数字都大于-1（即为有意义值）、且总量大于零（可以作为除数）时
+                        percentage: (task.progress.finished | (task.progress.total - 1)) > 0 ?
+                            Math.floor(task.progress.finished / task.progress.total * 100 * 100) / 100 : '0',
+                        finished: toProgressString(task.progress.finished, stringifyBytes),
+                        total: toProgressString(task.progress.total, stringifyBytes),
+                    })
+                }}
+            </template>
         </template>
     </BaseTaskItem>
 </template>

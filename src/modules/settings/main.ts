@@ -118,9 +118,14 @@ export function groupExists(moduleId: string, groupId: string): boolean {
  * @param callback 回调函数，不提供时切换到Promise模式
  */
 export function onModuleRegistered(id: string): Promise<void> 
-export function onModuleRegistered(id: string, callback: Function): void;
-export function onModuleRegistered(id: string, callback?: Function): PromiseOrRaw<void> {
+export function onModuleRegistered(id: string, callback: () => void): void;
+export function onModuleRegistered(id: string, callback?: () => void): PromiseOrRaw<void> {
     const { promise, resolve } = Promise.withResolvers<void>();
+    // 模块已注册时同步回调（避免immediate watcher在handle赋值前触发）
+    if (modules.value.some(m => m.id === id)) {
+        (callback ?? resolve)();
+        return callback ? undefined : promise;
+    }
     const handle = watch(modules, modules => {
         if (modules.some(m => m.id === id)) {
             try {
@@ -129,6 +134,6 @@ export function onModuleRegistered(id: string, callback?: Function): PromiseOrRa
                 handle.stop();
             }
         }
-    }, { deep: true, immediate: true });
+    }, { deep: true });
     return callback ? undefined : promise;
 }
