@@ -2,7 +2,7 @@
 
 [English](/readme/README.en.md) [简体中文](/readme/README.zh-Hans.md) [繁體中文](/readme/README.zh-Hant.md)
 
-A modern Kemono downloader userscript featuring a beautiful UI, multiple downloaders, and extensive customization options.
+A modern Kemono/Pawchive downloader userscript featuring a beautiful UI, multiple downloaders, and extensive customization options.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Vue 3](https://img.shields.io/badge/Vue-3-42b883?logo=vue.js)](https://vuejs.org/)
@@ -15,27 +15,39 @@ A modern Kemono downloader userscript featuring a beautiful UI, multiple downloa
 
 ### 🎨 Modern Interface
 - Modern UI design based on PrimeVue and Tailwind CSS
-- Responsive layout supporting desktop and mobile
+- Responsive layout supporting desktop and mobile devices
 - Dark/Light theme support
 - Multi-language support
 
 ### 📥 Download Features
+- Multi-site support: Kemono, Pawchive
 - Batch download support
 - Multiple downloader options
 - Intelligent filename handling
 - Download progress display
 - Download task management
 
-### ⚙️ Customization Settings
-- Custom settings for different downloaders
+### ⚙️ Custom Settings
+- Customization for different downloaders
 - Custom filenames (supports directory structure creation)
 
 ### 🔧 Technical Features
 - Modular architecture design
 - Type-safe TypeScript development
 - Modern Vue 3 Composition API
-- Automated build process
+- Unit testing (Vitest) and code quality checks (ESLint)
+- GitHub Actions automated build and release
+- Automated build pipeline
 - Development server with HTTPS support
+
+## 🏗️ Architecture
+
+The script core is decoupled from any specific website, adapting to arbitrary sites through two abstraction layers:
+
+1. **Site Adapter**: each supported website is implemented as an adapter, handling page detection (URL matching & lifecycle), resource extraction, and download intent submission;
+2. **Download Provider**: delivers download intents to the user, currently offering the built-in browser downloader, File System API, and Aria2.
+
+Kemono and Pawchive adapters are implemented so far. Based on this architecture, support for arbitrary websites can theoretically be added.
 
 ## Screenshots
 
@@ -45,40 +57,40 @@ A modern Kemono downloader userscript featuring a beautiful UI, multiple downloa
 
 ## 🚀 Quick Start
 
-### Direct Installation (Recommended for Most Users)
-Choose one of the following methods:
+### Direct Installation (Suitable for Most Users)
+You can install using any of the following methods:
 - [Github Release](https://github.com/PYUDNG/Kemono-Downloader/releases)
 - [Greasyfork](https://greasyfork.org/scripts/570258)
 
 ### Build from Source
-#### Prerequisites
-> This project uses npm as the package manager for development. Other package managers may require manual adaptation.
-- Node.js 18+ 
+#### Environment Requirements
+> This project uses npm as the package manager for development; please try other package managers on your own.
+- Node.js 18+
 - npm or yarn
 
-#### Development Setup
+#### Development Environment Setup
 
-1. **Clone the project**
+1. **Clone the Project**
 ```bash
 git clone https://github.com/PYUDNG/Kemono-Downloader.git
 cd kemono-downloader
 ```
 
-2. **Install dependencies**
+2. **Install Dependencies**
 ```bash
 npm install
 # or
 yarn install
 ```
 
-3. **Start the development server**
+3. **Start the Development Server**
 ```bash
 npm run dev
 # or
 yarn dev
 ```
 
-4. **Build the userscript**
+4. **Build the Userscript**
 ```bash
 npm run build
 # or
@@ -87,10 +99,10 @@ yarn build
 
 #### Installing the Userscript
 
-After building, a `kemono-downloader.(min|greasyfork)?.user.js` file will be generated in the `/dist/` directory. Install it by following these steps:
-- Open any build artifact and copy all its code content
+After the build completes, a `kemono-downloader.(min|greasyfork)?.user.js` file will be generated in the `/dist/` directory. You can install it by following these steps:
+- Open any build artifact and copy all the code content
 - Install the Tampermonkey or Violentmonkey browser extension
-- Click "Add new script" in the extension manager
+- Click "Add New Script" in the extension manager
 - Paste the generated userscript content
 
 ## 📁 Project Structure
@@ -98,38 +110,37 @@ After building, a `kemono-downloader.(min|greasyfork)?.user.js` file will be gen
 ```
 kemono-downloader/
 ├── src/
-│   ├── components/         # Shared Vue components
-│   │   ├── ListItem.vue    # Single-line list item component
-│   │   ├── PostsSelector/  # Post selector component
-│   │   └── TabLayout/      # Tab layout component
-│   ├── modules/            # Feature modules
-│   │   ├── api/            # API module
-│   │   ├── creator/        # Creator page module
-│   │   ├── downloader/     # Downloader module
-│   │   ├── post/           # Post page module
-│   │   └── settings/       # Settings module
+│   ├── components/         # Shared Vue components (DownloadButton/ListItem/TabLayout)
+│   ├── modules/            # Internal script modules (settings/api/downloader/debugging/self)
+│   ├── sites/              # Site adapter layer (pluggable, extensible to any website)
+│   │   ├── types.ts        # Generic Site contract (hosts/modules/resolve/expand)
+│   │   ├── main.ts         # Site registry and detectSite
+│   │   ├── kemono.ts       # Kemono site adapter
+│   │   ├── pawchive.ts     # Pawchive site adapter
+│   │   └── kemono-family/  # Shared Kemono-family implementation (API/page flow/types/components)
 │   ├── utils/              # Utility functions
 │   ├── volt/               # PrimeVue component wrappers
 │   ├── main.ts             # Application entry point
-│   └── loader.ts           # Module loader
+│   ├── loader.ts           # Module loader
+│   └── loader-actions.ts   # Module lifecycle action determination
 ├── build-utils/            # Build utilities
 ├── scripts/                # Build scripts
 ├── server/                 # Development server configuration
 ├── package.json            # Project configuration
 ├── vite.config.ts          # Vite configuration
 └── tsconfig.json           # TypeScript configuration
-```
-
-## 🛠️ Tech Stack
+```## 🛠️ Tech Stack
 
 - **Frontend Framework**: Vue 3 + TypeScript
 - **Build Tool**: Vite
 - **UI Component Library**: PrimeVue
 - **Styling Solution**: Tailwind CSS
-- **Userscript**: vite-plugin-monkey
+- **User Script**: vite-plugin-monkey
 - **State Management**: Vue Composition API
 - **Internationalization**: vue-i18n
-- **Utility Libraries**: mitt, uuid, dedent## 📦 Build & Deployment
+- **Utility Libraries**: mitt, uuid, dedent
+
+## 📦 Build & Deployment
 
 ### Development Testing
 ```bash
@@ -145,41 +156,41 @@ The production build output will be created in `/dist/`
 
 ## 🤝 Contribution Guide
 
-You can participate in this project by submitting Issues and Pull Requests.
+You can contribute to this project by submitting Issues and Pull Requests.
 
 ### Submitting an Issue
-- Clearly describe the problem or feature request
+- Describe the problem or feature request clearly
 - Provide reproduction steps
 - Include relevant screenshots or logs
 
 ### Submitting a Pull Request
 1. Fork the project repository
 2. Create a feature branch
-3. Commit code changes
+3. Commit your code changes
 4. Write clear commit messages
 5. Create a Pull Request
 
 ### PR Guidelines
 #### Code Standards
-This project does not have strict code style requirements, but please ensure your code at least:
-- Includes appropriate comments
+This project has no strict code style requirements, but please ensure your code at least:
+- Contains appropriate comments
 - Passes TypeScript type checking
 
 #### Commit Standards
 Each commit can contain multiple updates, and each update should be written as a list item.  
-Each update should indicate the update type at the beginning of the list item, separated by an English colon and space (`: `):
-| Update Type      | Description                                                |
-| :--------------- | :--------------------------------------------------------- |
-| `feat`           | New feature addition                                       |
-| `improvement`    | Improvement to existing features                           |
-| `code`           | No functional changes, only code (including comments) modifications (code optimization, etc.) |
-| `performance`    | No functional changes, only performance improvements       |
-| `bug fix`        | Bug fixes                                                  |
-| `i18n`           | No code changes, only language pack updates                |
-| `maintainence`   | Other updates with no code changes, e.g., TODO list updates, dependency updates, etc. |
-| `refactor`       | No functional changes, complete code rewrite (refactoring) |
+Each update should start with an update type at the beginning of the list item, separated by an English colon and a space (`: `):
+| Update Type     | Description                                          |
+| :-------------- | :--------------------------------------------------- |
+| `feat`          | New feature added                                    |
+| `improvement`   | Improvement to existing features                     |
+| `code`          | No functional changes, only code (including comments) modifications (code optimization, etc.) |
+| `performance`   | No functional changes, only performance improvements |
+| `bug fix`       | Bug fixes                                            |
+| `i18n`          | No code changes, only language pack updates          |
+| `maintainence`  | Other updates without code changes, such as: TODO list updates, dependency updates, etc. |
+| `refactor`      | No functional changes, complete code rewrite (refactoring) |
 
-If an update corresponds to multiple types, use the most primary type.  
+If an update corresponds to multiple types, use the most prominent type.  
 Commit messages should be written in English.
 
 Commit message example:
@@ -192,13 +203,13 @@ Commit message example:
 - refactor: build script
 ```
 
-The above commit messages are just examples. In actual commits, for so many updates, try to split them into multiple commits.
+The above commit messages are examples only. In actual commits, for such a large number of updates, you should try to split them into multiple commits.
 
 ## 📄 License
 
 This project is licensed under the [GPL-3.0](https://spdx.org/licenses/GPL-3.0-or-later.html) license.
 
-## 🙏 Acknowledgments
+## 🙏 Acknowledgements
 
 - [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey) - Vite plugin for building user scripts
 - [Pixiv Downloader](https://github.com/drunkg00se/Pixiv-Downloader/) - Downloader for multiple sites including Pixiv
@@ -211,7 +222,7 @@ This project is licensed under the [GPL-3.0](https://spdx.org/licenses/GPL-3.0-o
 
 ## ✉️ Issues & Feedback
 
-Welcome to reach out via:
+Feel free to reach out through the following channels:
 
 - Submit a [GitHub Issue](https://github.com/Kemono-Downloader/issues)
 - Submit a [Pull Request](https://github.com/PYUDNG/Kemono-Downloader/pulls)
@@ -219,4 +230,4 @@ Welcome to reach out via:
 
 ---
 
-**Note**: This project is for learning and research purposes only. Please comply with the terms of use and copyright regulations of relevant websites.
+**Note**: This project is for learning and research purposes only. Please comply with the terms of use and copyright regulations of the relevant websites.

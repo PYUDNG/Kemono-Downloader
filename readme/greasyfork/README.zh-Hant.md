@@ -1,6 +1,6 @@
 # Kemono Downloader
 
-一個現代化的 Kemono 下載器使用者腳本，提供美觀的 UI 介面、多種下載器與高度自訂功能。
+一個現代化的 Kemono/Pawchive 下載器使用者腳本，提供美觀的 UI 介面、多種下載器和高度自訂功能。
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Vue 3](https://img.shields.io/badge/Vue-3-42b883?logo=vue.js)](https://vuejs.org/)
@@ -12,15 +12,16 @@
 ## ✨ 功能特性
 
 ### 🎨 現代化介面
-- 基於 PrimeVue 與 Tailwind CSS 的現代化 UI 設計
-- 響應式佈局，支援桌面與行動裝置
+- 基於 PrimeVue 和 Tailwind CSS 的現代化 UI 設計
+- 響應式佈局，支援桌面和行動端
 - 深色/淺色主題支援
 - 多語言支援
 
 ### 📥 下載功能
+- 多站點支援：Kemono、Pawchive
 - 批次下載支援
 - 多種下載器選擇
-- 智慧型檔案名稱處理
+- 智慧檔案名稱處理
 - 下載進度顯示
 - 下載任務管理
 
@@ -32,6 +33,8 @@
 - 模組化架構設計
 - 型別安全的 TypeScript 開發
 - 現代化的 Vue 3 Composition API
+- 單元測試（Vitest）與程式碼品質檢查（ESLint）
+- GitHub Actions 自動建置與發佈
 - 自動化的建置流程
 - 開發伺服器支援 HTTPS
 
@@ -47,7 +50,7 @@
 
 ## 🙏 致謝
 
-- [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey) - 用於建置使用者腳本的 Vite 插件
+- [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey) - 用於建置使用者腳本的 Vite 外掛
 - [Pixiv Downloader](https://github.com/drunkg00se/Pixiv-Downloader/) - 適用於包括 Pixiv 在內的多站點下載器
 - [Vue.js](https://vuejs.org/) - 漸進式 JavaScript 框架
 - [PrimeVue](https://primevue.org/) - 下一代 Vue UI 元件庫
@@ -66,4 +69,4 @@
 
 ---
 
-**注意**: 本專案僅供學習與研究使用，請遵守相關網站的使用條款與版權規定。
+**注意**: 本專案僅供學習和研究使用，請遵守相關網站的使用條款和版權規定。

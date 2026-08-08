@@ -2,7 +2,7 @@
 
 [English](/readme/README.en.md) [简体中文](/readme/README.zh-Hans.md) [繁體中文](/readme/README.zh-Hant.md)
 
-一个现代化的Kemono下载器用户脚本，提供美观的UI界面、多种下载器和高度自定义功能。
+一个现代化的Kemono/Pawchive下载器用户脚本，提供美观的UI界面、多种下载器和高度自定义功能。
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Vue 3](https://img.shields.io/badge/Vue-3-42b883?logo=vue.js)](https://vuejs.org/)
@@ -20,6 +20,7 @@
 - 多语言支持
 
 ### 📥 下载功能
+- 多站点支持：Kemono、Pawchive
 - 批量下载支持
 - 多种下载器选择
 - 智能文件名处理
@@ -34,8 +35,19 @@
 - 模块化架构设计
 - 类型安全的TypeScript开发
 - 现代化的Vue 3 Composition API
+- 单元测试（Vitest）与代码质量检查（ESLint）
+- GitHub Actions 自动构建与发布
 - 自动化的构建流程
 - 开发服务器支持HTTPS
+
+## 🏗️ 架构说明
+
+脚本核心与具体网站解耦，通过两层抽象适配任意网站：
+
+1. **Site Adapter（站点适配层）**：每个受支持的网站实现一个 adapter，负责页面识别（URL匹配与生命周期）、资源提取与提交下载意图；
+2. **Download Provider（下载交付层）**：负责将下载意图真正交付给用户，目前提供浏览器内置、File System API 与 Aria2 三种下载方式。
+
+目前已经实现 Kemono 与 Pawchive 两个站点 adapter。基于该架构，理论上可以扩展支持任意网站。
 
 ## 截图
 
@@ -98,20 +110,19 @@ yarn build
 ```
 kemono-downloader/
 ├── src/
-│   ├── components/         # 公用Vue组件
-│   │   ├── ListItem.vue    # 单行列表项组件
-│   │   ├── PostsSelector/  # 帖子选择器组件
-│   │   └── TabLayout/      # 标签页布局组件
-│   ├── modules/            # 功能模块
-│   │   ├── api/            # API模块
-│   │   ├── creator/        # 创作者页面模块
-│   │   ├── downloader/     # 下载器模块
-│   │   ├── post/           # 帖子页面模块
-│   │   └── settings/       # 设置模块
+│   ├── components/         # 公用Vue组件（DownloadButton/ListItem/TabLayout）
+│   ├── modules/            # 脚本内部功能模块（settings/api/downloader/debugging/self）
+│   ├── sites/              # 站点适配层（site adapter，可插拔扩展任意网站）
+│   │   ├── types.ts        # 通用Site契约（hosts/modules/resolve/expand）
+│   │   ├── main.ts         # 站点注册表与detectSite
+│   │   ├── kemono.ts       # Kemono站点adapter
+│   │   ├── pawchive.ts     # Pawchive站点adapter
+│   │   └── kemono-family/  # Kemono系共享实现（API/页面流程/类型/组件）
 │   ├── utils/              # 工具函数
 │   ├── volt/               # PrimeVue组件封装
 │   ├── main.ts             # 应用入口
-│   └── loader.ts           # 模块加载器
+│   ├── loader.ts           # 模块加载器
+│   └── loader-actions.ts   # 模块生命周期动作判定
 ├── build-utils/            # 构建工具
 ├── scripts/                # 构建脚本
 ├── server/                 # 开发服务器配置
