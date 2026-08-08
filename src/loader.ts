@@ -1,5 +1,6 @@
 import { logger as globalLogger, testChecker, URLChangeMonitor } from '@/utils/main';
 import { modules } from '@/modules/main.js';
+import { decideModuleActions } from './loader-actions.js';
 export { modules };
 
 const logger = globalLogger.withPath('loader');
@@ -15,6 +16,11 @@ export const activeState: Record<string, boolean> = Object.values(modules).reduc
     {} as typeof activeState
 );
 
+/**
+ * 各模块上次生效时的URL（用于同类型页面跳转的重新挂载判定）
+ */
+const lastUrl: Record<string, string> = {};
+
 const monitor = new URLChangeMonitor();
 monitor.init();
 monitor.onUrlChange(onUrlChange, true);
@@ -25,24 +31,38 @@ monitor.onUrlChange(onUrlChange, true);
  */
 async function onUrlChange() {
     for (const module of Object.values(modules)) {
+        const id = module.default.id;
         /** 新url下，此页面是否激活 */
         const moduleActive = !Object.hasOwn(module.default, 'checkers') || testChecker(module.default.checkers!, module.default.mode ?? 'and');
 
-        // 进入页面
-        if (!activeState[module.default.id] && moduleActive) {
-            logger.simple('Detail', `loader: enter ${ module.default.id }`);
-            module.default.enter?.();
-            module.default.toggle?.();
+        // 判定本模块应执行的动作（进入/离开/重新挂载）
+        const actions = decideModuleActions(
+            activeState[id],
+            moduleActive,
+            lastUrl[id] !== location.href,
+            !!module.default.remountOnUrlChange,
+        );
+        for (const action of actions) {
+            if (action === 'enter') {
+                logger.simple('Detail', `loader: enter ${ id }`);
+                module.default.enter?.();
+                module.default.toggle?.();
+            } else if (action === 'leave') {
+                logger.simple('Detail', `loader: leave ${ id }`);
+                module.default.leave?.();
+                module.default.toggle?.();
+            } else if (action === 'remount') {
+                // 同类型页面跳转：先卸旧页面功能，再挂新页面功能
+                logger.simple('Detail', `loader: remount ${ id }`);
+                module.default.leave?.();
+                module.default.toggle?.();
+                module.default.enter?.();
+                module.default.toggle?.();
+            }
         }
 
-        // 离开页面
-        if (activeState[module.default.id] && !moduleActive) {
-            logger.simple('Detail', `loader: leave ${ module.default.id }`);
-            module.default.leave?.();
-            module.default.toggle?.();
-        }
-
-        // 记录激活状态
-        activeState[module.default.id] = moduleActive;
+        // 记录激活状态与生效URL
+        activeState[id] = moduleActive;
+        lastUrl[id] = location.href;
     }
 }

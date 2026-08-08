@@ -34,6 +34,14 @@ export interface Module<C = undefined> {
     checkers?: SingleOrArray<Checker>,
 
     /**
+     * 页面级UI模块标记  
+     * 为true时：模块保持激活但URL发生变化（同类型页面跳转，如帖子页→另一帖子页）时，loader会先`leave`再`enter`重新挂载  
+     * 用于注入宿主页面DOM的UI——宿主SPA重渲染会丢弃旧UI，需要重新注入
+     * @default false
+     */
+    remountOnUrlChange?: boolean,
+
+    /**
      * [生命周期钩子] 进入页面
      */
     enter?: () => unknown,

@@ -36,8 +36,12 @@ export function createKemonoPostModule({ site, page }: KemonoPostContext) {
         id: 'post',
         name: t(i18nKeys.$post.$name),
         checkers: page.checkers,
+        // 页面级UI：同类型页面跳转时由loader重新挂载
+        remountOnUrlChange: true,
         readyState: 'interactive',
         async enter() {
+            // 记录本次挂载代次：若挂载等待期间发生leave（页面再次跳转），放弃本次挂载
+            const generation = this.context!.generation;
             // 挂载下载按钮
             const { container, app } = await mountDownloadButton(page.mount, {
                 loading: false,
@@ -57,16 +61,28 @@ export function createKemonoPostModule({ site, page }: KemonoPostContext) {
                     }
                 },
             });
+            // 挂载期间发生了leave（页面又跳转）：放弃本次挂载
+            if (this.context!.generation !== generation) {
+                app.unmount();
+                container.remove();
+                return;
+            }
             this.context!.container = container;
             this.context!.app = app;
         },
         leave() {
+            // 自增代次，使挂载中（await）的enter失效
+            this.context!.generation++;
             this.context!.app?.unmount();
             this.context!.container?.remove();
+            this.context!.container = undefined;
+            this.context!.app = undefined;
         },
         context: {
             container: undefined as Optional<HTMLElement>,
             app: undefined as Optional<App>,
+            /** 挂载代次：leave时自增，用于取消等待中的enter挂载 */
+            generation: 0,
         },
     });
 }
