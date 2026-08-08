@@ -108,6 +108,9 @@ export interface SiteCapabilities {
     searchMinLength: number;
     /**
      * 内容未完整导入（仅预览）的帖子的处理方式
+     * - `'none'`：站点无pending概念，按完整帖处理
+     * - `'skip'`：跳过该帖所有文件
+     * - `'thumbnail-only'`：图片仅以缩略图形式下载（“下载原图”开启时全量文件未导入，图片不下载）；文字内容按“下载文字内容”设置照常保存
      */
     pendingPosts: 'none' | 'skip' | 'thumbnail-only';
 }

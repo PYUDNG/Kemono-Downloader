@@ -129,7 +129,7 @@ describe('pawchive.expand', () => {
         expect(cover.url).toBe('https://file.pawchive.pw/data/3d/13/cover.jpeg');
     });
 
-    it('pending帖子（has_full=false）按能力跳过：无文件', async () => {
+    it('pending帖子（has_full=false）且“下载原图”开启时无可下载文件', async () => {
         __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/post/12384631', 200, {
             ...FULL_POST_RESPONSE,
             preview_state: 'pending',
@@ -144,6 +144,75 @@ describe('pawchive.expand', () => {
 
         expect(resource.available).toBe(false);
         expect(resource.files).toEqual([]);
+    });
+
+    it('pending帖子且“下载原图”关闭时下载图片缩略图', async () => {
+        storage.set('downloadOriginalImage', false);
+        __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/post/12384631', 200, {
+            ...FULL_POST_RESPONSE,
+            preview_state: 'pending',
+            has_full: false,
+        });
+        __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/profile', 200, PROFILE_RESPONSE);
+
+        const resource = pawchive.resolve({
+            kind: 'post', service: 'fanbox', creatorId: '2629698', postId: '12384631',
+        });
+        await pawchive.expand(resource);
+
+        expect(resource.available).toBe(true);
+        // 附件 + 封面 = 2 个文件，均为img子域缩略图URL
+        expect(resource.files).toHaveLength(2);
+        const [attachment, cover] = resource.files! as [Extract<FileSpec, { kind: 'download' }>, Extract<FileSpec, { kind: 'download' }>];
+        expect(attachment.url).toBe('https://img.pawchive.pw/thumbnail/data/ec/c1/anim.mp4');
+        expect(cover.url).toBe('https://img.pawchive.pw/thumbnail/data/3d/13/cover.jpeg');
+    });
+
+    it('pending帖子且“下载原图”开启时仍保存文字内容', async () => {
+        storage.set('textContent', 'html');
+        __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/post/12384631', 200, {
+            ...FULL_POST_RESPONSE,
+            preview_state: 'pending',
+            has_full: false,
+        });
+        __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/profile', 200, PROFILE_RESPONSE);
+
+        const resource = pawchive.resolve({
+            kind: 'post', service: 'fanbox', creatorId: '2629698', postId: '12384631',
+        });
+        await pawchive.expand(resource);
+
+        expect(resource.available).toBe(true);
+        expect(resource.files).toHaveLength(1);
+        const [content] = resource.files! as [Extract<FileSpec, { kind: 'save' }>, ...unknown[]];
+        expect(content).toMatchObject({
+            kind: 'save',
+            name: 'content.html',
+            path: '__internal_content__',
+        });
+        expect(content.data).toBe('<pre><p>本文</p></pre>');
+    });
+
+    it('pending帖子同时保存文字内容与图片缩略图', async () => {
+        storage.set('downloadOriginalImage', false);
+        storage.set('textContent', 'txt');
+        __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/post/12384631', 200, {
+            ...FULL_POST_RESPONSE,
+            preview_state: 'pending',
+            has_full: false,
+        });
+        __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/profile', 200, PROFILE_RESPONSE);
+
+        const resource = pawchive.resolve({
+            kind: 'post', service: 'fanbox', creatorId: '2629698', postId: '12384631',
+        });
+        await pawchive.expand(resource);
+
+        expect(resource.available).toBe(true);
+        expect(resource.files).toHaveLength(3);
+        const [content, attachment] = resource.files! as [Extract<FileSpec, { kind: 'save' }>, Extract<FileSpec, { kind: 'download' }>, ...unknown[]];
+        expect(content.name).toBe('content.txt');
+        expect(attachment.url).toBe('https://img.pawchive.pw/thumbnail/data/ec/c1/anim.mp4');
     });
 
     it('textContent=html时在文件列表最前面插入save文件', async () => {
@@ -201,8 +270,8 @@ describe('pawchive.assets', () => {
 });
 
 describe('pawchive.capabilities', () => {
-    it('搜索最小长度为3，pending帖子策略为skip', () => {
+    it('搜索最小长度为3，pending帖子策略为thumbnail-only', () => {
         expect(pawchive.capabilities.searchMinLength).toBe(3);
-        expect(pawchive.capabilities.pendingPosts).toBe('skip');
+        expect(pawchive.capabilities.pendingPosts).toBe('thumbnail-only');
     });
 });

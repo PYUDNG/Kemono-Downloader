@@ -54,7 +54,7 @@ const resolve = createPostsResolver();
 
 /**
  * 展开资源  
- * 委托给Kemono系站点通用展开逻辑；本站点能力：pending帖子跳过（内容未完整导入）
+ * 委托给Kemono系站点通用展开逻辑；本站点能力：pending帖子（内容未完整导入）仅下载缩略图与文字内容
  */
 async function expand(resource: Resource): Promise<void> {
     await expandPostResource(pawchive, resource);
@@ -74,8 +74,8 @@ export const pawchive: Site = {
     capabilities: {
         // pawchive搜索接口要求关键字至少3个字符
         searchMinLength: 3,
-        // 未完整导入（仅预览）的帖子跳过下载
-        pendingPosts: 'skip',
+        // 未完整导入（仅预览）的帖子：图片仅缩略图可用（“下载原图”关闭时下载），文字内容照常保存
+        pendingPosts: 'thumbnail-only',
     },
     resolve,
     expand,

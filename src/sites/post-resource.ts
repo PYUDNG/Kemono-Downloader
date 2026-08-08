@@ -103,8 +103,11 @@ export async function expandPostResource(
     }));
     if (isErrorResponse(creator)) throw new Error(creator.error);
 
-    // 内容未完整导入（仅预览）时，按站点能力处理
-    if (site.capabilities.pendingPosts === 'skip' && data.post.has_full === false) {
+    // 内容未完整导入（仅预览）时按站点能力处理：
+    // - 'skip'：跳过该帖所有文件（不填充名称/meta）
+    // - 'thumbnail-only'：全量文件未导入，图片仅在“下载原图”关闭时以缩略图形式下载；文字内容按设置照常保存
+    const pending = site.capabilities.pendingPosts !== 'none' && data.post.has_full === false;
+    if (pending && site.capabilities.pendingPosts === 'skip') {
         resource.available = false;
         resource.files = [];
         return;
@@ -117,7 +120,7 @@ export async function expandPostResource(
     // 文件列表
     const files: FileSpec[] = [];
 
-    // 文字内容（插入到最前面）
+    // 文字内容（插入到最前面；pending帖同样提供完整文字，可保存）
     const textContent = storage.get('textContent');
     if (textContent !== 'none') {
         const sourceHTML = data.post.content;
@@ -132,28 +135,32 @@ export async function expandPostResource(
         });
     }
 
-    // 附件
-    for (const file of data.post.attachments) {
-        files.push({
-            kind: 'download',
-            name: file.name ?? file.path.substring(file.path.lastIndexOf('/') + 1),
-            path: file.path,
-            url: site.assets.fullFile(file, data),
-        });
-    }
+    // 图片文件（附件 + 封面）
+    // pending帖（thumbnail-only）全量文件未导入：仅当“下载原图”关闭时可下载（此时fullFile即缩略图URL）
+    if (!(pending && storage.get('downloadOriginalImage'))) {
+        for (const file of data.post.attachments) {
+            files.push({
+                kind: 'download',
+                name: file.name ?? file.path.substring(file.path.lastIndexOf('/') + 1),
+                path: file.path,
+                url: site.assets.fullFile(file, data),
+            });
+        }
 
-    // 封面图（用户未指定不下载时）
-    const cover = data.post.file;
-    if (!storage.get('noCoverFile') && cover?.path) {
-        const coverFile = cover as { name?: string; path: string };
-        files.push({
-            kind: 'download',
-            name: coverFile.name ?? coverFile.path.substring(coverFile.path.lastIndexOf('/') + 1),
-            path: coverFile.path,
-            url: site.assets.fullFile(coverFile, data),
-        });
+        // 封面图（用户未指定不下载时）
+        const cover = data.post.file;
+        if (!storage.get('noCoverFile') && cover?.path) {
+            const coverFile = cover as { name?: string; path: string };
+            files.push({
+                kind: 'download',
+                name: coverFile.name ?? coverFile.path.substring(coverFile.path.lastIndexOf('/') + 1),
+                path: coverFile.path,
+                url: site.assets.fullFile(coverFile, data),
+            });
+        }
     }
 
     resource.files = files;
-    resource.available = true;
+    // pending帖可能没有任何可下载文件（如仅预览且无缩略图/文字），此时视为不可用
+    resource.available = pending ? files.length > 0 : true;
 }
