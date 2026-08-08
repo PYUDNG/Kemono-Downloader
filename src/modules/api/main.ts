@@ -38,11 +38,6 @@ export async function apiRequest<C = undefined>(
     if (options.cache && hasCache(request))
         return JSON.parse(await getCache(request)!);
 
-    // Kemono系站点API要求headers标明Accept:text/css
-    const headers = { Accept: 'text/css' };
-    request.headers = typeof request.headers === 'object' ?
-        Object.assign(headers, request.headers) : headers;
-
     // 发送请求，并将请求缓存
     const promise = requestJson(request);
     const jsonTextPromise = promise.then(response => JSON.stringify(response));

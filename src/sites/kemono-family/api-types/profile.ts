@@ -1,5 +1,6 @@
 import { Nullable } from '@/utils/main.js';
-import { DateTimeString, KemonoService } from './common.js';
+import type { DateTimeString } from '@/modules/api/types/common.js';
+import { KemonoService } from './common.js';
 
 /**
  * 创作者信息类型  

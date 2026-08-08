@@ -1,7 +1,12 @@
 import { apiRequest, isErrorResponse } from '@/modules/api/main.js';
 import type { APIErrorResponse } from '@/modules/api/types/common.js';
-import type { PostApiResponse } from '@/modules/api/types/post.js';
+import type { PostApiResponse } from './api-types/post.js';
 import type { SiteApi } from './types.js';
+
+/**
+ * Kemono系站点API要求headers标明Accept:text/css
+ */
+const KEMONO_API_HEADERS = { Accept: 'text/css' };
 
 /**
  * Kemono系站点的API实现工厂  
@@ -16,6 +21,7 @@ export function createPostsApi(
             return apiRequest({
                 method: 'GET',
                 url: `https://${ location.host }/api/v1/${ service }/user/${ creatorId }/profile`,
+                headers: KEMONO_API_HEADERS,
             });
         },
 
@@ -26,6 +32,7 @@ export function createPostsApi(
             return apiRequest({
                 method: 'GET',
                 url: url.href,
+                headers: KEMONO_API_HEADERS,
             });
         },
 
@@ -33,6 +40,7 @@ export function createPostsApi(
             const data = await apiRequest({
                 method: 'GET',
                 url: `https://${ location.host }/api/v1/${ info.service }/user/${ info.creatorId }/post/${ info.postId }`,
+                headers: KEMONO_API_HEADERS,
             });
             return normalizePost ? normalizePost(data) : data;
         },

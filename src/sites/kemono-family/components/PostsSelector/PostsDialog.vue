@@ -4,7 +4,7 @@ import Dialog from '@/volt/Dialog.vue';
 import type { Component } from 'vue';
 import { ref, watch } from 'vue';
 import PostsList from './PostsList.vue';
-import type { PostApiResponse, PostsApiItem, PostInfo } from '@/modules/api/types/main.js';
+import type { PostApiResponse, PostsApiItem, PostInfo } from '@/sites/kemono-family/api-types/main.js';
 import type { PageState } from 'primevue';
 import { useI18n } from 'vue-i18n';
 import SecondaryButton from '@/volt/SecondaryButton.vue';

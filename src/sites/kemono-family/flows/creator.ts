@@ -3,15 +3,15 @@
 import { createShadowApp, logger as globalLogger, Nullable, Optional, toast } from '@/utils/main.js';
 import { defineModule } from '@/modules/types.js';
 import { downloadResource } from '@/modules/downloader/main.js';
-import PostsDialog from '@/components/PostsSelector/PostsDialog.vue';
+import PostsDialog from '../components/PostsSelector/PostsDialog.vue';
 import { isErrorResponse } from '@/modules/api/main.js';
 import type { Site, DownloadRequest } from '../../types.js';
 import type { PageDefinition, SiteApi, SiteCapabilities } from '../types.js';
-import type { PostInfo } from '@/modules/api/types/common.js';
+import type { PostInfo } from '../api-types/common.js';
 import { App, reactive, watch } from 'vue';
 import { ComponentProps } from 'vue-component-type-helpers';
 import i18n, { i18nKeys } from '@/i18n/main.js';
-import type { PostsApiItem } from '@/modules/api/types/posts.js';
+import type { PostsApiItem } from '../api-types/posts.js';
 import { ToastMessageOptions } from 'primevue';
 import PrimeDownload from '~icons/prime/download';
 import PrimeTimes from '~icons/prime/times';

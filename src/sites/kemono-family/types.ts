@@ -1,8 +1,9 @@
 import type { SingleOrArray, Checker } from '@/utils/main.js';
-import type { APIErrorResponse, PostInfo } from '@/modules/api/types/common.js';
-import type { PostApiResponse } from '@/modules/api/types/post.js';
-import type { PostsApiResponse } from '@/modules/api/types/posts.js';
-import type { ProfileApiResponse } from '@/modules/api/types/profile.js';
+import type { APIErrorResponse } from '@/modules/api/types/common.js';
+import type { PostInfo } from './api-types/common.js';
+import type { PostApiResponse } from './api-types/post.js';
+import type { PostsApiResponse } from './api-types/posts.js';
+import type { ProfileApiResponse } from './api-types/profile.js';
 import type { DownloadRequest } from '../types.js';
 
 /**

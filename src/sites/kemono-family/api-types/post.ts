@@ -1,4 +1,5 @@
-import { DateTimeString, Attachment, FileItem, KemonoService } from './common.js';
+import type { DateTimeString } from '@/modules/api/types/common.js';
+import { Attachment, FileItem, KemonoService } from './common.js';
 
 /**
  * 帖子修订版本类型

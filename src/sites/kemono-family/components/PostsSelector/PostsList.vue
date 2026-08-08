@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends PostsApiItem | PostApiResponse">
-import type { PostApiResponse, PostsApiItem, PostInfo } from '@/modules/api/types/main.js';
+import type { PostApiResponse, PostsApiItem, PostInfo } from '@/sites/kemono-family/api-types/main.js';
 import PostItem from './PostItem.vue';
 import InputText from '@/volt/InputText.vue';
 import { computed, getCurrentInstance, ref, useTemplateRef, watch } from 'vue';

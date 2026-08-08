@@ -1,7 +1,7 @@
 import { globalStorage } from '@/storage.js';
 import { isErrorResponse } from '@/modules/api/main.js';
 import type { APIErrorResponse } from '@/modules/api/types/common.js';
-import type { PostApiResponse } from '@/modules/api/types/post.js';
+import type { PostApiResponse } from './kemono-family/api-types/post.js';
 import { createPostsApi } from './kemono-family/api.js';
 import { createKemonoStylePages } from './kemono-family/pages.js';
 import { createPostsResolver, expandPostResource } from './kemono-family/post-resource.js';

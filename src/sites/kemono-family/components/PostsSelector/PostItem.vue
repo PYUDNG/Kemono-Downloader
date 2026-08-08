@@ -2,11 +2,11 @@
 import Checkbox from '@/volt/Checkbox.vue';
 import { computed, ref, useTemplateRef } from 'vue';
 import { v4 as uuid } from 'uuid';
-import { PostsApiItem } from '@/modules/api/types/posts.js';
-import { PostApiResponse } from '@/modules/api/types/post.js';
+import { PostsApiItem } from '@/sites/kemono-family/api-types/posts.js';
+import { PostApiResponse } from '@/sites/kemono-family/api-types/post.js';
 import { extractText, getViewport, Nullable, popoverLogic } from '@/utils/main.js';
 import Button from '@/volt/Button.vue';
-import { PostInfo } from '@/modules/api/types/common';
+import { PostInfo } from '@/sites/kemono-family/api-types/common.js';
 import { getPostContent, getPostFilePath, getPostTitle, isPostApiResponse, isPostsApiItem } from './utils.js';
 import Popover from '@/volt/Popover.vue';
 import { useI18n } from 'vue-i18n';

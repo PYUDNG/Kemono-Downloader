@@ -1,6 +1,6 @@
-import { PostApiResponse } from "@/modules/api/types/post";
-import { PostsApiItem } from "@/modules/api/types/posts";
-import { PostInfo } from "@/modules/api/types/common";
+import { PostApiResponse } from "@/sites/kemono-family/api-types/post";
+import { PostsApiItem } from "@/sites/kemono-family/api-types/posts";
+import { PostInfo } from "@/sites/kemono-family/api-types/common";
 
 /**
  * 根据预览图（preview）的数据，为给定path文件资源寻找对应的server domain  
