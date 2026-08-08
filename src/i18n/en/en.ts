@@ -326,14 +326,6 @@ Each site adapter provides as many of these variables as possible; the site-spec
                         caption: 'Try connecting to the Aria2 server with current settings',
                         button: 'Test',
                         toast: {
-                            "not-enabled": {
-                                title: 'Aria2 Not Enabled',
-                                message: 'Set provider to Aria2 before testing',
-                            },
-                            "not-ready": {
-                                title: 'Aria2 Not Ready',
-                                message: 'Downloader not initialized, check config',
-                            },
                             granted: {
                                 title: 'Success',
                                 message: 'Connected to Aria2 server, version {version}',

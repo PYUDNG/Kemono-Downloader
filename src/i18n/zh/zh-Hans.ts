@@ -328,14 +328,6 @@ export default {
                         caption: '使用当前配置尝试连接Aria2服务器',
                         button: '测试',
                         toast: {
-                            "not-enabled": {
-                                title: '未启用aria2下载器',
-                                message: '请先将下载器设置为aria2，再进行测试',
-                            },
-                            "not-ready": {
-                                title: '未连接aria2下载器',
-                                message: 'aria2下载器尚未准备好，请检查配置进行测试',
-                            },
                             granted: {
                                 title: '连接成功',
                                 message: '已连接到Aria2服务器，版本 {version}',

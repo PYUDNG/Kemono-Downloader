@@ -4,7 +4,7 @@ import { BaseDownloadProvider, createResourceTask, Feature } from "../../types/b
 import { globalStorage, makeStorageRef } from "@/storage.js";
 import { onModuleRegistered, registerGroup, registerItem } from "@/modules/settings/main.js";
 import i18n, { i18nKeys } from "@/i18n/main.js";
-import { open, createWebSocket, createHTTP, Aria2RpcWebSocketUrl, Aria2RpcHTTPUrl, OpenOptions, close, Conn } from "maria2";
+import { open, createWebSocket, createHTTP, Aria2RpcWebSocketUrl, Aria2RpcHTTPUrl, Aria2ServerVersion, OpenOptions, close, Conn } from "maria2";
 import { buildPath, path2DirFile, ARIA2_STATUS_MAP, Aria2Status } from "./utils.js";
 import { Aria2IntervalCallsManager } from "../../utils/main.js";
 import mitt from "mitt";
@@ -91,24 +91,16 @@ onModuleRegistered('downloader', () => {
         props: {
             async onClick() {
                 const $toast = $settings.$connectionTest.$toast;
-                if (!aria2) {
-                    toast({
-                        severity: 'error',
-                        life: 3000,
-                        summary: t($toast.$notEnabled.$title),
-                        detail: t($toast.$notEnabled.$message),
-                    });
-                    return;
-                }
-
-                type Aria2Version = {
-                    version: string;
-                    enabledFeatures: string[];
-                };
-
-                await aria2.sendRequest<Aria2Version>(
-                    { method: 'aria2.getVersion' },
-                ).then(version => {
+                // 使用当前配置创建临时连接测试，不依赖当前下载器是否为aria2
+                let conn: Nullable<Conn> = null;
+                try {
+                    conn = await createAria2Connection(
+                        providerStorage.get('endpoint'),
+                        { secret: providerStorage.get('secret') || undefined },
+                    );
+                    const version = await conn.sendRequest<Aria2ServerVersion>(
+                        { method: 'aria2.getVersion' },
+                    );
                     // 连接成功
                     logger.simple('Detail', 'aria2 server connection ok');
                     logger.asLevel('Detail', version);
@@ -118,7 +110,7 @@ onModuleRegistered('downloader', () => {
                         summary: t($toast.$granted.$title),
                         detail: t($toast.$granted.$message, { version: version.version }),
                     });
-                }, err => {
+                } catch (err) {
                     // 存在授权或其他问题
                     logger.simple('Error', 'error connecting aria2 server');
                     logger.asLevel('Error', err);
@@ -128,7 +120,9 @@ onModuleRegistered('downloader', () => {
                         summary: t($toast.$failed.$title),
                         detail: t($toast.$failed.$message),
                     });
-                });
+                } finally {
+                    conn && close(conn);
+                }
             }
         },
         group: 'aria2',
@@ -143,6 +137,21 @@ providerStorage.watch('interval', (_key, _oldVal, newVal, _remote) => {
 const currentProvider = makeStorageRef('provider', globalStorage.withKeys('downloader'));
 const serverUrl = makeStorageRef('endpoint', providerStorage);
 const secret = makeStorageRef('secret', providerStorage);
+
+/**
+ * 创建Aria2 RPC连接  
+ * 协议由URL决定：ws://wss://使用WebSocket，其余使用HTTP
+ * @param serverUrl RPC服务器地址
+ * @param options 连接选项（secret、超时、错误回调等）
+ */
+function createAria2Connection(serverUrl: string, options: Partial<OpenOptions> = {}): Promise<Conn> {
+    const isWebSocket = serverUrl.startsWith('ws://') || serverUrl.startsWith('wss://');
+    return open(
+        isWebSocket ?
+            createWebSocket(serverUrl as Aria2RpcWebSocketUrl, options) :
+            createHTTP(serverUrl as Aria2RpcHTTPUrl, options)
+    );
+}
 
 /**
  * Aria2实例
@@ -167,23 +176,13 @@ watch(() => ({
 
     // 如果aria2是当前provder，开启新连接
     if (currentProvider === 'aria2') {
-        const isWebSocket = serverUrl.startsWith('ws://') || serverUrl.startsWith('wss://');
-        // 即使协议不合法这里也进行连接，目的是保证aria2变量有值；后续报错交由后续逻辑处理
-        //const isHTTP = serverUrl.startsWith('http://') || serverUrl.startsWith('https://');
-        //if (!isWebSocket && !isHTTP) return;
-
-        const options: Partial<OpenOptions> = {
+        aria2 = await createAria2Connection(serverUrl, {
             secret: secret || undefined,
             onServerError(err) {
                 logger.simple('Error', 'aria2 server error');
                 logger.asLevel('Error', err);
             },
-        };
-        aria2 = await open(
-            isWebSocket ?
-                createWebSocket(serverUrl as Aria2RpcWebSocketUrl, options) :
-                createHTTP(serverUrl as Aria2RpcHTTPUrl, options)
-        );
+        });
         manager.aria2 = aria2;
         manager.run();
     }
