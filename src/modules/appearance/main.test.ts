@@ -33,7 +33,7 @@ vi.mock('@/styling.js', () => ({
 
 import './main.js';
 import { modules } from '@/modules/settings/main.js';
-import { resolveLocale, resolveDark } from './state.js';
+import { resolveLocale, resolveDark, buildCustomPalette } from './state.js';
 
 beforeEach(() => {
     (globalThis as any).navigator.language = 'en-US';
@@ -63,6 +63,25 @@ describe('resolveDark', () => {
     it('system跟随系统偏好', () => {
         expect(resolveDark('system', true)).toBe(true);
         expect(resolveDark('system', false)).toBe(false);
+    });
+});
+
+describe('buildCustomPalette', () => {
+    it('基础色为500，与白色/黑色混合生成明暗梯度', () => {
+        const palette = buildCustomPalette('#ff0000');
+        expect(palette[500]).toBe('#ff0000');
+        // 混白20%
+        expect(palette[400]).toBe('#ff3333');
+        // 混黑15%
+        expect(palette[600]).toBe('#d90000');
+        expect(palette[50]).toBe('#ffd9d9');
+        expect(palette[950]).toBe('#400000');
+    });
+
+    it('支持3位简写hex', () => {
+        const palette = buildCustomPalette('#f00');
+        expect(palette[500]).toBe('#f00');
+        expect(palette[600]).toBe('#d90000');
     });
 });
 

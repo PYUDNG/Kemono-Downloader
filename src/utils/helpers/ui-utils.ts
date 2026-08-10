@@ -8,7 +8,7 @@ import ToastService from 'primevue/toastservice';
 import ConfirmationService from "primevue/confirmationservice";
 import { Nullable } from "../main";
 import type Popover from "@/volt/Popover.vue";
-import { dark, themeColor, customColor } from "@/modules/appearance/state.js";
+import { dark, themeColor, customColor, DEFAULT_PALETTE, THEME_COLORS, buildCustomPalette, ThemePalette } from "@/modules/appearance/state.js";
 
 interface ShadowAppCreationOptions<
     C extends Component
@@ -110,6 +110,23 @@ document.addEventListener = function(
     } 
 };
 
+/**
+ * 将主题色调色板以inline style写入元素（覆盖`:host`声明的CSS变量）
+ */
+function applyPalette(elm: HTMLElement, palette: ThemePalette): void {
+    elm.style.setProperty('--p-primary-50', palette[50]);
+    elm.style.setProperty('--p-primary-100', palette[100]);
+    elm.style.setProperty('--p-primary-200', palette[200]);
+    elm.style.setProperty('--p-primary-300', palette[300]);
+    elm.style.setProperty('--p-primary-400', palette[400]);
+    elm.style.setProperty('--p-primary-500', palette[500]);
+    elm.style.setProperty('--p-primary-600', palette[600]);
+    elm.style.setProperty('--p-primary-700', palette[700]);
+    elm.style.setProperty('--p-primary-800', palette[800]);
+    elm.style.setProperty('--p-primary-900', palette[900]);
+    elm.style.setProperty('--p-primary-950', palette[950]);
+}
+
 // 异步导入styling，防止循环导入初始化死锁
 const styling = import('@/styling.js');
 
@@ -145,22 +162,15 @@ export function createShadowApp<
     appElm.classList.add('scrollbar-light', 'dark:scrollbar-dark');
 
     // 同步外观设置（深色模式/主题色）：统一由appearance状态驱动，替换各创建点的硬编码'dark'
-    // 注：`dark`/`theme-*`类同时应用到host与appElm——
-    // `:host`上声明的浅色语义变量（如`--p-primary-color: var(--p-primary-500)`）在host处求值，
-    // 若主题类只在shadow内的appElm上，host上解析出的仍是默认色
+    // 注：主题色调色板以inline style写入host与appElm——
+    // Chrome中shadow样式表的`:host`声明无法被任何类选择器覆盖（实测），只能靠行内样式覆盖
     watch([dark, themeColor, customColor], () => {
+        const palette = themeColor.value === 'custom' ?
+            buildCustomPalette(customColor.value) :
+            THEME_COLORS.find(c => c.id === themeColor.value)?.palette ?? DEFAULT_PALETTE;
         for (const elm of [hostElm, appElm]) {
             elm.classList.toggle('dark', dark.value);
-            for (const cls of Array.from(elm.classList)) {
-                cls.startsWith('theme-') && elm.classList.remove(cls);
-            }
-            if (themeColor.value === 'custom') {
-                elm.classList.add('theme-custom');
-                elm.style.setProperty('--appearance-color', customColor.value);
-            } else {
-                themeColor.value !== 'default' && elm.classList.add(`theme-${ themeColor.value }`);
-                elm.style.removeProperty('--appearance-color');
-            }
+            applyPalette(elm, palette);
         }
     }, { immediate: true });
 
