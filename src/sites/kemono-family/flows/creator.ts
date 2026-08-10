@@ -141,9 +141,7 @@ export function createKemonoCreatorModule({ site, page, api, capabilities }: Kem
     })
     const { root } = createShadowApp(PostsDialog, {
         options: {
-            app: {
-                classes: 'dark'
-            }
+            app: {},
         },
         props: props,
     });

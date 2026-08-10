@@ -4,7 +4,7 @@ import { BaseDownloadProvider, createResourceTask, Feature } from "../../types/b
 import { FeatureNotSupportedError } from "../../types/base/error.js";
 import { globalStorage } from "@/storage";
 import { ensurePermission, getDirectoryHandleRecursive, getDownloadDirectoryHandle, getFileHandleRecursive, requestNewHandle, streamDownloadToFileHandle, watchDirChange } from "./utils";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import type { DownloadTarget, ExpandFn, Resource, Status } from "../../types/model.js";
 import type { ProviderType } from "../../types/base/provider.js";
 import { onModuleRegistered, registerGroup, registerItem } from "@/modules/settings/main.js";
@@ -23,12 +23,12 @@ onModuleRegistered('downloader', () => {
     registerGroup('downloader', {
         id: 'fsa',
         index: 2,
-        name: t($settings.$label),
+        name: computed(() => t($settings.$label)),
     });
     registerItem('downloader', [{
         id: 'directory',
-        label: t($settings.$directory.$label),
-        caption: t($settings.$directory.$caption),
+        label: computed(() => t($settings.$directory.$label)),
+        caption: computed(() => t($settings.$directory.$caption)),
         icon: FolderIcon,
         type: 'button',
         value: (() => {
@@ -55,10 +55,10 @@ onModuleRegistered('downloader', () => {
     }, {
         id: 'permission-check',
         type: 'button',
-        label: t($settings.$permissionCheck.$label),
-        caption: t($settings.$permissionCheck.$caption),
+        label: computed(() => t($settings.$permissionCheck.$label)),
+        caption: computed(() => t($settings.$permissionCheck.$caption)),
         icon: KeyIcon,
-        value: ref(t($settings.$permissionCheck.$button)),
+        value: computed(() => t($settings.$permissionCheck.$button)),
         props: {
             async onClick() {
                 const $toast = $settings.$permissionCheck.$toast;

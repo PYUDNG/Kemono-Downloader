@@ -5,7 +5,7 @@ import { globalStorage, makeStorageRef } from "@/storage";
 import FileEditIcon from '~icons/prime/file-edit'
 import FileExportIcon from '~icons/prime/file-export'
 import TrashIcon from '~icons/prime/trash'
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { logger as globalLogger, LogItem, safeSerialize, saveAs, stringifyBytes, toast } from "@/utils/main";
 import { GM_info } from "$";
 
@@ -35,14 +35,14 @@ const saveLogs = makeStorageRef('saveLogs', storage);
 onModuleRegistered('self', () => {
     registerGroup('self', {
         id: 'log',
-        name: t($settings.$groupLog),
+        name: computed(() => t($settings.$groupLog)),
         index: 1,
     });
     registerItem('self', [{
         id: 'saveLogs',
         type: 'switch',
-        label: t($settings.$saveLogs.$label),
-        caption: t($settings.$saveLogs.$caption),
+        label: computed(() => t($settings.$saveLogs.$label)),
+        caption: computed(() => t($settings.$saveLogs.$caption)),
         icon: FileEditIcon,
         value: saveLogs,
         // 虽然实时生效，但是最好刷新页面后再重新记录日志，这样日志才比较完整
@@ -51,8 +51,8 @@ onModuleRegistered('self', () => {
     }, {
         id: 'exportLogs',
         type: 'button',
-        label: t($settings.$exportLogs.$label),
-        caption: t($settings.$exportLogs.$caption),
+        label: computed(() => t($settings.$exportLogs.$label)),
+        caption: computed(() => t($settings.$exportLogs.$caption)),
         icon: FileExportIcon,
         // slots: {
         //     icon: FileExportIcon,
@@ -74,13 +74,13 @@ onModuleRegistered('self', () => {
                 await saveAs(logText, `${ GM_info.script.name } - ${ new Date().toLocaleString() }.json`);
             }
         },
-        value: ref(t($settings.$exportLogs.$button)),
+        value: computed(() => t($settings.$exportLogs.$button)),
         group: 'log',
     }, {
         id: 'clearLogs',
         type: 'button',
-        label: t($settings.$clearLogs.$label),
-        caption: t($settings.$clearLogs.$caption),
+        label: computed(() => t($settings.$clearLogs.$label)),
+        caption: computed(() => t($settings.$clearLogs.$caption)),
         icon: TrashIcon,
         // slots: {
         //     icon: TrashIcon,

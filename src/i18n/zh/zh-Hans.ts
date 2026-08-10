@@ -62,6 +62,46 @@ export default {
             }
         }
     },
+    appearance: {
+        settings: {
+            label: '外观',
+            group: '常规设置',
+            language: {
+                label: '界面语言',
+                caption: '切换脚本界面的显示语言',
+                options: {
+                    auto: '跟随系统',
+                    'zh-Hans': '简体中文',
+                    'zh-Hant': '繁體中文',
+                    en: 'English',
+                },
+            },
+            "dark-mode": {
+                label: '深色模式',
+                caption: '切换脚本界面的深浅色显示',
+                options: {
+                    system: '跟随系统',
+                    light: '浅色',
+                    dark: '深色',
+                },
+            },
+            "theme-color": {
+                label: '主题色',
+                caption: '切换脚本界面的主色调',
+                options: {
+                    default: 'Kemono橙',
+                    blue: '蓝色',
+                    green: '绿色',
+                    purple: '紫色',
+                    custom: '自定义',
+                },
+            },
+            "custom-color": {
+                label: '自定义主题色',
+                caption: '在主题色选择“自定义”时生效',
+            },
+        },
+    },
     downloader: {
         "show-ui": '下载管理器',
         name: '下载器',

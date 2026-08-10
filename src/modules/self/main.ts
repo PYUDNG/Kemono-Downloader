@@ -4,7 +4,7 @@ import { registerModule } from "../settings/main";
 import HistoryIcon from '~icons/prime/history'
 import GithubIcon from '~icons/prime/github'
 import GreasyforkIcon from '~icons/simple-icons/greasyfork'
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { GM_info, GM_openInTab } from "$";
 
 const t = i18n.global.t;
@@ -19,19 +19,19 @@ export default defineModule({
 // 设置
 registerModule({
     id: 'self',
-    name: t($settings.$label),
+    name: computed(() => t($settings.$label)),
     // “关于”设置模块始终处于最后一位
     index: Infinity,
     items: [{
         id: 'version',
         type: 'display',
-        label: t($settings.$version.$label),
+        label: computed(() => t($settings.$version.$label)),
         icon: HistoryIcon,
         value: ref(GM_info.script.version),
     }, {
         id: 'github',
         type: 'display',
-        label: t($settings.$github.$label),
+        label: computed(() => t($settings.$github.$label)),
         icon: GithubIcon,
         props: {
             onClick() {
@@ -42,7 +42,7 @@ registerModule({
     }, {
         id: 'greasyfork',
         type: 'display',
-        label: t($settings.$greasyfork.$label),
+        label: computed(() => t($settings.$greasyfork.$label)),
         icon: GreasyforkIcon,
         props: {
             onClick() {

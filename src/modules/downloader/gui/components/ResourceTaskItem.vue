@@ -118,9 +118,7 @@ function detail(_e: PointerEvent, task: TaskLike) {
     const { host, app, root } = createShadowApp(AppTaskDetail, {
         props: { provider, tasks: [], name: task.name },
         options: {
-            app: {
-                classes: 'dark'
-            }
+            app: {},
         }
     });
     root.showWithTasks(task.subTasks, task.name);

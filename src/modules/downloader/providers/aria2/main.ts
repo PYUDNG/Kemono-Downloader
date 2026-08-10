@@ -8,7 +8,7 @@ import { open, createWebSocket, createHTTP, Aria2RpcWebSocketUrl, Aria2RpcHTTPUr
 import { buildPath, path2DirFile, ARIA2_STATUS_MAP, Aria2Status } from "./utils.js";
 import { Aria2IntervalCallsManager } from "../../utils/main.js";
 import mitt from "mitt";
-import { ref, watch } from "vue";
+import { computed, watch } from "vue";
 import type { DownloadTarget, ExpandFn, Resource } from "../../types/model.js";
 import type { ProviderType } from "../../types/base/provider.js";
 import ServerIcon from '~icons/prime/server'
@@ -35,14 +35,14 @@ onModuleRegistered('downloader', () => {
     registerGroup('downloader', {
         id: 'aria2',
         index: 2,
-        name: t($settings.$label),
+        name: computed(() => t($settings.$label)),
     });
 
     registerItem('downloader', [{
         id: 'endpoint',
         type: 'text',
-        label: t($settings.$endpoint.$label),
-        caption: t($settings.$endpoint.$caption),
+        label: computed(() => t($settings.$endpoint.$label)),
+        caption: computed(() => t($settings.$endpoint.$caption)),
         icon: ServerIcon,
         props: {
             placeholder: providerStorage.default('endpoint'),
@@ -52,8 +52,8 @@ onModuleRegistered('downloader', () => {
     }, {
         id: 'secret',
         type: 'password',
-        label: t($settings.$secret.$label),
-        caption: t($settings.$secret.$caption),
+        label: computed(() => t($settings.$secret.$label)),
+        caption: computed(() => t($settings.$secret.$caption)),
         icon: KeyIcon,
         props: {
             feedback: false,
@@ -63,17 +63,17 @@ onModuleRegistered('downloader', () => {
     }, {
         id: 'dir',
         type: 'text',
-        label: t($settings.$dir.$label),
-        caption: t($settings.$dir.$caption),
-        help: t($settings.$dir.$help),
+        label: computed(() => t($settings.$dir.$label)),
+        caption: computed(() => t($settings.$dir.$caption)),
+        help: computed(() => t($settings.$dir.$help)),
         icon: FolderIcon,
         value: makeStorageRef('dir', providerStorage, true, false),
         group: 'aria2',
     }, {
         id: 'interval',
         type: 'number',
-        label: t($settings.$interval.$label),
-        caption: t($settings.$interval.$caption),
+        label: computed(() => t($settings.$interval.$label)),
+        caption: computed(() => t($settings.$interval.$caption)),
         icon: ClockIcon,
         value: makeStorageRef('interval', providerStorage, true, false),
         props: {
@@ -84,10 +84,10 @@ onModuleRegistered('downloader', () => {
     }, {
         id: 'connection-test',
         type: 'button',
-        label: t($settings.$connectionTest.$label),
-        caption: t($settings.$connectionTest.$caption),
+        label: computed(() => t($settings.$connectionTest.$label)),
+        caption: computed(() => t($settings.$connectionTest.$caption)),
         icon: WifiIcon,
-        value: ref(t($settings.$connectionTest.$button)),
+        value: computed(() => t($settings.$connectionTest.$button)),
         props: {
             async onClick() {
                 const $toast = $settings.$connectionTest.$toast;

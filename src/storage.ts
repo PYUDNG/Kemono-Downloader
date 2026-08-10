@@ -83,6 +83,27 @@ export const globalStorage = new UserscriptStorage(
              */
             helpOnInput: true as boolean,
         },
+        appearance: {
+            /**
+             * 界面语言：`'auto'`跟随浏览器语言
+             */
+            language: 'auto' as 'auto' | 'zh-Hans' | 'zh-Hant' | 'en',
+
+            /**
+             * 深色模式：`'system'`跟随系统偏好
+             */
+            darkMode: 'dark' as 'system' | 'light' | 'dark',
+
+            /**
+             * 主题色预设id（`'custom'`使用自定义颜色）
+             */
+            themeColor: 'default' as string,
+
+            /**
+             * 自定义主题色（hex）
+             */
+            customColor: '#ea712f' as string,
+        },
         debugging: {
             saveLogs: false as boolean,
             /** 可以存入任何可序列化的数据，数据格式取决于你的序列化方法 */
@@ -115,6 +136,9 @@ export function makeStorageRef<
     storage.watch(key, (_key, _oldVal, newVal, _remote) => {
         // 仅当存储和变量确实不再同步时，才更新变量值
         if (!deepEqual(val.value, newVal)) {
+            // 若存储当前值已不是本次回调的newVal（期间发生了更新的写入），说明本次回调已过期，忽略
+            // 防止快速连续写入（如颜色选择器拖拽）时过期回调覆盖新值，并与写回watch形成A↔B振荡
+            if (!deepEqual(storage.get(key), newVal)) return;
             // 接收到的新值有可能确实是存储中的实际值，也有可能在存储中此键已不存在，此时回调的值为默认值
             if (storage.has(key) || useDefaultValue) {
                 // 是实际值 或者 指定了使用默认值

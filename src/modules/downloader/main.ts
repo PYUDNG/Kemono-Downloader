@@ -48,21 +48,21 @@ const currentProvider = makeStorageRef('provider', storage);
 
 registerModule({
     id: 'downloader',
-    name: t($settings.$label),
+    name: computed(() => t($settings.$label)),
     items: [{
         id: 'provider',
         type: 'select',
-        label: t($settings.$provider.$label),
-        caption: t($settings.$provider.$caption),
+        label: computed(() => t($settings.$provider.$label)),
+        caption: computed(() => t($settings.$provider.$caption)),
         icon: DownloadIcon,
         help: markRaw(ProviderHelpComp),
         props: {
             optionLabel: 'label',
             optionValue: 'value',
-            options: Object.keys(providers).map(name => ({
+            options: computed(() => Object.keys(providers).map(name => ({
                 label: t($settings.$provider.$options + '.' + name),
                 value: name,
-            })),
+            }))),
         },
         value: makeStorageRef('provider', storage, true, false),
         reload: true,
@@ -71,7 +71,7 @@ registerModule({
         id: 'filename',
         type: 'text',
         icon: FileEditIcon,
-        label: t($settings.$filename.$label),
+        label: computed(() => t($settings.$filename.$label)),
         help: markRaw(FilenameHelpComp),
         props: {
             placeholder: storage.default('filename'),
@@ -82,29 +82,29 @@ registerModule({
         id: 'noCoverFile',
         type: 'switch',
         icon: ImageIcon,
-        label: t($settings.$noCoverFile),
+        label: computed(() => t($settings.$noCoverFile)),
         value: makeStorageRef('noCoverFile', storage, true, false),
         group: 'regular',
     }, {
         id: 'downloadOriginalImage',
         type: 'switch',
         icon: ImageIcon,
-        label: t($settings.$downloadOriginalImage),
+        label: computed(() => t($settings.$downloadOriginalImage)),
         value: makeStorageRef('downloadOriginalImage', storage, true, false),
         group: 'regular',
     }, {
         id: 'textContent',
         type: 'select',
-        label: t($settings.$textContent.$label),
-        caption: t($settings.$textContent.$caption),
+        label: computed(() => t($settings.$textContent.$label)),
+        caption: computed(() => t($settings.$textContent.$caption)),
         icon: AlignJustifyIcon,
         props: {
             optionLabel: 'label',
             optionValue: 'value',
-            options: ['none', 'txt', 'html'].map(val => ({
+            options: computed(() => ['none', 'txt', 'html'].map(val => ({
                 label: t($settings.$textContent.$options + '.' + val),
                 value: val,
-            })),
+            }))),
         },
         value: makeStorageRef('textContent', storage, true, false),
         disabled: featureRelatedDisabled(
@@ -128,8 +128,8 @@ registerModule({
         id: 'concurrent',
         type: 'number',
         icon: ARALIcon,
-        label: t($settings.$concurrent.$label),
-        caption: t($settings.$concurrent.$caption),
+        label: computed(() => t($settings.$concurrent.$label)),
+        caption: computed(() => t($settings.$concurrent.$caption)),
         props: {
             placeholder: storage.default('concurrent').toString(),
         },
@@ -154,8 +154,8 @@ registerModule({
     }, {
         id: 'auto-retry',
         type: 'number',
-        label: t($settings.$autoRetry.$label),
-        caption: t($settings.$autoRetry.$caption),
+        label: computed(() => t($settings.$autoRetry.$label)),
+        caption: computed(() => t($settings.$autoRetry.$caption)),
         icon: PrimeRefresh,
         props: {
             placeholder: storage.default('autoRetry').toString(),
@@ -166,16 +166,16 @@ registerModule({
         id: 'abortFiles',
         type: 'select',
         icon: FolderIcon,
-        label: t($settings.$abortFiles.$label),
-        caption: t($settings.$abortFiles.$caption),
+        label: computed(() => t($settings.$abortFiles.$label)),
+        caption: computed(() => t($settings.$abortFiles.$caption)),
         value: makeStorageRef('abortFiles', storage, true, false),
         props: {
             optionLabel: 'label',
             optionValue: 'value',
-            options: ['prompt', 'delete', 'preserve'].map(action => ({
+            options: computed(() => ['prompt', 'delete', 'preserve'].map(action => ({
                 label: t($settings.$abortFiles.$options + '.' + action),
                 value: action,
-            })),
+            }))),
         },
         disabled: (function() {
             const provider = makeStorageRef('provider', storage);
@@ -198,7 +198,7 @@ registerModule({
     index: 1,
     groups: [{
         id: 'regular',
-        name: t($settings.$group),
+        name: computed(() => t($settings.$group)),
         index: 1,
     }],
 });
@@ -211,9 +211,7 @@ const provider = reactive(new providers[providerType]) as unknown as BaseDownloa
 const { app, root: rootTaskDetail } = createShadowApp(AppTaskDetail, {
     props: { provider, tasks: [], name: null },
     options: {
-        app: {
-            classes: 'dark'
-        }
+        app: {},
     }
 });
 app.provide(rootTaskDetailInjectionKey, rootTaskDetail);
@@ -221,9 +219,7 @@ app.provide(rootTaskDetailInjectionKey, rootTaskDetail);
 const { root } = createShadowApp(App, {
     props: { provider },
     options: {
-        app: {
-            classes: 'dark'
-        },
+        app: {},
     },
     provides: {
         [rootTaskDetailInjectionKey]: rootTaskDetail
