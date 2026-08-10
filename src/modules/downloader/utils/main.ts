@@ -137,7 +137,12 @@ export function formatContentHTML(html: string) {
  * @param html PostAPIResponse.post.content 中的原始html
  */
 export function formatContentText(html: string) {
-    return $CrE('div', { props: { innerHTML: html } }).innerText;
+    if (!document.body) throw new Error('document.body not exist');
+    const div = $CrE('div', { props: { innerHTML: html } });
+    document.body.append(div);
+    const text = div.innerText;
+    div.remove();
+    return text;
 }
 
 interface Aria2Call {
