@@ -9,6 +9,7 @@ import { SettingItem } from '../../types';
 import { ComponentProps } from 'vue-component-type-helpers';
 import Password from './components/Password.vue';
 import Display from './components/Display.vue';
+import Color from './components/Color.vue';
 
 // props
 const { type, props } = defineProps<{
@@ -54,6 +55,7 @@ const componentsMap = {
     button: Button,
     password: Password,
     display: Display,
+    color: Color,
 };
 /** 可用的组件类型 */
 export type CompType = keyof typeof componentsMap;

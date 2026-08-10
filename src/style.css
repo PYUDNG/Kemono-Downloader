@@ -136,6 +136,21 @@
     --p-primary-950: #2e1065;
 }
 
+/* 自定义主题色：由`--appearance-color`（inline style）驱动，color-mix生成明暗梯度 */
+.theme-custom {
+    --p-primary-500: var(--appearance-color);
+    --p-primary-400: color-mix(in srgb, var(--appearance-color), white 20%);
+    --p-primary-300: color-mix(in srgb, var(--appearance-color), white 35%);
+    --p-primary-200: color-mix(in srgb, var(--appearance-color), white 50%);
+    --p-primary-100: color-mix(in srgb, var(--appearance-color), white 70%);
+    --p-primary-50: color-mix(in srgb, var(--appearance-color), white 85%);
+    --p-primary-600: color-mix(in srgb, var(--appearance-color), black 15%);
+    --p-primary-700: color-mix(in srgb, var(--appearance-color), black 30%);
+    --p-primary-800: color-mix(in srgb, var(--appearance-color), black 45%);
+    --p-primary-900: color-mix(in srgb, var(--appearance-color), black 60%);
+    --p-primary-950: color-mix(in srgb, var(--appearance-color), black 75%);
+}
+
 /* ============================================
    PrimeVue Ripple 效果样式 (unstyled模式)
    ============================================ */

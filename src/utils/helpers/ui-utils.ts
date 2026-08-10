@@ -8,7 +8,7 @@ import ToastService from 'primevue/toastservice';
 import ConfirmationService from "primevue/confirmationservice";
 import { Nullable } from "../main";
 import type Popover from "@/volt/Popover.vue";
-import { dark, themeColor } from "@/modules/appearance/state.js";
+import { dark, themeColor, customColor } from "@/modules/appearance/state.js";
 
 interface ShadowAppCreationOptions<
     C extends Component
@@ -145,12 +145,23 @@ export function createShadowApp<
     appElm.classList.add('scrollbar-light', 'dark:scrollbar-dark');
 
     // 同步外观设置（深色模式/主题色）：统一由appearance状态驱动，替换各创建点的硬编码'dark'
-    watch([dark, themeColor], () => {
-        appElm.classList.toggle('dark', dark.value);
-        for (const cls of Array.from(appElm.classList)) {
-            cls.startsWith('theme-') && appElm.classList.remove(cls);
+    // 注：`dark`/`theme-*`类同时应用到host与appElm——
+    // `:host`上声明的浅色语义变量（如`--p-primary-color: var(--p-primary-500)`）在host处求值，
+    // 若主题类只在shadow内的appElm上，host上解析出的仍是默认色
+    watch([dark, themeColor, customColor], () => {
+        for (const elm of [hostElm, appElm]) {
+            elm.classList.toggle('dark', dark.value);
+            for (const cls of Array.from(elm.classList)) {
+                cls.startsWith('theme-') && elm.classList.remove(cls);
+            }
+            if (themeColor.value === 'custom') {
+                elm.classList.add('theme-custom');
+                elm.style.setProperty('--appearance-color', customColor.value);
+            } else {
+                themeColor.value !== 'default' && elm.classList.add(`theme-${ themeColor.value }`);
+                elm.style.removeProperty('--appearance-color');
+            }
         }
-        themeColor.value !== 'default' && appElm.classList.add(`theme-${ themeColor.value }`);
     }, { immediate: true });
 
     // 屏蔽Shadown DOM内常见事件冒泡，预防性阻止Shadow DOM和页面互相干扰

@@ -95,9 +95,14 @@ export const globalStorage = new UserscriptStorage(
             darkMode: 'dark' as 'system' | 'light' | 'dark',
 
             /**
-             * 主题色预设id
+             * 主题色预设id（`'custom'`使用自定义颜色）
              */
             themeColor: 'default' as string,
+
+            /**
+             * 自定义主题色（hex）
+             */
+            customColor: '#ea712f' as string,
         },
         debugging: {
             saveLogs: false as boolean,

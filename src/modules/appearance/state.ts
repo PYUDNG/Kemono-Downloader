@@ -8,19 +8,37 @@ export const dark = ref(true);
 
 /**
  * 当前主题色预设id（由appearance模块根据设置维护）  
+ * `'custom'`表示使用自定义颜色（见`customColor`）  
  * 供`createShadowApp`等消费方同步`theme-{id}`类
  */
 export const themeColor = ref('default');
 
 /**
- * 主题色预设列表（对应style.css中的`.theme-{id}`调色板类）
+ * 自定义主题色（hex），由appearance模块根据设置维护  
+ * 当`themeColor`为`'custom'`时，通过`--appearance-color`变量驱动`.theme-custom`调色板
+ */
+export const customColor = ref('#ea712f');
+
+/**
+ * 主题色预设列表（对应style.css中的`.theme-{id}`调色板类；`custom`走自定义色）
  */
 export const THEME_COLORS = [
     { id: 'default' },
     { id: 'blue' },
     { id: 'green' },
     { id: 'purple' },
+    { id: 'custom' },
 ] as const;
+
+/**
+ * 解析深色模式是否生效  
+ * `darkMode`为`'system'`时跟随系统偏好
+ * @param darkMode 用户设置的深色模式
+ * @param systemDark 系统当前是否为深色
+ */
+export function resolveDark(darkMode: string, systemDark: boolean): boolean {
+    return darkMode === 'dark' || (darkMode === 'system' && systemDark);
+}
 
 /**
  * 解析界面locale  

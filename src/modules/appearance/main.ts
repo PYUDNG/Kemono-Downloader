@@ -5,7 +5,7 @@ import { globalStorage, makeStorageRef } from '@/storage.js';
 import { defineModule } from '@/modules/types.js';
 import { registerModule } from '@/modules/settings/main.js';
 import i18n, { i18nKeys } from '@/i18n/main.js';
-import { dark, themeColor, THEME_COLORS, resolveLocale } from './state.js';
+import { dark, themeColor, customColor, THEME_COLORS, resolveLocale, resolveDark } from './state.js';
 import TranslateIcon from '~icons/material-symbols/translate';
 import ContrastIcon from '~icons/material-symbols/contrast';
 import PaletteIcon from '~icons/material-symbols/palette';
@@ -28,7 +28,7 @@ watch(language, applyLanguage);
 const darkMode = makeStorageRef('darkMode', storage, true, false);
 const media = window.matchMedia?.('(prefers-color-scheme: dark)');
 const applyDark = () => {
-    dark.value = darkMode.value === 'dark' || (darkMode.value === 'system' && !!media?.matches);
+    dark.value = resolveDark(darkMode.value, !!media?.matches);
 };
 applyDark();
 watch(darkMode, applyDark);
@@ -39,6 +39,13 @@ media?.addEventListener?.('change', applyDark);
 const theme = makeStorageRef('themeColor', storage, true, false);
 watch(theme, value => {
     themeColor.value = value;
+}, { immediate: true });
+
+// —— 自定义主题色 ——
+
+const custom = makeStorageRef('customColor', storage, true, false);
+watch(custom, value => {
+    customColor.value = value;
 }, { immediate: true });
 
 export default defineModule({
@@ -100,6 +107,16 @@ registerModule({
             }))),
         },
         value: theme,
+        group: 'regular',
+    }, {
+        id: 'custom-color',
+        type: 'color',
+        label: computed(() => t($appearance.$settings.$customColor.$label)),
+        caption: computed(() => t($appearance.$settings.$customColor.$caption)),
+        icon: PaletteIcon,
+        // 仅当主题色选择“自定义”时展示
+        hidden: computed(() => theme.value !== 'custom'),
+        value: custom,
         group: 'regular',
     }],
     groups: [{

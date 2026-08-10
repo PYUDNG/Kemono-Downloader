@@ -93,7 +93,12 @@ export default {
                     blue: 'Blue',
                     green: 'Green',
                     purple: 'Purple',
+                    custom: 'Custom',
                 },
+            },
+            "custom-color": {
+                label: 'Custom Accent Color',
+                caption: 'Applies when accent color is set to Custom',
             },
         },
     },

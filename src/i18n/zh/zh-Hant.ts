@@ -93,7 +93,12 @@ export default {
                     blue: '藍色',
                     green: '綠色',
                     purple: '紫色',
+                    custom: '自訂',
                 },
+            },
+            "custom-color": {
+                label: '自訂主題色',
+                caption: '在主題色選擇「自訂」時生效',
             },
         },
     },

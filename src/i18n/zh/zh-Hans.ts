@@ -93,7 +93,12 @@ export default {
                     blue: '蓝色',
                     green: '绿色',
                     purple: '紫色',
+                    custom: '自定义',
                 },
+            },
+            "custom-color": {
+                label: '自定义主题色',
+                caption: '在主题色选择“自定义”时生效',
             },
         },
     },
