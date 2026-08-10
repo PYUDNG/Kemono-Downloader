@@ -4,7 +4,7 @@ import type { GmXmlhttpRequestOption } from "$";
 import type { APIErrorResponse } from "./types/common.js";
 import i18n, { i18nKeys } from "@/i18n/main.js";
 import { groupExists, onModuleRegistered, registerGroup, registerItem } from "../settings/main.js";
-import { ref } from "vue";
+import { computed } from "vue";
 import PrimeTrash from '~icons/prime/trash';
 import PrimeHistory from '~icons/prime/history';
 import { clearCache, getCache, hasCache, removeCache, saveCache } from "./cache.js";
@@ -72,15 +72,15 @@ onModuleRegistered('self', () => {
     // 目前缓存还只有API缓存，因此注册、命名等均在API命名空间和作用域下
     groupExists('self', 'cache') || registerGroup('self', {
         id: 'cache',
-        name: t($settings.$groupCache),
+        name: computed(() => t($settings.$groupCache)),
         index: 2,
     });
 
     registerItem('self', [{
         id: 'api-cache-expires',
         type: 'number',
-        label: t($settings.$apiCacheExpires.$label),
-        caption: t($settings.$apiCacheExpires.$caption),
+        label: computed(() => t($settings.$apiCacheExpires.$label)),
+        caption: computed(() => t($settings.$apiCacheExpires.$caption)),
         icon: PrimeHistory,
         props: {
             placeholder: storage.default('cacheExpires').toString(),
@@ -90,8 +90,8 @@ onModuleRegistered('self', () => {
     }, {
         id: 'clear-api-cache',
         type: 'button',
-        label: t($settings.$clearApiCache.$label),
-        caption: t($settings.$clearApiCache.$caption),
+        label: computed(() => t($settings.$clearApiCache.$label)),
+        caption: computed(() => t($settings.$clearApiCache.$caption)),
         icon: PrimeTrash,
         props: {
             onClick() {
@@ -105,7 +105,7 @@ onModuleRegistered('self', () => {
                 });
             }
         },
-        value: ref(t($settings.$clearApiCache.$button)),
+        value: computed(() => t($settings.$clearApiCache.$button)),
         group: 'cache',
     }])
 });

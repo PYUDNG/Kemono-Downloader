@@ -83,6 +83,22 @@ export const globalStorage = new UserscriptStorage(
              */
             helpOnInput: true as boolean,
         },
+        appearance: {
+            /**
+             * 界面语言：`'auto'`跟随浏览器语言
+             */
+            language: 'auto' as 'auto' | 'zh-Hans' | 'zh-Hant' | 'en',
+
+            /**
+             * 深色模式：`'system'`跟随系统偏好
+             */
+            darkMode: 'dark' as 'system' | 'light' | 'dark',
+
+            /**
+             * 主题色预设id
+             */
+            themeColor: 'default' as string,
+        },
         debugging: {
             saveLogs: false as boolean,
             /** 可以存入任何可序列化的数据，数据格式取决于你的序列化方法 */

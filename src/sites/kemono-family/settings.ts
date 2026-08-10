@@ -14,7 +14,7 @@ const $sites = i18nKeys.$sites;
 // 站点设置模块：收纳所有站点的专属设置（与下载器模块解耦，下载器模块只负责provider设置）
 registerModule({
     id: 'sites',
-    name: t($sites.$settings.$label),
+    name: computed(() => t($sites.$settings.$label)),
     // 位于「下载器」之后、「关于」之前
     index: 2,
     items: [],
@@ -49,7 +49,7 @@ export function registerSiteFilenameSetting(site: Site): void {
         registerItem('sites', [{
             id: 'site-filename',
             type: 'text',
-            label: t($filename.$label),
+            label: computed(() => t($filename.$label)),
             help: markRaw(FilenameHelpComp),
             icon: FileEditIcon,
             props: {

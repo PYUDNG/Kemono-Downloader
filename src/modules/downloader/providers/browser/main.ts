@@ -7,6 +7,7 @@ import type { DownloadTarget, ExpandFn, Resource, Status } from "../../types/mod
 import type { ProviderType } from "../../types/base/provider.js";
 import { onModuleRegistered, registerGroup } from "@/modules/settings/main.js";
 import i18n, { i18nKeys } from "@/i18n/main.js";
+import { computed } from "vue";
 
 const logger = globalLogger.withPath('downloader', 'provider', 'browser');
 const storage = globalStorage.withKeys('downloader');
@@ -28,7 +29,7 @@ onModuleRegistered('downloader', () => {
     registerGroup('downloader', {
         id: 'browser',
         index: 2,
-        name: t($settings.$label),
+        name: computed(() => t($settings.$label)),
     });
 });
 

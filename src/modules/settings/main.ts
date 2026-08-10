@@ -42,9 +42,7 @@ export default defineModule({
         const { root } = createShadowApp(App, {
             props: { modules },
             options: {
-                app: {
-                    classes: 'dark'
-                },
+                app: {},
             },
         });
 
@@ -85,9 +83,11 @@ export function registerGroup(id: string, group: SettingGroup) {
     if (!module) throw new TypeError(`cannot find module with id ${ id }`);
     if (module.groups?.some(g => g.id === group.id)) throw new TypeError(`duplicate id ${ id }`);
     
+    // 与registerItem一致：reactive包装以解包响应式文本字段（如computed标签）
+    const reactiveGroup = reactive(group);
     Array.isArray(module.groups) ?
-        module.groups.push(group) :
-        module.groups = [group];
+        module.groups.push(reactiveGroup) :
+        module.groups = [reactiveGroup];
 }
 
 /**

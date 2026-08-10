@@ -2,6 +2,13 @@ import { Component, Ref } from "vue";
 import { CompType } from "./components/SettingInput/SettingInput.vue";
 export type { CompType };
 
+/**
+ * 设置项文本字段类型  
+ * 可以是普通字符串，也可以是响应式字符串（如`computed(() => t(key))`，随语言切换实时更新）  
+ * 设置系统本身不感知i18n：响应式值通过`reactive()`解包后由渲染组件消费
+ */
+export type SettingText = string | Ref<string>;
+
 export interface DisabledGUI {
     /**
      * 作为额外副标题向用户展示的、有关设置项被禁用的原因
@@ -38,20 +45,20 @@ export interface SettingItem {
      * 主要描述文本  
      * 占据主要文本区域展示
      */
-    label: string;
+    label: SettingText;
 
     /**
      * 次要描述文本  
      * 占据次要文本区域展示
      */
-    caption?: string;
+    caption?: SettingText;
 
     /**
      * 补充描述文本  
      * 默认不展示，用户交互时在额外UI区域展示
      * 接受html代码和自定义Vue组件两种数据
      */
-    help?: string | Component;
+    help?: SettingText | Component;
 
     /**
      * 图标  
@@ -118,7 +125,7 @@ export interface SettingGroup {
     /**
      * 组名，显示在UI中
      */
-    name: string;
+    name: SettingText;
 
     /**
      * 设置项组的排序位置，数值越小越靠前  
@@ -139,7 +146,7 @@ export interface SettingModule {
     /**
      * 模块名 / 描述文本
      */
-    name: string;
+    name: SettingText;
 
     /**
      * 模块的设置项

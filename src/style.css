@@ -91,6 +91,52 @@
 }
 
 /* ============================================
+   主题色预设（由appearance设置项驱动，类名`theme-{id}`应用到shadow app元素）
+   ============================================ */
+
+.theme-blue {
+    --p-primary-50: #eff6ff;
+    --p-primary-100: #dbeafe;
+    --p-primary-200: #bfdbfe;
+    --p-primary-300: #93c5fd;
+    --p-primary-400: #60a5fa;
+    --p-primary-500: #3b82f6;
+    --p-primary-600: #2563eb;
+    --p-primary-700: #1d4ed8;
+    --p-primary-800: #1e40af;
+    --p-primary-900: #1e3a8a;
+    --p-primary-950: #172554;
+}
+
+.theme-green {
+    --p-primary-50: #ecfdf5;
+    --p-primary-100: #d1fae5;
+    --p-primary-200: #a7f3d0;
+    --p-primary-300: #6ee7b7;
+    --p-primary-400: #34d399;
+    --p-primary-500: #10b981;
+    --p-primary-600: #059669;
+    --p-primary-700: #047857;
+    --p-primary-800: #065f46;
+    --p-primary-900: #064e3b;
+    --p-primary-950: #022c22;
+}
+
+.theme-purple {
+    --p-primary-50: #f5f3ff;
+    --p-primary-100: #ede9fe;
+    --p-primary-200: #ddd6fe;
+    --p-primary-300: #c4b5fd;
+    --p-primary-400: #a78bfa;
+    --p-primary-500: #8b5cf6;
+    --p-primary-600: #7c3aed;
+    --p-primary-700: #6d28d9;
+    --p-primary-800: #5b21b6;
+    --p-primary-900: #4c1d95;
+    --p-primary-950: #2e1065;
+}
+
+/* ============================================
    PrimeVue Ripple 效果样式 (unstyled模式)
    ============================================ */
 

@@ -18,6 +18,16 @@ Object.defineProperty(globalThis, 'location', {
     writable: true,
 });
 
+// 浏览器navigator（appearance模块初始化语言需要）
+Object.defineProperty(globalThis, 'navigator', {
+    value: {
+        language: 'en-US',
+        userAgent: 'vitest',
+    },
+    configurable: true,
+    writable: true,
+});
+
 // 浏览器window（src/hooks.ts 依赖）
 Object.defineProperty(globalThis, 'window', {
     value: {
@@ -34,14 +44,16 @@ Object.defineProperty(globalThis, 'document', {
     value: {
         addEventListener: () => {},
         head: { append: () => {} },
+        body: { append: () => {} },
         createElement: () => {
-            // 极简元素桩：支持innerHTML/innerText/style，供formatContentText等工具在测试中使用
+            // 极简元素桩：支持innerHTML/innerText/style/remove，供formatContentText等工具在测试中使用
             let innerHTML = '';
             return {
                 style: {},
                 className: '',
                 setAttribute: () => {},
                 addEventListener: () => {},
+                remove: () => {},
                 get innerText() {
                     return innerHTML.replace(/<[^>]*>/g, '');
                 },

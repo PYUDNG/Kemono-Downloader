@@ -3,9 +3,7 @@ import App from './app.vue';
 
 const { root } = createShadowApp(App, {
     options: {
-        app: {
-            classes: 'dark',
-        }
+        app: {},
     },
 });
 

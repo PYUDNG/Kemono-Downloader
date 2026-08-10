@@ -62,6 +62,41 @@ export default {
             }
         }
     },
+    appearance: {
+        settings: {
+            label: 'Appearance',
+            group: 'General',
+            language: {
+                label: 'Interface Language',
+                caption: 'Switch the display language of the script interface',
+                options: {
+                    auto: 'Follow System',
+                    'zh-Hans': 'Simplified Chinese',
+                    'zh-Hant': 'Traditional Chinese',
+                    en: 'English',
+                },
+            },
+            "dark-mode": {
+                label: 'Dark Mode',
+                caption: 'Switch between light and dark display',
+                options: {
+                    system: 'Follow System',
+                    light: 'Light',
+                    dark: 'Dark',
+                },
+            },
+            "theme-color": {
+                label: 'Accent Color',
+                caption: 'Switch the accent color of the script interface',
+                options: {
+                    default: 'Kemono Orange',
+                    blue: 'Blue',
+                    green: 'Green',
+                    purple: 'Purple',
+                },
+            },
+        },
+    },
     downloader: {
         "show-ui": 'Download Manager',
         name: 'Downloader',

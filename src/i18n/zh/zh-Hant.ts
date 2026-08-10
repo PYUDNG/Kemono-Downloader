@@ -62,6 +62,41 @@ export default {
             }
         }
     },
+    appearance: {
+        settings: {
+            label: '外觀',
+            group: '一般設定',
+            language: {
+                label: '介面語言',
+                caption: '切換腳本介面的顯示語言',
+                options: {
+                    auto: '跟隨系統',
+                    'zh-Hans': '簡體中文',
+                    'zh-Hant': '繁體中文',
+                    en: 'English',
+                },
+            },
+            "dark-mode": {
+                label: '深色模式',
+                caption: '切換腳本介面的深淺色顯示',
+                options: {
+                    system: '跟隨系統',
+                    light: '淺色',
+                    dark: '深色',
+                },
+            },
+            "theme-color": {
+                label: '主題色',
+                caption: '切換腳本介面的主色調',
+                options: {
+                    default: 'Kemono 橙',
+                    blue: '藍色',
+                    green: '綠色',
+                    purple: '紫色',
+                },
+            },
+        },
+    },
     downloader: {
         "show-ui": '下載管理員',
         name: '下載器',

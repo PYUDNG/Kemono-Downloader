@@ -1,4 +1,4 @@
-import { Component, computed, createApp, h, reactive, ref, Ref } from "vue";
+import { Component, computed, createApp, h, reactive, ref, Ref, watch } from "vue";
 import type { ComponentExposed, ComponentProps } from 'vue-component-type-helpers'
 import PrimeVue from 'primevue/config';
 import { $CrE, CreateElementOptions } from "./dom-utils";
@@ -8,6 +8,7 @@ import ToastService from 'primevue/toastservice';
 import ConfirmationService from "primevue/confirmationservice";
 import { Nullable } from "../main";
 import type Popover from "@/volt/Popover.vue";
+import { dark, themeColor } from "@/modules/appearance/state.js";
 
 interface ShadowAppCreationOptions<
     C extends Component
@@ -142,6 +143,15 @@ export function createShadowApp<
 
     // 滚动条样式
     appElm.classList.add('scrollbar-light', 'dark:scrollbar-dark');
+
+    // 同步外观设置（深色模式/主题色）：统一由appearance状态驱动，替换各创建点的硬编码'dark'
+    watch([dark, themeColor], () => {
+        appElm.classList.toggle('dark', dark.value);
+        for (const cls of Array.from(appElm.classList)) {
+            cls.startsWith('theme-') && appElm.classList.remove(cls);
+        }
+        themeColor.value !== 'default' && appElm.classList.add(`theme-${ themeColor.value }`);
+    }, { immediate: true });
 
     // 屏蔽Shadown DOM内常见事件冒泡，预防性阻止Shadow DOM和页面互相干扰
     // 例如：在Dialog的InputText内按下左右箭头时，不触发页面翻页

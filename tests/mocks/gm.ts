@@ -21,7 +21,8 @@ const listeners = new Map<string, Set<(name: string, oldValue?: any, newValue?: 
 const responses = new Map<string, { status: number; responseText: string }>();
 
 export const GM_getValue = (key: string, defaultValue?: any) =>
-    storage.has(key) ? storage.get(key) : defaultValue;
+    // 真实GM存储为序列化副本：返回克隆以避免调用方原地修改污染存储（substorage的set会先取对象再改写）
+    storage.has(key) ? structuredClone(storage.get(key)) : defaultValue;
 
 export const GM_setValue = (key: string, value: any) => {
     const oldValue = storage.get(key);
