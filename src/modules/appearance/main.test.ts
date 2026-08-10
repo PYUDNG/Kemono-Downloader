@@ -34,6 +34,10 @@ vi.mock('@/styling.js', () => ({
 import './main.js';
 import { modules } from '@/modules/settings/main.js';
 import { resolveLocale, resolveDark, buildCustomPalette } from './state.js';
+import { customColor } from './state.js';
+import { globalStorage } from '@/storage.js';
+
+const storage = globalStorage.withKeys('appearance');
 
 beforeEach(() => {
     (globalThis as any).navigator.language = 'en-US';
@@ -82,6 +86,21 @@ describe('buildCustomPalette', () => {
         const palette = buildCustomPalette('#f00');
         expect(palette[500]).toBe('#f00');
         expect(palette[600]).toBe('#d90000');
+    });
+});
+
+describe('makeStorageRef快速写入（颜色选择器场景）', () => {
+    it('连续快速写入不会回退振荡（过期dispatch守卫）', async () => {
+        // 模拟颜色选择器拖拽：快速连续写入多个颜色
+        storage.set('customColor', '#ff0000');
+        storage.set('customColor', '#00ff00');
+        storage.set('customColor', '#0000ff');
+        await vi.waitFor(() => expect(customColor.value).toBe('#0000ff'));
+        // 稳定后采样多次，不应回退到之前的颜色
+        await new Promise(r => setTimeout(r, 30));
+        expect(customColor.value).toBe('#0000ff');
+        await new Promise(r => setTimeout(r, 30));
+        expect(customColor.value).toBe('#0000ff');
     });
 });
 
