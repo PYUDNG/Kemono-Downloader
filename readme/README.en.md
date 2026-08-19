@@ -2,7 +2,7 @@
 
 [English](/readme/README.en.md) [简体中文](/readme/README.zh-Hans.md) [繁體中文](/readme/README.zh-Hant.md)
 
-A modern Kemono/Pawchive downloader userscript featuring a beautiful UI, multiple downloaders, and extensive customization options.
+A modern Pawchive/Kemono downloader userscript featuring a beautiful UI, multiple downloaders, and extensive customization options.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Vue 3](https://img.shields.io/badge/Vue-3-42b883?logo=vue.js)](https://vuejs.org/)
@@ -20,7 +20,7 @@ A modern Kemono/Pawchive downloader userscript featuring a beautiful UI, multipl
 - Multi-language support
 
 ### 📥 Download Features
-- Multi-site support: Kemono, Pawchive
+- Multi-site support: Pawchive, Kemono
 - Batch download support
 - Multiple downloader options
 - Intelligent filename handling
@@ -47,7 +47,7 @@ The script core is decoupled from any specific website, adapting to arbitrary si
 1. **Site Adapter**: each supported website is implemented as an adapter, handling page detection (URL matching & lifecycle), resource extraction, and download intent submission;
 2. **Download Provider**: delivers download intents to the user, currently offering the built-in browser downloader, File System API, and Aria2.
 
-Kemono and Pawchive adapters are implemented so far. Based on this architecture, support for arbitrary websites can theoretically be added.
+Pawchive and Kemono adapters are implemented so far. Based on this architecture, support for arbitrary websites can theoretically be added.
 
 ## Screenshots
 

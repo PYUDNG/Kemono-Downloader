@@ -80,7 +80,7 @@ jobs:
           ## 安装说明
           1. 以上构建产物中，除`.meta.js`外均可安装使用，且功能没有任何差别
           2. 可直接点击链接，安装到Tampermonkey、Violentmonkey或ScriptCat等用户脚本管理器
-          3. 访问Kemono网站即可使用
+          3. 访问Pawchive/Kemono网站即可使用
           
           ## 变更日志
           请查看提交历史或GitHub Releases页面获取详细变更信息。
@@ -115,7 +115,7 @@ jobs:
           ## 安装说明
           1. 以上构建产物中，除`.meta.js`外均可安装使用，且功能没有任何差别
           2. 可直接点击链接，安装到Tampermonkey、Violentmonkey或ScriptCat等用户脚本管理器
-          3. 访问Kemono网站即可使用
+          3. 访问Pawchive/Kemono网站即可使用
         draft: false
         prerelease: false
         files: |

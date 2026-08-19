@@ -3,7 +3,7 @@
 [English](/readme/README.en.md) [简体中文](/readme/README.zh-Hans.md) [繁體中文](/readme/README.zh-Hant.md)
 
 <!-- /condition -->
-一个现代化的Kemono/Pawchive下载器用户脚本，提供美观的UI界面、多种下载器和高度自定义功能。
+一个现代化的Pawchive/Kemono下载器用户脚本，提供美观的UI界面、多种下载器和高度自定义功能。
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Vue 3](https://img.shields.io/badge/Vue-3-42b883?logo=vue.js)](https://vuejs.org/)
@@ -21,7 +21,7 @@
 - 多语言支持
 
 ### 📥 下载功能
-- 多站点支持：Kemono、Pawchive
+- 多站点支持：Pawchive、Kemono
 - 批量下载支持
 - 多种下载器选择
 - 智能文件名处理
@@ -66,7 +66,7 @@
 1. **Site Adapter（站点适配层）**：每个受支持的网站实现一个 adapter，负责页面识别（URL匹配与生命周期）、资源提取与提交下载意图；
 2. **Download Provider（下载交付层）**：负责将下载意图真正交付给用户，目前提供浏览器内置、File System API 与 Aria2 三种下载方式。
 
-目前已经实现 Kemono 与 Pawchive 两个站点 adapter。基于该架构，理论上可以扩展支持任意网站。
+目前已经实现 Pawchive 与 Kemono 两个站点 adapter。基于该架构，理论上可以扩展支持任意网站。
 <!-- /condition -->
 
 <!-- condition:platform=github -->
