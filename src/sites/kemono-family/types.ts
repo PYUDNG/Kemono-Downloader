@@ -68,6 +68,18 @@ export interface SiteCapabilities {
      * - `'thumbnail-only'`：图片仅以缩略图形式下载（“下载原图”开启时全量文件未导入，图片不下载）；文字内容按“下载文字内容”设置照常保存
      */
     pendingPosts: 'none' | 'skip' | 'thumbnail-only';
+    /**
+     * 探测创作者作品总数（站点API不提供总数信息时，如Pawchive的profile无post_count）
+     * 返回`null`表示无法确定，调用方回退到已加载数量
+     * @param options 探测参数
+     * @param options.loaded 已加载条数（探测从该偏移继续，避免重复请求已加载的页）
+     */
+    resolveTotalCount?: (options: {
+        service: string;
+        creatorId: string;
+        query?: string;
+        loaded: number;
+    }) => Promise<number | null>;
 }
 
 /**

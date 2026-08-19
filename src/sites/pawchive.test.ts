@@ -281,6 +281,52 @@ describe('pawchive.capabilities', () => {
         expect(capabilities.searchMinLength).toBe(3);
         expect(capabilities.pendingPosts).toBe('thumbnail-only');
     });
+
+    describe('resolveTotalCount（探测全部作品总数）', () => {
+        const creator = { service: 'fanbox', creatorId: '2629698' };
+
+        /** 生成一页50条帖子响应 */
+        function pageOf50() {
+            return Array.from({ length: 50 }, (_, i) => ({
+                id: String(1000 + i),
+                user: creator.creatorId,
+                service: creator.service,
+                title: `Post ${i}`,
+            }));
+        }
+
+        it('循环请求分页直到返回不足一页，累加计数', async () => {
+            // 共120条：o=50返回满50条，o=100返回20条（<50）→ 探测结束
+            __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/posts?o=50', 200, pageOf50());
+            __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/posts?o=100', 200, pageOf50().slice(0, 20));
+
+            const total = await capabilities.resolveTotalCount!({ ...creator, loaded: 50 });
+            expect(total).toBe(120);
+        });
+
+        it('总数恰好为整页时多请求一页发现空页', async () => {
+            // 共100条：o=50返回满50条，o=100返回空 → 探测结束
+            __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/posts?o=50', 200, pageOf50());
+            __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/posts?o=100', 200, []);
+
+            const total = await capabilities.resolveTotalCount!({ ...creator, loaded: 50 });
+            expect(total).toBe(100);
+        });
+
+        it('探测遇到API错误时返回已累计数量', async () => {
+            __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/posts?o=50', 500, { error: 'Server Error' });
+
+            const total = await capabilities.resolveTotalCount!({ ...creator, loaded: 50 });
+            expect(total).toBe(50);
+        });
+
+        it('探测筛选后的总数时携带q参数', async () => {
+            __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/posts?o=50&q=live', 200, pageOf50().slice(0, 3));
+
+            const total = await capabilities.resolveTotalCount!({ ...creator, loaded: 50, query: 'live' });
+            expect(total).toBe(53);
+        });
+    });
 });
 
 describe('pawchive.hosts', () => {
