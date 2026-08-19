@@ -21,7 +21,7 @@ export default {
         }
     },
     api: {
-        name: 'Kemono API',
+        name: 'Pawchive/Kemono API',
         settings: {
             "group-cache": 'Cache',
             "api-cache-expires": {
@@ -93,6 +93,7 @@ export default {
                     blue: 'Blue',
                     green: 'Green',
                     purple: 'Purple',
+                    pawchive: 'Pawchive Pink',
                     custom: 'Custom',
                 },
             },
@@ -244,7 +245,7 @@ Each site adapter provides as many of these variables as possible; the site-spec
                         PostID: 'Post Content ID',
                         CreatorID: 'Creator ID',
                         Service: 'Platform (e.g., "fanbox", "fantia")',
-                        P: 'File index in current directory',
+                        P: 'File index in current directory; use {P:02} etc. to pad with leading zeros',
                         Name: 'Original filename on server',
                         Base: 'Filename without extension (e.g., "abc" from "abc.jpg")',
                         Ext: 'File extension (e.g., "jpg")',
