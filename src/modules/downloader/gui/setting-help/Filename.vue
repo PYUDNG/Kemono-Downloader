@@ -10,6 +10,16 @@ const { t } = useI18n();
 const toast = useToast();
 const $filename = i18nKeys.$downloader.$settings.$filename;
 
+/**
+ * 模板行描述中需要按模板字面量展示的参数（避免花括号被 vue-i18n 消息编译器当作插值语法解析）
+ */
+const templateParams: Record<string, Record<string, string>> = {
+    P: { syntax: '{P:02}' },
+};
+
+/** Footer 中需要按模板字面量展示的参数 */
+const footerParams = { syntax: '{Key:NN}', example: '{P:02}' };
+
 const markups = [
     "PostID", "CreatorID", "Service", "P", "Name",
     "Base", "Ext", "Title", "Creator", "Year",
@@ -57,12 +67,12 @@ function copy(markup: string) {
                     pt:root:class="w-full"
                 />
             </div>
-            <span class="px-3 flex flex-row items-center border-b border-solid border-surface-200 dark:border-surface-800" v-html="t($filename.$help.$templates + '.' + markup)"></span>
+            <span class="px-3 flex flex-row items-center border-b border-solid border-surface-200 dark:border-surface-800" v-html="t($filename.$help.$templates + '.' + markup, templateParams[markup])"></span>
         </template>
     </div>
 
     <!-- Footer -->
-    <div class="font-bold py-2">{{ t($filename.$help.$footer) }}</div>
+    <div class="font-bold py-2">{{ t($filename.$help.$footer, footerParams) }}</div>
 
     <!-- Toast -->
     <Toast />

@@ -247,7 +247,7 @@ export default {
                         PostID: '帖子内容ID',
                         CreatorID: '作者ID',
                         Service: '平台（如"fanbox"/"fantia"等等）',
-                        P: '该文件在当前文件夹层级是第几个文件；可用{P:02}等指定前导零位数',
+                        P: '该文件在当前文件夹层级是第几个文件；可用{syntax}等指定前导零位数',
                         Name: '服务器上的文件原名',
                         Base: '文件原名的非扩展名部分（如"abc.jpg"中的"abc"）',
                         Ext: '文件原名的扩展名部分（如"abc.jpg"中的"jpg"）',
@@ -262,7 +262,7 @@ export default {
                         Timestamp: '纯数字时间戳',
                         Timetext: '文本时间戳',
                     },
-                    footer: '注: 所有时间相关模板均基于内容的发布时间；数值型模板支持{Key:NN}语法指定前导零宽度（如{P:02}）'
+                    footer: '注: 所有时间相关模板均基于内容的发布时间；数值型模板支持{syntax}语法指定前导零宽度（如{example}）'
                 },
                 toast: {
                     copied: '已复制',
