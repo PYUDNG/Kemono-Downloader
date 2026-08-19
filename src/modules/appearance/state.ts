@@ -65,14 +65,15 @@ const PAWCHIVE_PALETTE: ThemePalette = {
 export const DEFAULT_PALETTE: ThemePalette = ORANGE_PALETTE;
 
 /**
- * 主题色预设列表（`custom`走自定义颜色）
+ * 主题色预设列表（`custom`走自定义颜色）  
+ * 顺序即设置项中的展示顺序：Pawchive/Kemono品牌色在前，通用色居中，自定义最后
  */
 export const THEME_COLORS = [
+    { id: 'pawchive', palette: PAWCHIVE_PALETTE },
     { id: 'default', palette: ORANGE_PALETTE },
     { id: 'blue', palette: BLUE_PALETTE },
     { id: 'green', palette: GREEN_PALETTE },
     { id: 'purple', palette: PURPLE_PALETTE },
-    { id: 'pawchive', palette: PAWCHIVE_PALETTE },
     { id: 'custom', palette: null as ThemePalette | null },
 ] as const;
 

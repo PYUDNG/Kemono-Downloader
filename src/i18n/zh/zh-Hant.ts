@@ -259,7 +259,7 @@ export default {
                         Timestamp: '純數字時間戳記',
                         Timetext: '文字格式時間戳記',
                     },
-                    footer: '註：所有時間相關範本均基於內容的發佈時間'
+                    footer: '註：所有時間相關範本均基於內容的發佈時間；數值型範本支援{Key:NN}語法指定前導零寬度（如{P:02}）'
                 },
                 toast: {
                     copied: '已複製',

@@ -116,6 +116,6 @@ describe('appearance设置模块', () => {
         expect(module!.items.find(i => i.id === 'custom-color')!.type).toBe('color');
         // 主题色选项包含预设与自定义
         const themeOptions = module!.items.find(i => i.id === 'theme-color')!.props!.options;
-        expect((themeOptions as any[]).map((o: any) => o.value)).toEqual(['default', 'blue', 'green', 'purple', 'pawchive', 'custom']);
+        expect((themeOptions as any[]).map((o: any) => o.value)).toEqual(['pawchive', 'default', 'blue', 'green', 'purple', 'custom']);
     });
 });

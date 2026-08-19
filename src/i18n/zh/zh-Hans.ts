@@ -262,7 +262,7 @@ export default {
                         Timestamp: '纯数字时间戳',
                         Timetext: '文本时间戳',
                     },
-                    footer: '注: 所有时间相关模板均基于内容的发布时间'
+                    footer: '注: 所有时间相关模板均基于内容的发布时间；数值型模板支持{Key:NN}语法指定前导零宽度（如{P:02}）'
                 },
                 toast: {
                     copied: '已复制',
