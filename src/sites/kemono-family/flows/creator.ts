@@ -56,6 +56,43 @@ export function createKemonoCreatorModule({ site, page, api, capabilities }: Kem
     // 注：页码不需要存，因为筛选文本改变时页码会自动复原到第一页（PostList内部实现如此）
 
     /**
+     * 探测代次：用于竞态守卫，仅最后一次探测的结果生效  
+     * （翻页/切换筛选会触发多次探测，避免旧探测结果覆盖新结果）
+     */
+    let probeSeq = 0;
+
+    /**
+     * 探测创作者全部作品总数并更新分页器  
+     * 仅当站点提供`resolveTotalCount`能力（API不返回总数）时使用；
+     * 第一页未满时无需探测（总数即已加载数）；探测失败静默回退，不阻塞UI
+     * @param loaded 已加载条数（探测起点，避免重复请求第一页）
+     * @param query 当前筛选文本（探测筛选后的总数）
+     */
+    async function probeTotalCount(loaded: number, query?: string) {
+        const resolver = capabilities.resolveTotalCount;
+        const request = currentRequest();
+        if (!resolver || !request || loaded < (props.rows ?? 50)) return;
+        const seq = ++probeSeq;
+        // 每探测完一页即更新分页器（分页器页数随累计总数渐进增长）；仅最后一次探测生效
+        const onProgress = (partialTotal: number) => {
+            if (seq === probeSeq) props.total = partialTotal;
+        };
+        try {
+            const total = await resolver({
+                service: request.service,
+                creatorId: request.creatorId,
+                query,
+                loaded,
+                onProgress,
+            });
+            if (seq === probeSeq && total !== null) props.total = total;
+        } catch (err) {
+            // 探测失败：保持已加载数量，不影响浏览/下载
+            logger.asLevel('Warning', err);
+        }
+    }
+
+    /**
      * 传入PostsDialog根组件的属性
      */
     const props: ComponentProps<typeof PostsDialog> = reactive({
@@ -100,6 +137,8 @@ export function createKemonoCreatorModule({ site, page, api, capabilities }: Kem
             });
             if (isErrorResponse(allPosts)) throw new Error(allPosts.error);
             props.posts.splice(0, props.posts.length, ...allPosts);
+            // 筛选结果同样需要探测总数（站点API不提供总数时）
+            probeTotalCount(allPosts.length, keyword);
         },
         async onSelectAll(_e) {
             // 展示加载中Toast
@@ -193,8 +232,11 @@ export function createKemonoCreatorModule({ site, page, api, capabilities }: Kem
                         if (isErrorResponse(allPosts)) throw new Error(allPosts.error);
                         props.header = t($creator.$gui.$postsSelector.$header);
                         props.posts = allPosts;
-                        props.total = creator.post_count;
+                        props.total = creator.post_count ?? allPosts.length;
                         props.selectedPosts = [];
+
+                        // 站点API不提供总数时（如pawchive）：后台探测真实总数，分页器页数自动更新
+                        probeTotalCount(allPosts.length);
 
                         const infos = await root.show().catch(() => null) as Nullable<PostInfo[]>;
 

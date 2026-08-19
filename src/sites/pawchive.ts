@@ -63,6 +63,23 @@ export const capabilities: SiteCapabilities = {
     searchMinLength: 3,
     // 未完整导入（仅预览）的帖子：图片仅缩略图可用（“下载原图”关闭时下载），文字内容照常保存
     pendingPosts: 'thumbnail-only',
+    /**
+     * pawchive API不提供作品总数（profile无post_count字段，posts响应为纯数组）
+     * 循环请求后续分页直到返回不足一页（<50条），累加计数；
+     * 每探测完一页通过`onProgress`回调累计总数，供UI渐进式更新分页器
+     */
+    async resolveTotalCount({ service, creatorId, query, loaded, onProgress }) {
+        let total = loaded;
+        for (let i = loaded; ; i += 50) {
+            const page = await api.posts({ service, creatorId, index: i, query });
+            if (api.isErrorResponse(page)) break;
+            total += page.length;
+            // 每页探测完成即回调，分页器页数随累计总数渐进增长
+            onProgress?.(total);
+            if (page.length < 50) break;
+        }
+        return total;
+    },
 };
 
 // #endregion
