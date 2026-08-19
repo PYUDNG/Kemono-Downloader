@@ -245,7 +245,7 @@ Each site adapter provides as many of these variables as possible; the site-spec
                         PostID: 'Post Content ID',
                         CreatorID: 'Creator ID',
                         Service: 'Platform (e.g., "fanbox", "fantia")',
-                        P: 'File index in current directory; use {P:02} etc. to pad with leading zeros',
+                        P: 'File index in current directory; use {syntax} etc. to pad with leading zeros',
                         Name: 'Original filename on server',
                         Base: 'Filename without extension (e.g., "abc" from "abc.jpg")',
                         Ext: 'File extension (e.g., "jpg")',
@@ -260,7 +260,7 @@ Each site adapter provides as many of these variables as possible; the site-spec
                         Timestamp: 'Numeric Timestamp',
                         Timetext: 'Textual Timestamp',
                     },
-                    footer: 'Note: All time-related templates are based on the content publish date. Numeric templates support {Key:NN} syntax to set leading-zero width (e.g. {P:02}).'
+                    footer: 'Note: All time-related templates are based on the content publish date. Numeric templates support {syntax} syntax to set leading-zero width (e.g. {example}).'
                 },
                 toast: {
                     copied: 'Copied',
