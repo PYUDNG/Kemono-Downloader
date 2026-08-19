@@ -244,8 +244,8 @@ export default {
                         PostID: '貼文內容 ID',
                         CreatorID: '作者 ID',
                         Service: '平台（如 "fanbox"/"fantia" 等）',
-                        P: '該檔案在目前資料夾層級中的序號',
-                        Name: 'Kemono 伺服器上的原始檔名',
+                        P: '該檔案在目前資料夾層級中的序號；可用{P:02}等指定前導零位數',
+                        Name: '伺服器上的原始檔名',
                         Base: '原始檔名的主檔名部分（如 "abc.jpg" 中的 "abc"）',
                         Ext: '原始檔名的副檔名部分（如 "abc.jpg" 中的 "jpg"）',
                         Title: '貼文標題',
@@ -259,7 +259,7 @@ export default {
                         Timestamp: '純數字時間戳記',
                         Timetext: '文字格式時間戳記',
                     },
-                    footer: '註：所有時間相關範本均基於內容的發佈時間'
+                    footer: '註：所有時間相關範本均基於內容的發佈時間；數值型範本支援{Key:NN}語法指定前導零寬度（如{P:02}）'
                 },
                 toast: {
                     copied: '已複製',

@@ -56,12 +56,20 @@ const PURPLE_PALETTE: ThemePalette = {
     500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9', 800: '#5b21b6', 900: '#4c1d95', 950: '#2e1065',
 };
 
+// Pawchive粉（#cc9d97）：按与自定义色相同的白/黑混合比例生成的梯度
+const PAWCHIVE_PALETTE: ThemePalette = {
+    50: '#f7f0ef', 100: '#f0e2e0', 200: '#e6cecb', 300: '#debfbb', 400: '#d6b1ac',
+    500: '#cc9d97', 600: '#ad8580', 700: '#8f6e6a', 800: '#705653', 900: '#523f3c', 950: '#332726',
+};
+
 export const DEFAULT_PALETTE: ThemePalette = ORANGE_PALETTE;
 
 /**
- * 主题色预设列表（`custom`走自定义颜色）
+ * 主题色预设列表（`custom`走自定义颜色）  
+ * 顺序即设置项中的展示顺序：Pawchive/Kemono品牌色在前，通用色居中，自定义最后
  */
 export const THEME_COLORS = [
+    { id: 'pawchive', palette: PAWCHIVE_PALETTE },
     { id: 'default', palette: ORANGE_PALETTE },
     { id: 'blue', palette: BLUE_PALETTE },
     { id: 'green', palette: GREEN_PALETTE },

@@ -1,6 +1,6 @@
 # Kemono Downloader
 
-A modern Kemono/Pawchive downloader userscript featuring a beautiful UI, multiple downloaders, and extensive customization options.
+A modern Pawchive/Kemono downloader userscript featuring a beautiful UI, multiple downloaders, and extensive customization options.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Vue 3](https://img.shields.io/badge/Vue-3-42b883?logo=vue.js)](https://vuejs.org/)
@@ -18,7 +18,7 @@ A modern Kemono/Pawchive downloader userscript featuring a beautiful UI, multipl
 - Multi-language support
 
 ### 📥 Download Features
-- Multi-site support: Kemono, Pawchive
+- Multi-site support: Pawchive, Kemono
 - Batch download support
 - Multiple downloader options
 - Smart filename handling

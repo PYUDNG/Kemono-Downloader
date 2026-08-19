@@ -1,6 +1,6 @@
 # Kemono Downloader
 
-一個現代化的 Kemono/Pawchive 下載器使用者腳本，提供美觀的 UI 介面、多種下載器和高度自訂功能。
+一個現代化的 Pawchive/Kemono 下載器使用者腳本，提供美觀的 UI 介面、多種下載器和高度自訂功能。
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Vue 3](https://img.shields.io/badge/Vue-3-42b883?logo=vue.js)](https://vuejs.org/)
@@ -18,7 +18,7 @@
 - 多語言支援
 
 ### 📥 下載功能
-- 多站點支援：Kemono、Pawchive
+- 多站點支援：Pawchive、Kemono
 - 批次下載支援
 - 多種下載器選擇
 - 智慧檔案名稱處理

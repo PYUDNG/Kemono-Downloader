@@ -21,7 +21,7 @@ export default {
         }
     },
     api: {
-        name: 'Kemono API',
+        name: 'Pawchive/Kemono API',
         settings: {
             "group-cache": '缓存',
             "api-cache-expires": {
@@ -93,6 +93,7 @@ export default {
                     blue: '蓝色',
                     green: '绿色',
                     purple: '紫色',
+                    pawchive: 'Pawchive粉',
                     custom: '自定义',
                 },
             },
@@ -246,8 +247,8 @@ export default {
                         PostID: '帖子内容ID',
                         CreatorID: '作者ID',
                         Service: '平台（如"fanbox"/"fantia"等等）',
-                        P: '该文件在当前文件夹层级是第几个文件',
-                        Name: 'kemono服务器上的文件原名',
+                        P: '该文件在当前文件夹层级是第几个文件；可用{P:02}等指定前导零位数',
+                        Name: '服务器上的文件原名',
                         Base: '文件原名的非扩展名部分（如"abc.jpg"中的"abc"）',
                         Ext: '文件原名的扩展名部分（如"abc.jpg"中的"jpg"）',
                         Title: '帖子内容标题',
@@ -261,7 +262,7 @@ export default {
                         Timestamp: '纯数字时间戳',
                         Timetext: '文本时间戳',
                     },
-                    footer: '注: 所有时间相关模板均基于内容的发布时间'
+                    footer: '注: 所有时间相关模板均基于内容的发布时间；数值型模板支持{Key:NN}语法指定前导零宽度（如{P:02}）'
                 },
                 toast: {
                     copied: '已复制',

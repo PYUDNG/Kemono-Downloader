@@ -92,6 +92,12 @@ export function constructFilename(
         '?': '？',
         '*': '＊',
     };
+    // 记录数值型键（后续全角转换会把值转为字符串，零填充需要区分数值型token）
+    const numericKeys = new Set(
+        Object.entries(templateData)
+            .filter(([, val]) => typeof val === 'number')
+            .map(([key]) => key),
+    );
     Object.entries(templateData).forEach(([key, val]) => {
         if (val !== undefined && val !== null) {
             for (const [char, repl] of Object.entries(replacements)) {
@@ -102,17 +108,32 @@ export function constructFilename(
     });
 
     // 合成文件名字符串
-    const markups = Object.keys(templateData).filter(markup =>
-        template!.toLowerCase().includes(markup.toLowerCase()));
-    const rules: ReplaceRule[] = markups.map(markup => {
-        const [key, val] = Object.entries(templateData)
-            .find(([key, _val]) => key.toLowerCase() === markup.toLowerCase())!;
-        const strPlaceholder = placeholder === null ? key : placeholder;
-        return {
-            search: '{' + key.toString() + '}',
-            replace: val?.toString() ?? strPlaceholder,
-        };
-    })
+    // 模板markup语法：{Key} 或 {Key:NN}（NN=零填充宽度）
+    // 数值型token支持宽度控制（如{P:02}）；无宽度时按自然宽度填充（日期类token为2位，与帮助文档一致）
+    const NATURAL_WIDTHS: Record<string, number> = {
+        Month: 2,
+        Date: 2,
+        Hour: 2,
+        Minute: 2,
+        Second: 2,
+    };
+    const rules: ReplaceRule[] = [];
+    const markupRe = /\{([A-Za-z]+)(?::(\d+))?\}/g;
+    for (const match of template!.matchAll(markupRe)) {
+        const [raw, token, widthStr] = match;
+        // 查找对应键（大小写不敏感）；未知token保持原样不替换
+        const entry = Object.entries(templateData)
+            .find(([key]) => key.toLowerCase() === token.toLowerCase());
+        if (!entry) continue;
+        const [key, val] = entry;
+        let strVal = val?.toString() ?? (placeholder === null ? key : placeholder);
+        // 仅数值型token支持零填充（缺失值使用占位符，不填充）
+        if (numericKeys.has(key)) {
+            const width = widthStr ? parseInt(widthStr, 10) : NATURAL_WIDTHS[key];
+            if (width) strVal = strVal.padStart(width, '0');
+        }
+        rules.push({ search: raw, replace: strVal });
+    }
     let filepath = safeBatchReplace(template!, rules);
 
     // 由于浏览器安全规则，文件名/文件夹名不得以空格和点号结尾（开头未测试），这里为了确保文件能保存，进行掐头去尾
