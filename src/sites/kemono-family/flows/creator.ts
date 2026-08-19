@@ -73,12 +73,17 @@ export function createKemonoCreatorModule({ site, page, api, capabilities }: Kem
         const request = currentRequest();
         if (!resolver || !request || loaded < (props.rows ?? 50)) return;
         const seq = ++probeSeq;
+        // 每探测完一页即更新分页器（分页器页数随累计总数渐进增长）；仅最后一次探测生效
+        const onProgress = (partialTotal: number) => {
+            if (seq === probeSeq) props.total = partialTotal;
+        };
         try {
             const total = await resolver({
                 service: request.service,
                 creatorId: request.creatorId,
                 query,
                 loaded,
+                onProgress,
             });
             if (seq === probeSeq && total !== null) props.total = total;
         } catch (err) {

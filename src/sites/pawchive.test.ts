@@ -304,6 +304,18 @@ describe('pawchive.capabilities', () => {
             expect(total).toBe(120);
         });
 
+        it('每探测完一页通过onProgress回调累计总数（渐进式更新）', async () => {
+            // 共120条：o=50满50条，o=100返回20条
+            __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/posts?o=50', 200, pageOf50());
+            __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/posts?o=100', 200, pageOf50().slice(0, 20));
+
+            const progress: number[] = [];
+            const total = await capabilities.resolveTotalCount!({ ...creator, loaded: 50, onProgress: t => progress.push(t) });
+            expect(total).toBe(120);
+            // 每页探测完成回调一次：50页后累计100，末页20条后累计120
+            expect(progress).toEqual([100, 120]);
+        });
+
         it('总数恰好为整页时多请求一页发现空页', async () => {
             // 共100条：o=50返回满50条，o=100返回空 → 探测结束
             __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/posts?o=50', 200, pageOf50());
