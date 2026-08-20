@@ -234,7 +234,8 @@ const logic = computed(() => popover.value ? popoverLogic(popover.value, {
         popoverText.value = button.label;
     },
 }) : {} as Record<string, undefined>);
-const leftButtons: SelectionButton[] = [{
+/** 左侧按钮组（computed：随界面语言切换实时更新） */
+const leftButtons = computed<SelectionButton[]>(() => [{
     label: t($postsSelector.$selectionButtons.$selectAllPages),
     icon: MaterialSymbolsSelectAllRounded,
     onClick(e) {
@@ -246,8 +247,9 @@ const leftButtons: SelectionButton[] = [{
     onClick(_e) {
         selectedPosts.value.splice(0, selectedPosts.value.length);
     },
-}];
-const rightButtions: SelectionButton[] = [{
+}]);
+/** 右侧按钮组（computed：随界面语言切换实时更新） */
+const rightButtions = computed<SelectionButton[]>(() => [{
     label: t($postsSelector.$selectionButtons.$selectAll),
     icon: MaterialSymbolsSelectAllRounded,
     onClick(_e) {
@@ -271,7 +273,7 @@ const rightButtions: SelectionButton[] = [{
         );
         selectedPosts.value.splice(0, selectedPosts.value.length, ...posts);
     },
-}];
+}]);
 //#endregion
 </script>
 

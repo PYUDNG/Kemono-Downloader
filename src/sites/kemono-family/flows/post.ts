@@ -47,7 +47,7 @@ export function createKemonoPostModule({ site, page }: KemonoPostContext) {
             // 挂载下载按钮
             const { container, app, mountTarget } = await mountDownloadButton(page.mount, {
                 loading: false,
-                label: t(i18nKeys.$post.$gui.$download),
+                label: () => t(i18nKeys.$post.$gui.$download),
                 onClick(_e) {
                     try {
                         const request = page.parseRequest(location.pathname);

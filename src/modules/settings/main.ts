@@ -1,9 +1,8 @@
-import { createShadowApp, PromiseOrRaw, SingleOrArray } from "@/utils/main";
+import { createShadowApp, PromiseOrRaw, SingleOrArray, registerLocalizedMenuCommand } from "@/utils/main";
 import { defineModule } from "../types";
 import App from './app.vue';
 import { SettingGroup, SettingItem, SettingModule } from "./types";
 import { computed, reactive, ref, watch } from "vue";
-import { GM_registerMenuCommand } from "$";
 import i18n, { i18nKeys } from "@/i18n/main";
 
 const t = i18n.global.t;
@@ -46,7 +45,7 @@ export default defineModule({
             },
         });
 
-        GM_registerMenuCommand(t(i18nKeys.$settings.$menu.$label), () => root.visible = true);
+        registerLocalizedMenuCommand('kd-settings', () => t(i18nKeys.$settings.$menu.$label), () => root.visible = true);
     },
 });
 

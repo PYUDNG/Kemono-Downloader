@@ -8,8 +8,8 @@ import { isErrorResponse } from '@/modules/api/main.js';
 import type { Site, DownloadRequest } from '../../types.js';
 import type { PageDefinition, SiteApi, SiteCapabilities } from '../types.js';
 import type { PostInfo } from '../api-types/common.js';
-import { App, reactive, watch } from 'vue';
-import { ComponentProps } from 'vue-component-type-helpers';
+import { App, computed, reactive, watch } from 'vue';
+import type { PageState } from 'primevue';
 import i18n, { i18nKeys } from '@/i18n/main.js';
 import type { PostsApiItem } from '../api-types/posts.js';
 import { ToastMessageOptions } from 'primevue';
@@ -94,31 +94,34 @@ export function createKemonoCreatorModule({ site, page, api, capabilities }: Kem
 
     /**
      * 传入PostsDialog根组件的属性
+     * 注：不用ComponentProps注解——reactive对computed的UnwrapRef推断会被复杂目标类型的上下文检查干扰，
+     * 故让reactive自行推断，再在createShadowApp调用处以组件props类型校验
      */
-    const props: ComponentProps<typeof PostsDialog> = reactive({
-        header: '',
-        posts: [],
+    const props = reactive({
+        header: computed(() => t($creator.$gui.$postsSelector.$header)),
+        posts: [] as PostsApiItem[],
         rows: 50,
         total: 0,
-        mode: 'remote',
+        mode: 'remote' as const,
+        selectedPosts: [] as PostInfo[],
         buttons: [{
-            type: 'secondary',
-            label: t($creator.$gui.$postsSelector.$buttons.$cancel),
+            type: 'secondary' as const,
+            label: computed(() => t($creator.$gui.$postsSelector.$buttons.$cancel)),
             disabled: false,
             icon: PrimeTimes,
-            onclick(_submit, cancel) {
+            onclick(_submit: () => void, cancel: () => void) {
                 cancel();
             },
         }, {
-            type: 'primary',
-            label: t($creator.$gui.$postsSelector.$buttons.$download),
+            type: 'primary' as const,
+            label: computed(() => t($creator.$gui.$postsSelector.$buttons.$download)),
             disabled: true,
             icon: PrimeDownload,
-            onclick(submit, _cancel) {
+            onclick(submit: () => void, _cancel: () => void) {
                 submit();
             },
         }],
-        async onPageUpdate(page) {
+        async onPageUpdate(page: PageState) {
             const allPosts = await api.posts({
                 ...currentRequest()!,
                 index: page.first,
@@ -127,7 +130,7 @@ export function createKemonoCreatorModule({ site, page, api, capabilities }: Kem
             if (isErrorResponse(allPosts)) throw new Error(allPosts.error);
             props.posts.splice(0, props.posts.length, ...allPosts);
         },
-        async onFilter(keyword) {
+        async onFilter(keyword: string) {
             // 站点能力：搜索关键字最小长度（如pawchive要求至少3字符）
             if (keyword.length < capabilities.searchMinLength) return;
             search = keyword;
@@ -140,7 +143,7 @@ export function createKemonoCreatorModule({ site, page, api, capabilities }: Kem
             // 筛选结果同样需要探测总数（站点API不提供总数时）
             probeTotalCount(allPosts.length, keyword);
         },
-        async onSelectAll(_e) {
+        async onSelectAll(_e: PointerEvent) {
             // 展示加载中Toast
             const message: ToastMessageOptions = {
                 closable: false,
@@ -212,7 +215,7 @@ export function createKemonoCreatorModule({ site, page, api, capabilities }: Kem
             // 挂载下载按钮
             const { container, app, mountTarget } = await mountDownloadButton(page.mount, {
                 loading: false,
-                label: t($creator.$gui.$download),
+                label: () => t($creator.$gui.$download),
                 async onClick(_e) {
                     try {
                         const request = currentRequest();
@@ -230,7 +233,6 @@ export function createKemonoCreatorModule({ site, page, api, capabilities }: Kem
                         ]);
                         if (isErrorResponse(creator)) throw new Error(creator.error);
                         if (isErrorResponse(allPosts)) throw new Error(allPosts.error);
-                        props.header = t($creator.$gui.$postsSelector.$header);
                         props.posts = allPosts;
                         props.total = creator.post_count ?? allPosts.length;
                         props.selectedPosts = [];

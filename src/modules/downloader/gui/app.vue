@@ -26,12 +26,12 @@ provide(providerInjectionKey, provider);
 const visible = ref(false);
 
 /**
- * 选项卡列表
+ * 选项卡列表（computed：随界面语言切换实时更新）
  */
-const options: Record<'label' | 'value', string>[] = ['init', 'queue', 'ongoing', 'paused', 'complete', 'aborted', 'error'].map(name => ({
+const options = computed<Record<'label' | 'value', string>[]>(() => ['init', 'queue', 'ongoing', 'paused', 'complete', 'aborted', 'error'].map(name => ({
     label: t(i18nKeys.$downloader.$gui.$tabs + '.' + name),
     value: name
-}));
+})));
 
 /**
  * 当前选项卡
