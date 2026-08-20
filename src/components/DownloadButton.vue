@@ -17,13 +17,23 @@ const props = defineProps<{
     /**
      * 按钮的文本
      */
-    label?: string;
+    /**
+     * 按钮文本：直接字符串，或返回字符串的getter（getter在渲染/监听时求值，支持随语言切换实时更新）
+     */
+    label?: string | (() => string);
 }>()
 
 const loading = ref(props.loading ?? false);
 watch(() => props.loading, val => loading.value = val);
-const label = ref(props.label ?? '');
-watch(() => props.label, val => label.value = val ?? '');
+const label = ref(resolveLabel(props));
+watch(() => resolveLabel(props), val => label.value = val ?? '');
+
+/**
+ * 解析按钮文本：字符串原样返回，getter形式调用求值（调用内部t()时会追踪i18n locale，实现响应式）
+ */
+function resolveLabel(p: typeof props): string {
+    return typeof p.label === 'function' ? p.label() : p.label ?? '';
+}
 const onClick = ref(props.onClick);
 watch(() => props.onClick, val => onClick.value = val);
 

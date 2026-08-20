@@ -76,6 +76,8 @@ export const GM_download = (_options: any) => ({ abort: () => {} });
 
 export const GM_registerMenuCommand = () => 0;
 
+export const GM_unregisterMenuCommand = (_captionOrId: string | number) => {};
+
 export const GM_setClipboard = (_text: string, _type?: string, callback?: () => void) => {
     callback?.();
 };

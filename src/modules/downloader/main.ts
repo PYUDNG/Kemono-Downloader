@@ -1,4 +1,4 @@
-import { createShadowApp } from "@/utils/main";
+import { createShadowApp, registerLocalizedMenuCommand } from "@/utils/main";
 import { defineModule } from "../types.js";
 import * as providers from './providers/main.js';
 import { registerModule } from "../settings/main.js";
@@ -16,7 +16,6 @@ import { BaseDownloadProvider, Feature } from "./types/base/provider.js";
 import { Status } from "./types/model.js";
 import { getFilenameTemplate } from "./utils/main.js";
 import type { ExpandFn, Resource } from "./types/model.js";
-import { GM_registerMenuCommand } from "$";
 export { default as gui } from './gui/app.vue';
 import DownloadIcon from '~icons/prime/download';
 import FileEditIcon from '~icons/prime/file-edit';
@@ -109,19 +108,14 @@ registerModule({
         value: makeStorageRef('textContent', storage, true, false),
         disabled: featureRelatedDisabled(
             'textContent',
-            (Object.keys(providers) as ProviderType[]).reduce((text, provider) => {
-                const $featureNotSupported = $settings.$textContent.$featureNotSupported;
-                const $provider = $settings.$provider;
-                text[provider] = {
-                    text: t(
-                        $featureNotSupported + '.' + provider, {
-                            provider: t($provider.$options + '.' + provider),
-                        }
-                    ),
-                    value: 'none',
-                };
-                return text;
-            }, {} as Record<ProviderType, Partial<DisabledGUI>>),
+            provider => ({
+                text: t(
+                    $settings.$textContent.$featureNotSupported + '.' + provider, {
+                        provider: t($settings.$provider.$options + '.' + provider),
+                    }
+                ),
+                value: 'none',
+            }),
         ),
         group: 'regular',
     }, {
@@ -136,19 +130,14 @@ registerModule({
         value: makeStorageRef('concurrent', storage, true, false),
         disabled: featureRelatedDisabled(
             'concurrent',
-            (Object.keys(providers) as ProviderType[]).reduce((text, provider) => {
-                const $featureNotSupported = $settings.$concurrent.$featureNotSupported;
-                const $provider = $settings.$provider;
-                text[provider] = {
-                    text: t(
-                        $featureNotSupported + '.' + provider, {
-                            provider: t($provider.$options + '.' + provider),
-                        }
-                    ),
-                    value: -1,
-                };
-                return text;
-            }, {} as Record<ProviderType, Partial<DisabledGUI>>),
+            provider => ({
+                text: t(
+                    $settings.$concurrent.$featureNotSupported + '.' + provider, {
+                        provider: t($settings.$provider.$options + '.' + provider),
+                    }
+                ),
+                value: -1,
+            }),
         ),
         group: 'regular',
     }, {
@@ -226,7 +215,7 @@ const { root } = createShadowApp(App, {
     }
 });
 
-GM_registerMenuCommand(t($downloader.$showUi), _e => showUI('ongoing'))
+registerLocalizedMenuCommand('kd-show-ui', () => t($downloader.$showUi), () => showUI('ongoing'))
 
 /**
  * 下载一个资源（资源树根）  
@@ -251,22 +240,25 @@ export function showUI(tab?: Status) {
 
 /**
  * 根据当前provider是否支持某一特定feature决定设置项是否禁用
- * @param provider 若当前provider在此列表中，则**不禁用**；反之为禁用
- * @param text 当被禁用时，在界面上展示什么文本提示；数据类型为{ [当前provider]: 文本 }；若某些provider对应属性未设置，则在需要时使用默认的feature-not-supported文本
+ * @param provider 若当前provider支持此feature，则**不禁用**；反之为禁用
+ * @param gui 当被禁用时，在界面上展示什么文本提示；入参为当前provider，
+ *            返回{ text, value }等提示信息（工厂形式：在响应式计算内调用，保证文本随语言实时更新）
  * @returns 表示设置项禁用状态的响应式变量，可以直接填入SettingItem的disabled属性
  */
 function featureRelatedDisabled(
     feature: Feature,
-    gui: Partial<Record<ProviderType, Partial<DisabledGUI>>>) {
-    return computed<boolean | DisabledGUI>(() => 
-        providers[currentProvider.value as ProviderType].features.includes(feature) ?
+    gui: (provider: ProviderType) => Partial<DisabledGUI> | undefined) {
+    return computed<boolean | DisabledGUI>(() => {
+        const provider = currentProvider.value as ProviderType;
+        const entry = gui(provider);
+        return providers[provider].features.includes(feature) ?
             false :
             ({
-                text: gui[currentProvider.value as ProviderType]?.text ??
-                    t($settings.$featureNotSupported, { provider: currentProvider.value }),
-                props: gui[currentProvider.value as ProviderType]?.props ??
+                text: entry?.text ??
+                    t($settings.$featureNotSupported, { provider }),
+                props: entry?.props ??
                     { class: 'text-yellow-500' },
-                value: gui[currentProvider.value as ProviderType]?.value,
+                value: entry?.value,
             })
-    );
+    });
 }
