@@ -40,9 +40,9 @@
 
 ## 截图
 
-![](https://p.sda1.dev/32/3af729e78e788971b31a130ceb2a9e7f/PostsSelector.png)
-![](https://p.sda1.dev/31/3e69318e23ec13093a501c07796c6777/Manager.jpg)
-![](https://p.sda1.dev/31/57289b3c3a6dae2626c0df91fcd4cf7f/Settings.jpg)
+![](https://p.sda1.dev/34/4aa5ba397b7625bb8af8f32ca9c6943c/%E7%AE%80%E4%B8%AD-PostsSelector_v3.jpg)
+![](https://p.sda1.dev/34/2a19ddc6580dc049db5dfb7a2a3082ab/%E7%AE%80%E4%B8%AD-Manager_v3.jpg)
+![](https://p.sda1.dev/34/56ad95997aeaed0e6be3522300be0a85/%E7%AE%80%E4%B8%AD-Settings_v3.jpg)
 
 ## 📄 许可证
 
