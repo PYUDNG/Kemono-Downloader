@@ -40,9 +40,9 @@ A modern Pawchive/Kemono downloader userscript featuring a beautiful UI, multipl
 
 ## Screenshots
 
-![](https://p.sda1.dev/32/d5fa056e2fc167000bb0f27d5f1c2bf7/PostsSelector.png)
-![](https://p.sda1.dev/31/55a983d7d8e4c7957e9cbbb02068c23c/Manager.jpg)
-![](https://p.sda1.dev/31/d922777e076a727ec4dc32944c3fb941/Settings.jpg)
+![](https://p.sda1.dev/34/0830a093f7f0e016a95552b862241549/English-PostsSelector_v3.jpg)
+![](https://p.sda1.dev/34/0d49ddc1b456830062e2f2367f3af4f4/English-Manager_v3.jpg)
+![](https://p.sda1.dev/34/e96c5ba54ec3dc6894541b80466ca534/English-Settings_v3.jpg)
 
 ## 📄 License
 

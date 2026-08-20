@@ -51,9 +51,9 @@
 
 ## 截圖
 
-![](https://p.sda1.dev/32/c88e54e8f9b13fc33a8acd35d58bc67e/PostsSelector.png)
-![](https://p.sda1.dev/31/603cc320752a6167a58473768c553274/Manager.jpg)
-![](https://p.sda1.dev/31/d16bee941f34ae4abe025201b86e9dc5/Settings.jpg)
+![](https://p.sda1.dev/34/3bf374557ca96efcc763a05c9dbf8972/%E7%B9%81%E4%B8%AD-PostsSelector_v3.jpg)
+![](https://p.sda1.dev/34/b3570a8ebcbe34629ee19d92077dd765/%E7%B9%81%E4%B8%AD-Manager_v3.jpg)
+![](https://p.sda1.dev/34/1a5f57d5bd623cc3f891a3860b527bf7/%E7%B9%81%E4%B8%AD-Settings_v3.jpg)
 
 ## 🚀 快速開始
 

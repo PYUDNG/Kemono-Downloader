@@ -43,19 +43,19 @@
 
 ## 截图
 <!-- condition:language=en -->
-![](https://p.sda1.dev/32/d5fa056e2fc167000bb0f27d5f1c2bf7/PostsSelector.png)
-![](https://p.sda1.dev/31/55a983d7d8e4c7957e9cbbb02068c23c/Manager.jpg)
-![](https://p.sda1.dev/31/d922777e076a727ec4dc32944c3fb941/Settings.jpg)
+![](https://p.sda1.dev/34/0830a093f7f0e016a95552b862241549/English-PostsSelector_v3.jpg)
+![](https://p.sda1.dev/34/0d49ddc1b456830062e2f2367f3af4f4/English-Manager_v3.jpg)
+![](https://p.sda1.dev/34/e96c5ba54ec3dc6894541b80466ca534/English-Settings_v3.jpg)
 <!-- /condition -->
 <!-- condition:language=zh-Hans -->
-![](https://p.sda1.dev/32/3af729e78e788971b31a130ceb2a9e7f/PostsSelector.png)
-![](https://p.sda1.dev/31/3e69318e23ec13093a501c07796c6777/Manager.jpg)
-![](https://p.sda1.dev/31/57289b3c3a6dae2626c0df91fcd4cf7f/Settings.jpg)
+![](https://p.sda1.dev/34/4aa5ba397b7625bb8af8f32ca9c6943c/%E7%AE%80%E4%B8%AD-PostsSelector_v3.jpg)
+![](https://p.sda1.dev/34/2a19ddc6580dc049db5dfb7a2a3082ab/%E7%AE%80%E4%B8%AD-Manager_v3.jpg)
+![](https://p.sda1.dev/34/56ad95997aeaed0e6be3522300be0a85/%E7%AE%80%E4%B8%AD-Settings_v3.jpg)
 <!-- /condition -->
 <!-- condition:language=zh-Hant -->
-![](https://p.sda1.dev/32/c88e54e8f9b13fc33a8acd35d58bc67e/PostsSelector.png)
-![](https://p.sda1.dev/31/603cc320752a6167a58473768c553274/Manager.jpg)
-![](https://p.sda1.dev/31/d16bee941f34ae4abe025201b86e9dc5/Settings.jpg)
+![](https://p.sda1.dev/34/3bf374557ca96efcc763a05c9dbf8972/%E7%B9%81%E4%B8%AD-PostsSelector_v3.jpg)
+![](https://p.sda1.dev/34/b3570a8ebcbe34629ee19d92077dd765/%E7%B9%81%E4%B8%AD-Manager_v3.jpg)
+![](https://p.sda1.dev/34/1a5f57d5bd623cc3f891a3860b527bf7/%E7%B9%81%E4%B8%AD-Settings_v3.jpg)
 <!-- /condition -->
 
 <!-- condition:platform=github -->
