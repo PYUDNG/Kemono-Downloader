@@ -22,7 +22,7 @@ A modern Pawchive/Kemono downloader userscript featuring a beautiful UI, multipl
 ### 📥 Download Features
 - Multi-site support: Pawchive, Kemono
 - Batch download support
-- Multiple downloader options
+- Multiple downloader options: browser built-in, File System API, Aria2
 - Intelligent filename handling
 - Download progress display
 - Download task management
