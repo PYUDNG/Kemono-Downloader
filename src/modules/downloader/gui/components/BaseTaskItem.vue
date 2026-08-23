@@ -373,7 +373,9 @@ const menuButtons = computed(() => {
 
 <template>
     <!-- 确认对话框 -->
-    <ConfirmDialog :group="confirmDialogGroup" html>
+    <!-- @click.stop：弹窗appendTo为self，渲染在可点击的任务项内部；不阻止冒泡会导致点击弹窗内任意区域
+         （含删除文件勾选框/按钮）都触发任务项的click事件（如打开任务详情） -->
+    <ConfirmDialog :group="confirmDialogGroup" html @click.stop>
         <template #content="{ message, html }">
             <div class="flex flex-col">
                 <!-- 上方图标/文字内容 -->
@@ -385,7 +387,7 @@ const menuButtons = computed(() => {
                 <!-- 下方删除文件复选框 -->
                 <div v-if="showCheckbox" class="pt-0 px-5 pb-5 flex flex-row justify-between items-center">
                     <label :for="checkboxId">{{ t($common.$confirmDeleteFiles) }}</label>
-                    <Checkbox v-model="deleteFilesChecked" :input-id="checkboxId" />
+                    <Checkbox v-model="deleteFilesChecked" :input-id="checkboxId" binary />
                 </div>
             </div>
         </template>
