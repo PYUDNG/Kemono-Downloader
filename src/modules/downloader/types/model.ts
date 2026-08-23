@@ -2,6 +2,23 @@ import type { Reactive } from "vue";
 import type { Nullable, PromiseOrRaw } from "@/utils/main.js";
 
 /**
+ * 推荐语义资源类型词汇表  
+ * 站点 adapter 应尽量使用这些类型（以获得统一的图标/文案展示），亦可自定义扩展
+ */
+export const ResourceTypes = {
+    /** 单篇帖子/内容 */
+    POST: 'post',
+    /** 多个帖子的合集 */
+    POSTS: 'posts',
+    /** 创作者主页 */
+    CREATOR: 'creator',
+    /** 服务器（如Discord服务器） */
+    SERVER: 'server',
+    /** 频道（如Discord频道） */
+    CHANNEL: 'channel',
+} as const;
+export type ResourceType = typeof ResourceTypes[keyof typeof ResourceTypes] | (string & {});
+/**
  * 任务状态  
  * - `'init'`: 任务创建完毕，正在初始化，目前尚未准备好执行
  * - `'queue'`: 任务创建完毕且初始化完毕，在队列中随时可以开始执行

@@ -1,6 +1,6 @@
 import type { Component } from 'vue';
 import { i18nKeys } from '@/i18n/utils.js';
-import { ResourceTypes } from '@/sites/types.js';
+import { ResourceTypes } from './types/model.js';
 import FileIcon from '~icons/prime/file';
 import FolderIcon from '~icons/prime/folder';
 import ImageIcon from '~icons/prime/image';

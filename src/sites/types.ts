@@ -3,22 +3,10 @@ import type { Module } from '@/modules/types.js';
 import type { Resource } from '@/modules/downloader/types/model.js';
 
 /**
- * 推荐语义资源类型词汇表  
+ * 推荐语义资源类型词汇表（定义于下载器领域模型，此处再导出供站点 adapter 消费）  
  * 各站点 adapter 应尽量使用这些类型（以获得统一的图标/文案展示），亦可自定义扩展
  */
-export const ResourceTypes = {
-    /** 单篇帖子/内容 */
-    POST: 'post',
-    /** 多个帖子的合集 */
-    POSTS: 'posts',
-    /** 创作者主页 */
-    CREATOR: 'creator',
-    /** 服务器（如Discord服务器） */
-    SERVER: 'server',
-    /** 频道（如Discord频道） */
-    CHANNEL: 'channel',
-} as const;
-export type ResourceType = typeof ResourceTypes[keyof typeof ResourceTypes] | (string & {});
+export { ResourceTypes, type ResourceType } from '@/modules/downloader/types/model.js';
 
 /**
  * 页面动作产生的下载意图（`resolve`的输入）  
