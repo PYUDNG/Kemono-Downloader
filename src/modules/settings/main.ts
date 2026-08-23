@@ -1,4 +1,4 @@
-import { createShadowApp, PromiseOrRaw, SingleOrArray, registerLocalizedMenuCommand } from "@/utils/main";
+import { createShadowApp, persistShadowHost, PromiseOrRaw, SingleOrArray, registerLocalizedMenuCommand } from "@/utils/main";
 import { defineModule } from "../types";
 import App from './app.vue';
 import { SettingGroup, SettingItem, SettingModule } from "./types";
@@ -38,12 +38,14 @@ export default defineModule({
         value: true,
     },
     async enter() {
-        const { root } = createShadowApp(App, {
+        const { host, root } = createShadowApp(App, {
             props: { modules },
             options: {
                 app: {},
             },
         });
+        // 常驻UI：宿主SPA重渲染会移除body下的元素，注册后自动挂回
+        persistShadowHost(host);
 
         registerLocalizedMenuCommand('kd-settings', () => t(i18nKeys.$settings.$menu.$label), () => root.visible = true);
     },

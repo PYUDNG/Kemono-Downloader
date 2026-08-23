@@ -1,4 +1,4 @@
-import { createShadowApp, registerLocalizedMenuCommand } from "@/utils/main";
+import { createShadowApp, persistShadowHost, registerLocalizedMenuCommand } from "@/utils/main";
 import { defineModule } from "../types.js";
 import * as providers from './providers/main.js';
 import { registerModule } from "../settings/main.js";
@@ -197,15 +197,17 @@ const providerType: ProviderType = storage.get('provider');
 const provider = reactive(new providers[providerType]) as unknown as BaseDownloadProvider;
 
 // 创建GUI
-const { app, root: rootTaskDetail } = createShadowApp(AppTaskDetail, {
+const { host: hostTaskDetail, app, root: rootTaskDetail } = createShadowApp(AppTaskDetail, {
     props: { provider, tasks: [], name: null },
     options: {
         app: {},
     }
 });
 app.provide(rootTaskDetailInjectionKey, rootTaskDetail);
+// 常驻UI：宿主SPA重渲染会移除body下的元素，注册后自动挂回
+persistShadowHost(hostTaskDetail);
 
-const { root } = createShadowApp(App, {
+const { host, root } = createShadowApp(App, {
     props: { provider },
     options: {
         app: {},
@@ -214,6 +216,7 @@ const { root } = createShadowApp(App, {
         [rootTaskDetailInjectionKey]: rootTaskDetail
     }
 });
+persistShadowHost(host);
 
 registerLocalizedMenuCommand('kd-show-ui', () => t($downloader.$showUi), () => showUI('ongoing'))
 

@@ -227,6 +227,51 @@ export function createShadowApp<
 }
 
 /**
+ * 需要常驻的Shadow宿主元素集合（脚本加载时创建的全局UI，如下载管理器/设置/帖子选择器等）  
+ * 宿主SPA重渲染（如浏览器返回导航）会移除body下的这些元素；被移除时自动重新挂回body，
+ * 避免其shadow root内已挂载的Vue应用随元素脱离文档而失效
+ */
+const persistentShadowHosts = new Set<HTMLElement>();
+
+let shadowHostGuard: MutationObserver | null = null;
+
+function ensureShadowHostGuard(): void {
+    if (shadowHostGuard) return;
+    shadowHostGuard = new MutationObserver(mutations => {
+        for (const mutation of mutations) {
+            for (const node of mutation.removedNodes) {
+                // 仅处理已注册的常驻宿主：被站点移除后重新挂回body（其shadow root与Vue应用仍存活）
+                if (node instanceof HTMLElement && persistentShadowHosts.has(node) && !node.isConnected) {
+                    document.body?.appendChild(node);
+                }
+            }
+        }
+    });
+    shadowHostGuard.observe(document.body ?? document.documentElement, { childList: true });
+}
+
+/**
+ * 注册Shadow宿主元素为常驻元素：被宿主页面从DOM中移除时自动重新挂回body  
+ * 适用于脚本加载时创建、需跨页面导航存活的全局UI（下载管理器/设置/帖子选择器等）  
+ * 注意：页面模块按生命周期创建的宿主（如下载按钮）不要注册——它们的移除是受控的；  
+ * 若脚本自身需要主动移除已注册的宿主，必须先调用{@link unpersistShadowHost}解除注册
+ * @param host 宿主元素（createShadowApp返回的host）
+ */
+export function persistShadowHost(host: HTMLElement): void {
+    persistentShadowHosts.add(host);
+    ensureShadowHostGuard();
+}
+
+/**
+ * 解除常驻注册：该宿主之后被移除时不再自动挂回  
+ * 用于脚本自身主动移除已注册的宿主元素（先解除注册，再执行移除，避免被守卫挂回）
+ * @param host 宿主元素
+ */
+export function unpersistShadowHost(host: HTMLElement): void {
+    persistentShadowHosts.delete(host);
+}
+
+/**
  * 根据viewport纵横比判断布局为横版还是竖版，并包装为一个Vue响应式变量
  * @param ratio 横:纵 临界比例，当大于这个比例时认为是横版布局，否则竖版布局；数值越小越偏向横版，数值越大越偏向纵版；默认为1
  * @returns （根据viewport纵横比）当前是横版还是竖版布局，跟随viewport大小实时更新

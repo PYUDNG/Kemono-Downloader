@@ -1,6 +1,6 @@
 // 创作者页面流程（Kemono系）：挂载下载按钮，弹出帖子选择器，下载所选帖子
 
-import { createShadowApp, logger as globalLogger, Nullable, Optional, toast } from '@/utils/main.js';
+import { createShadowApp, persistShadowHost, logger as globalLogger, Nullable, Optional, toast } from '@/utils/main.js';
 import { defineModule } from '@/modules/types.js';
 import { downloadResource } from '@/modules/downloader/main.js';
 import PostsDialog from '../components/PostsSelector/PostsDialog.vue';
@@ -181,12 +181,14 @@ export function createKemonoCreatorModule({ site, page, api, capabilities }: Kem
             toast.remove(message);
         },
     })
-    const { root } = createShadowApp(PostsDialog, {
+    const { host, root } = createShadowApp(PostsDialog, {
         options: {
             app: {},
         },
         props: props,
     });
+    // 常驻UI：宿主SPA重渲染会移除body下的元素，注册后自动挂回
+    persistShadowHost(host);
 
     // 帖子选择器：当选中数量为0时禁用提交按钮
     watch(() => root.selectedPosts.length, length => props.buttons![1].disabled = length === 0);
