@@ -270,7 +270,9 @@ export class FSAFileTask extends BaseFileTask {
                     // 坏了，下载任务被取消了
                     // 根据传参属性决定是否删除已下载的文件
                     if (this.deleteFiles) {
-                        const dirPath = (await dlDirHandle.resolve(fileHandle))!.join('/');
+                        // resolve返回的是含文件名的完整相对路径（如 creator/post/file.mp4），
+                        // 去掉最后一段文件名后才是目标文件所在的目录路径
+                        const dirPath = (await dlDirHandle.resolve(fileHandle))!.slice(0, -1).join('/');
                         const dirHandle = await getDirectoryHandleRecursive(dlDirHandle, dirPath);
                         await dirHandle.removeEntry(fileHandle.name);
                     }
