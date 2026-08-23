@@ -103,6 +103,20 @@ export default {
             },
         },
     },
+    misc: {
+        settings: {
+            label: 'Auxiliary',
+            "download-guard": 'Download Guard',
+            "confirm-close": {
+                label: 'Confirm Before Closing',
+                caption: 'When tasks are downloading or paused, prompt for confirmation before the tab is closed',
+            },
+            "title-indicator": {
+                label: 'Title Indicator',
+                caption: 'Prefix the tab title with [↓] while downloading and [⏸] while paused',
+            },
+        },
+    },
     downloader: {
         "show-ui": 'Download Manager',
         name: 'Downloader',

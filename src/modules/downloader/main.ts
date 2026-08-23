@@ -239,6 +239,19 @@ export function showUI(tab?: Status) {
 }
 
 /**
+ * 当前下载状态（任务执行状态的高层聚合）  
+ * - `'downloading'`: 存在执行中的任务（init/queue/ongoing），优先级最高
+ * - `'paused'`: 无执行中任务，但存在已暂停任务
+ * - `'none'`: 既无执行中也无暂停任务
+ */
+export const downloadState = computed<'none' | 'downloading' | 'paused'>(() => {
+    const tasks = provider.tasks;
+    if (tasks.some(t => ['init', 'queue', 'ongoing'].includes(t.progress.status))) return 'downloading';
+    if (tasks.some(t => t.progress.status === 'paused')) return 'paused';
+    return 'none';
+});
+
+/**
  * 根据当前provider是否支持某一特定feature决定设置项是否禁用
  * @param provider 若当前provider支持此feature，则**不禁用**；反之为禁用
  * @param gui 当被禁用时，在界面上展示什么文本提示；入参为当前provider，

@@ -6,6 +6,7 @@ import type { Module } from './types.js';
 import * as settings from './settings/main.js';
 import * as api from './api/main.js';
 import * as downloader from './downloader/main.js';
+import * as misc from './misc/main.js';
 import * as debugging from './debugging/main.js';
 import * as self from './self/main.js';
 
@@ -26,6 +27,7 @@ export const modules = {
     settings,
     api,
     downloader,
+    misc,
     debugging,
     self,
     ...siteModules,

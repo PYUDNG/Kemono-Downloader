@@ -103,6 +103,20 @@ export default {
             },
         },
     },
+    misc: {
+        settings: {
+            label: '辅助功能',
+            "download-guard": '下载守护',
+            "confirm-close": {
+                label: '关闭前确认',
+                caption: '存在下载中或已暂停的任务时，关闭标签页前弹出确认提示',
+            },
+            "title-indicator": {
+                label: '标题标识',
+                caption: '下载中在标签页标题前加 [↓]，暂停中加 [⏸]',
+            },
+        },
+    },
     downloader: {
         "show-ui": '下载管理器',
         name: '下载器',

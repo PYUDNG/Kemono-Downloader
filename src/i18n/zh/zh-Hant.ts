@@ -102,6 +102,20 @@ export default {
             },
         },
     },
+    misc: {
+        settings: {
+            label: '輔助功能',
+            "download-guard": '下載守護',
+            "confirm-close": {
+                label: '關閉前確認',
+                caption: '存在下載中或已暫停的任務時，關閉分頁前彈出確認提示',
+            },
+            "title-indicator": {
+                label: '標題標記',
+                caption: '下載中在分頁標題前加 [↓]，暫停中加 [⏸]',
+            },
+        },
+    },
     downloader: {
         "show-ui": '下載管理員',
         name: '下載器',

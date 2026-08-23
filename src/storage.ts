@@ -109,6 +109,17 @@ export const globalStorage = new UserscriptStorage(
             /** 可以存入任何可序列化的数据，数据格式取决于你的序列化方法 */
             logs: [] as LogPage[],
         },
+        misc: {
+            /**
+             * 存在下载中/已暂停任务时，关闭标签页前是否弹出确认提示
+             */
+            confirmClose: true as boolean,
+
+            /**
+             * 下载中/已暂停时，是否在标签页标题前添加状态标记（[↓] / [⏸]）
+             */
+            titleIndicator: true as boolean,
+        },
     }
 );
 
