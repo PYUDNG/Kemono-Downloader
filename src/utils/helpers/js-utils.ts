@@ -394,7 +394,12 @@ interface Task {
     /**
      * 任务状态
      */
-    status: 'queue' | 'ongoing' | 'resolved' | 'rejected';
+    status: 'queue' | 'ongoing' | 'resolved' | 'rejected' | 'aborted';
+
+    /**
+     * 任务是否实际执行过（用于判断是否释放并行槽位）
+     */
+    executed: boolean;
 };
 
 interface QueueConfig {
@@ -475,11 +480,12 @@ export class Queue {
     /**
      * 将给定函数/方法排队执行，以限制并发数和执行频率
      * @param func 排队执行的函数/方法
-     * @param signal 一个{@link AbortSignal}，当被abort时从队列移除此任务（如果任务已在执行中或已执行完毕，仍可从队列中移除，但无法终止任务）
+     * @param signal 一个{@link AbortSignal}，当被abort时标记排队中的任务为已终止（不再执行）；
+     * 已在执行中的任务无法在此终止，由调用方通过signal自行处理
      */
     enqueue<R>(func: () => R, signal?: AbortSignal): Promise<Awaited<R>> {
         const { promise, reject, resolve } = Promise.withResolvers<Awaited<R>>();
-        const task: Task = { func, reject, resolve, status: 'queue' };
+        const task: Task = { func, reject, resolve, status: 'queue', executed: false };
         this.tasks.push(task);
 
         // 任务结束时进行清理
@@ -487,19 +493,27 @@ export class Queue {
             // 更新任务状态
             task.status = 'resolved';
         }).catch(() => {
-            // 更新任务状态
-            task.status = 'rejected';
+            // 更新任务状态（已终止的任务保持aborted状态）
+            if (task.status !== 'aborted') task.status = 'rejected';
         }).finally(() => {
-            // 释放任务并行槽位
-            this.ongoing--;
+            // 释放任务并行槽位（仅实际执行过的任务占用过槽位；被取消的排队任务未执行）
+            if (task.executed) this.ongoing--;
             // 从队列移除任务
-            this.config.preserve || this.tasks.splice(this.tasks.indexOf(task), 1);
+            if (!this.config.preserve) {
+                const index = this.tasks.indexOf(task);
+                index >= 0 && this.tasks.splice(index, 1);
+            }
             // 检查是否有待执行的任务
             this.checkTask();
         })
 
         // 处理abort
-        signal?.addEventListener('abort', () => task.reject('aborted'));
+        signal?.addEventListener('abort', () => {
+            // 仍在排队：标记为已终止（checkTask只取出queue状态的任务，自然跳过）
+            if (task.status === 'queue') task.status = 'aborted';
+            // 已在执行中：无法在此终止，由调用方通过signal自行处理
+            task.reject('aborted');
+        });
 
         // 排队执行
         this.checkTask();
@@ -526,6 +540,7 @@ export class Queue {
     private run(task: Task) {
         // 申请任务并行槽位
         this.ongoing++;
+        task.executed = true;
 
         // 更新任务状态
         task.status = 'ongoing';

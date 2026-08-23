@@ -132,5 +132,7 @@ export async function download(options: GmDownloadOptions, signal?: AbortSignal)
         }
     } as GmDownloadOptions);
     signal?.addEventListener('abort', () => abort());
+    // signal在监听器注册前就已abort时，监听器不会触发，需手动abort
+    signal?.aborted && abort();
     return promise;
 }

@@ -92,6 +92,8 @@ export class BrowserFileTask extends BaseFileTask {
 
         // 排队下载文件
         await queueFile.enqueue(async () => {
+            // 排队期间可能已被终止：直接放弃执行
+            if ((this.progress.status as Status) === 'aborted') return;
             this.progress.status = 'ongoing' as Status;
             this.progress.total = this.progress.finished = -1;
 
@@ -102,6 +104,7 @@ export class BrowserFileTask extends BaseFileTask {
                     url: this.target.url!,
                     name: this.target.path,
                     onprogress: e => {
+                        // 取消下载后可能仍会收到进度回调（取决于下载器实现），照常更新进度即可
                         this.progress.total = (e.total ?? e.totalSize ?? -1) || -1;
                         this.progress.finished = (e.done ?? e.loaded ?? -1) || -1;
                     }

@@ -243,10 +243,11 @@ export interface DownloadProgress {
 export async function streamDownloadToFileHandle(
     url: string,
     fileHandle: FileSystemFileHandle,
-    onProgress?: (progress: DownloadProgress) => void
+    onProgress?: (progress: DownloadProgress) => void,
+    signal?: AbortSignal,
 ): Promise<void> {
-    // 发起请求
-    const response = await fetch(url, { mode: 'cors' });
+    // 发起请求（signal被abort时终止请求与流读取）
+    const response = await fetch(url, { mode: 'cors', signal });
 
     if (!response.ok)
         throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
