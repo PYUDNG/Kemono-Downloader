@@ -283,7 +283,10 @@ export default {
                 },
             },
             "no-cover-file": '不下载封面图文件',
-            "download-original-image": '下载原图',
+            "download-original-image": {
+                label: '下载原图',
+                caption: '仅对图片类型的附件生效；视频、压缩包等其他类型附件始终下载原文件',
+            },
             "abort-files": {
                 label: '取消任务时，如何处理已下载文件',
                 caption: '部分下载器可能不支持此功能',

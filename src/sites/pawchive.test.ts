@@ -153,7 +153,7 @@ describe('pawchive.expand', () => {
         expect(resource.files).toEqual([]);
     });
 
-    it('pending帖子且“下载原图”关闭时下载图片缩略图', async () => {
+    it('pending帖子且“下载原图”关闭时：图片下载缩略图、非图片仍走原文件URL', async () => {
         storage.set('downloadOriginalImage', false);
         __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/post/12384631', 200, {
             ...FULL_POST_RESPONSE,
@@ -168,10 +168,10 @@ describe('pawchive.expand', () => {
         await pawchive.expand(resource);
 
         expect(resource.available).toBe(true);
-        // 附件 + 封面 = 2 个文件，均为img子域缩略图URL
+        // 附件 + 封面 = 2 个文件；图片（封面）为img子域缩略图URL，非图片（mp4附件）为原文件URL
         expect(resource.files).toHaveLength(2);
         const [attachment, cover] = resource.files! as [Extract<FileSpec, { kind: 'download' }>, Extract<FileSpec, { kind: 'download' }>];
-        expect(attachment.url).toBe('https://img.pawchive.pw/thumbnail/data/ec/c1/anim.mp4');
+        expect(attachment.url).toBe('https://file.pawchive.pw/data/ec/c1/anim.mp4');
         expect(cover.url).toBe('https://img.pawchive.pw/thumbnail/data/3d/13/cover.jpeg');
     });
 
@@ -219,7 +219,7 @@ describe('pawchive.expand', () => {
         expect(resource.files).toHaveLength(3);
         const [content, attachment] = resource.files! as [Extract<FileSpec, { kind: 'save' }>, Extract<FileSpec, { kind: 'download' }>, ...unknown[]];
         expect(content.name).toBe('content.txt');
-        expect(attachment.url).toBe('https://img.pawchive.pw/thumbnail/data/ec/c1/anim.mp4');
+        expect(attachment.url).toBe('https://file.pawchive.pw/data/ec/c1/anim.mp4');
     });
 
     it('textContent=html时在文件列表最前面插入save文件', async () => {
@@ -241,7 +241,7 @@ describe('pawchive.expand', () => {
         expect(content.data).toBe('<pre><p>本文</p></pre>');
     });
 
-    it('downloadOriginalImage=false时使用缩略图URL', async () => {
+    it('非图片附件不应用“下载原图”开关，始终走原文件URL（图片仍走缩略图）', async () => {
         storage.set('downloadOriginalImage', false);
         registerFullPostResponses();
 
@@ -250,8 +250,11 @@ describe('pawchive.expand', () => {
         });
         await pawchive.expand(resource);
 
-        const [attachment] = resource.files! as [Extract<FileSpec, { kind: 'download' }>];
-        expect(attachment.url).toBe('https://img.pawchive.pw/thumbnail/data/ec/c1/anim.mp4');
+        const files = resource.files! as Extract<FileSpec, { kind: 'download' }>[];
+        // 非图片附件（mp4）：始终走原文件URL
+        expect(files.find(f => f.path === '/ec/c1/anim.mp4')!.url).toBe('https://file.pawchive.pw/data/ec/c1/anim.mp4');
+        // 图片附件（封面）：仍按设置走缩略图URL
+        expect(files.find(f => f.path === '/3d/13/cover.jpeg')!.url).toBe('https://img.pawchive.pw/thumbnail/data/3d/13/cover.jpeg');
     });
 
     it('API返回错误时expand抛错', async () => {

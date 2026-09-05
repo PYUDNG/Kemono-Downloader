@@ -194,6 +194,41 @@ describe('kemono.expand', () => {
         expect(attachment.url).toBe('https://img.kemono.cr/thumbnail/data/a/b.jpg');
     });
 
+    it('非图片附件不应用“下载原图”开关，始终走原图文件服务器URL', async () => {
+        storage.set('downloadOriginalImage', false);
+        __setResponse('https://kemono.cr/api/v1/fanbox/user/8062849/post/9998726', 200, {
+            post: {
+                ...POST_RESPONSE.post,
+                attachments: [
+                    { name: 'a.jpg', path: '/a/b.jpg' },
+                    { name: 'b.zip', path: '/a/b.zip' },
+                ],
+            },
+            attachments: [
+                { name: 'a.jpg', path: '/a/b.jpg' },
+                { name: 'b.zip', path: '/a/b.zip' },
+            ],
+            previews: [
+                { name: 'a.jpg', path: '/a/b.jpg', server: 'https://n3.kemono.cr', type: 'thumbnail' },
+            ],
+            props: { service: 'fanbox', flagged: 0, revisions: [] },
+        });
+        __setResponse('https://kemono.cr/api/v1/fanbox/user/8062849/profile', 200, PROFILE_RESPONSE);
+
+        const resource = kemono.resolve({
+            kind: 'post', service: 'fanbox', creatorId: '8062849', postId: '9998726',
+        });
+        await kemono.expand(resource);
+
+        const files = resource.files! as Extract<FileSpec, { kind: 'download' }>[];
+        // 图片附件：应用开关 → 缩略图URL
+        expect(files.find(f => f.path === '/a/b.jpg')!.url).toBe('https://img.kemono.cr/thumbnail/data/a/b.jpg');
+        // 非图片附件（zip）：始终走原图文件服务器URL
+        expect(files.find(f => f.path === '/a/b.zip')!.url).toBe('https://n1.kemono.cr/data/a/b.zip');
+        // 封面图（图片）：应用开关 → 缩略图URL
+        expect(files.find(f => f.path === '/co/ver.png')!.url).toBe('https://img.kemono.cr/thumbnail/data/co/ver.png');
+    });
+
     it('API返回错误时expand抛错', async () => {
         __setResponse('https://kemono.cr/api/v1/fanbox/user/8062849/post/9998726', 404, { error: 'Post not found.' });
 

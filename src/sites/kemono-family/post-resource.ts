@@ -136,8 +136,8 @@ export async function expandPostResource(
         });
     }
 
-    // 图片文件（附件 + 封面）
-    // pending帖（thumbnail-only）全量文件未导入：仅当“下载原图”关闭时可下载（此时fullFile即缩略图URL）
+    // 文件（附件 + 封面）
+    // pending帖（thumbnail-only）全量文件未导入：仅当“下载原图”关闭时可下载（此时图片fullFile为缩略图URL，非图片仍为原文件URL）
     if (!(pending && storage.get('downloadOriginalImage'))) {
         for (const file of data.post.attachments) {
             files.push({

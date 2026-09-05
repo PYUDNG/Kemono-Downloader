@@ -281,7 +281,10 @@ Each site adapter provides as many of these variables as possible; the site-spec
                 },
             },
             "no-cover-file": 'Do not download cover images',
-            "download-original-image": 'Download original images',
+            "download-original-image": {
+                label: 'Download original images',
+                caption: 'Applies only to image attachments; videos, archives, and other non-image attachments are always downloaded from their original source',
+            },
             "abort-files": {
                 label: 'Action on task abort',
                 caption: 'May not be supported by all providers',

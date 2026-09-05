@@ -111,6 +111,7 @@ export interface SiteAssets {
      * 全量文件URL
      * @param file 文件信息（API数据）
      * @param data 帖子API数据（可能包含previews信息）
+     * 仅图片附件受「下载原图」开关影响（关闭时走`img.`缩略图）；视频、压缩包等其他类型始终返回原文件URL
      */
     fullFile(file: { name?: string; path: string }, data: PostApiResponse): string;
     /**

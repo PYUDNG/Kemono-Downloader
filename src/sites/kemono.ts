@@ -3,6 +3,7 @@ import { globalStorage } from '@/storage.js';
 import { createPostsApi } from './kemono-family/api.js';
 import { createKemonoStylePages } from './kemono-family/pages.js';
 import { createPostsResolver, expandPostResource } from './kemono-family/post-resource.js';
+import { isImageFile } from './kemono-family/file-type.js';
 import { registerSiteFilenameSetting } from './kemono-family/settings.js';
 import { createKemonoCreatorModule, createKemonoPostModule } from './kemono-family/flows/index.js';
 import type { SiteAssets, SiteCapabilities } from './kemono-family/types.js';
@@ -68,14 +69,17 @@ export const assets: SiteAssets = {
     },
 
     fullFile(file, data) {
+        // 非图片附件（视频/压缩包等）：始终走原始文件服务器子域，不应用「下载原图」开关
+        if (!isImageFile(file)) {
+            return fullFileURL(file.path);
+        }
         if (storage.get('downloadOriginalImage')) {
             const preview = data.previews?.find(p => p.path === file.path);
             // preview.server be like: 'https://n3.kemono.cr'
             const server = preview?.server ?? `https://n1.${ location.host }`;
             return `${ server }/data${ file.path }`;
-        } else {
-            return `https://img.${ location.host }/thumbnail/data${ file.path }`;
         }
+        return `https://img.${ location.host }/thumbnail/data${ file.path }`;
     },
 
     discordFile(path) {

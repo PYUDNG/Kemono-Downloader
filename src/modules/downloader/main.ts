@@ -88,7 +88,8 @@ registerModule({
         id: 'downloadOriginalImage',
         type: 'switch',
         icon: ImageIcon,
-        label: computed(() => t($settings.$downloadOriginalImage)),
+        label: computed(() => t($settings.$downloadOriginalImage.$label)),
+        caption: computed(() => t($settings.$downloadOriginalImage.$caption)),
         value: makeStorageRef('downloadOriginalImage', storage, true, false),
         group: 'regular',
     }, {

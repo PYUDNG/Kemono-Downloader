@@ -6,6 +6,7 @@ import { createPostsApi } from './kemono-family/api.js';
 import { createKemonoStylePages } from './kemono-family/pages.js';
 import { createPostsResolver, expandPostResource } from './kemono-family/post-resource.js';
 import { registerSiteFilenameSetting } from './kemono-family/settings.js';
+import { isImageFile } from './kemono-family/file-type.js';
 import { createKemonoCreatorModule, createKemonoPostModule } from './kemono-family/flows/index.js';
 import type { SiteAssets, SiteCapabilities } from './kemono-family/types.js';
 import type { Resource } from '@/modules/downloader/types/model.js';
@@ -46,6 +47,10 @@ export const assets: SiteAssets = {
      * 缩略图设置下回退到`img.`子域的缩略图
      */
     fullFile(file, _data) {
+        // 非图片附件（视频/压缩包等）：始终走原始`file.`子域，不应用「下载原图」开关
+        if (!isImageFile(file)) {
+            return `https://file.${ location.host }/data${ file.path }`;
+        }
         return storage.get('downloadOriginalImage') ?
             `https://file.${ location.host }/data${ file.path }` :
             `https://img.${ location.host }/thumbnail/data${ file.path }`;
