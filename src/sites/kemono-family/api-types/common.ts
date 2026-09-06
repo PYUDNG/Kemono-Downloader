@@ -19,6 +19,11 @@ export interface PostInfo {
 export interface FileItem {
     name?: string;
     path: string;
+    /**
+     * 原始文件未导入（仅预览/缩略图可访问）
+     * 目前仅Pawchive返回：此类文件只能从`img.<host>`缩略图子域获取，无视「下载原图」开关
+     */
+    preview_only?: boolean;
 }
 
 /**

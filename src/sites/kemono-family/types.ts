@@ -112,8 +112,9 @@ export interface SiteAssets {
      * @param file 文件信息（API数据）
      * @param data 帖子API数据（可能包含previews信息）
      * 仅图片附件受「下载原图」开关影响（关闭时走`img.`缩略图）；视频、压缩包等其他类型始终返回原文件URL
+     * `preview_only`文件原始未导入，仅`img.`缩略图可访问（无视「下载原图」开关）
      */
-    fullFile(file: { name?: string; path: string }, data: PostApiResponse): string;
+    fullFile(file: { name?: string; path: string; preview_only?: boolean }, data: PostApiResponse): string;
     /**
      * Discord等特殊资源的文件URL（无previews信息时）
      */

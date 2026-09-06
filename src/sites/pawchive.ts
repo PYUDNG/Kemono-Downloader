@@ -45,8 +45,13 @@ export const assets: SiteAssets = {
     /**
      * pawchive全量文件统一由`file.`子域提供（实测验证）  
      * 缩略图设置下回退到`img.`子域的缩略图
+     * 注意：`preview_only`文件原始未导入，仅`img.`缩略图可访问，因此无视「下载原图」开关
      */
     fullFile(file, _data) {
+        // preview_only（封面/附件均可能）：原始文件未导入，仅`img.`缩略图可访问；无视「下载原图」开关
+        if (file.preview_only) {
+            return `https://img.${ location.host }/thumbnail/data${ file.path }`;
+        }
         // 非图片附件（视频/压缩包等）：始终走原始`file.`子域，不应用「下载原图」开关
         if (!isImageFile(file)) {
             return `https://file.${ location.host }/data${ file.path }`;

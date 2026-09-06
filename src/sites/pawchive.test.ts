@@ -257,6 +257,33 @@ describe('pawchive.expand', () => {
         expect(files.find(f => f.path === '/3d/13/cover.jpeg')!.url).toBe('https://img.pawchive.pw/thumbnail/data/3d/13/cover.jpeg');
     });
 
+    it('preview_only分配（封面与图片附件）：即使开启“下载原图”也走img缩略图，非preview_only走原文件URL', async () => {
+        // 模拟实测pawchive API：封面与部分图片附件preview_only=true，zip不标记
+        storage.set('downloadOriginalImage', true);
+        __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/post/12384631', 200, {
+            ...FULL_POST_RESPONSE,
+            file: { name: 'cover.jpeg', path: '/3d/13/cover.jpeg', preview_only: true },
+            attachments: [
+                { name: 'img.png', path: '/ec/c1/img.png', preview_only: true },
+                { name: 'anim.mp4', path: '/ec/c1/anim.mp4' },
+            ],
+        });
+        __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/profile', 200, PROFILE_RESPONSE);
+
+        const resource = pawchive.resolve({
+            kind: 'post', service: 'fanbox', creatorId: '2629698', postId: '12384631',
+        });
+        await pawchive.expand(resource);
+
+        const files = resource.files! as Extract<FileSpec, { kind: 'download' }>[];
+        // preview_only 图片附件：无视“下载原图”开关，走img缩略图
+        expect(files.find(f => f.path === '/ec/c1/img.png')!.url).toBe('https://img.pawchive.pw/thumbnail/data/ec/c1/img.png');
+        // preview_only 封面：同上
+        expect(files.find(f => f.path === '/3d/13/cover.jpeg')!.url).toBe('https://img.pawchive.pw/thumbnail/data/3d/13/cover.jpeg');
+        // 非preview_only 非图片（mp4）：走原文件URL
+        expect(files.find(f => f.path === '/ec/c1/anim.mp4')!.url).toBe('https://file.pawchive.pw/data/ec/c1/anim.mp4');
+    });
+
     it('API返回错误时expand抛错', async () => {
         __setResponse('https://pawchive.pw/api/v1/fanbox/user/2629698/post/12384631', 404, { error: 'Post not found.' });
 
@@ -276,6 +303,11 @@ describe('pawchive.assets', () => {
     it('fullFile生成file子域URL', () => {
         expect(assets.fullFile({ path: '/a/b.jpg' }, {} as any))
             .toBe('https://file.pawchive.pw/data/a/b.jpg');
+    });
+
+    it('fullFile：preview_only文件无视“下载原图”开关，始终走img缩略图URL', () => {
+        expect(assets.fullFile({ path: '/a/b.jpg', preview_only: true }, {} as any))
+            .toBe('https://img.pawchive.pw/thumbnail/data/a/b.jpg');
     });
 });
 
