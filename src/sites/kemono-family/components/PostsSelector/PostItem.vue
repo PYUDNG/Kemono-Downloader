@@ -8,6 +8,7 @@ import { extractText, getViewport, Nullable, popoverLogic } from '@/utils/main.j
 import Button from '@/volt/Button.vue';
 import { PostInfo } from '@/sites/kemono-family/api-types/common.js';
 import { getPostContent, getPostFilePath, getPostTitle, isPostApiResponse, isPostsApiItem } from './utils.js';
+import { toThumbnailPath } from '@/sites/kemono-family/file-path.js';
 import Popover from '@/volt/Popover.vue';
 import { useI18n } from 'vue-i18n';
 import { i18nKeys } from '@/i18n/utils.js';
@@ -53,7 +54,7 @@ const info = computed<PostInfo>(() => {
  */
 const coverUrl = computed(() => {
     const path = getPostFilePath(data);
-    return path ? `https://img.${ location.host }/thumbnail/data${ path }` : null;
+    return path ? `https://img.${ location.host }/thumbnail/data${ toThumbnailPath(path) }` : null;
 });
 
 /**

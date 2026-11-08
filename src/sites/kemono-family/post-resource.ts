@@ -3,7 +3,7 @@ import { Queue } from '@/utils/main.js';
 import { isErrorResponse } from '@/modules/api/main.js';
 import { globalStorage } from '@/storage.js';
 import { formatContentHTML, formatContentText } from '@/modules/downloader/utils/main.js';
-import type { PostInfo } from './api-types/common.js';
+import type { FileItem, PostInfo } from './api-types/common.js';
 import type { PostApiResponse } from './api-types/post.js';
 import type { FileSpec, Resource, ResourceMeta } from '@/modules/downloader/types/model.js';
 import type { DownloadRequest } from '../types.js';
@@ -78,9 +78,61 @@ export function buildPostMeta(data: PostApiResponse, creator: { name: string }):
 }
 
 /**
+ * 从文件信息中解析保存时使用的文件名  
+ * 优先使用`name`；缺失时回退到`path`/下载URL的basename（URL可能经过百分号编码）
+ */
+function resolveFileName(file: Partial<FileItem>, url: string): string | null {
+    const source = file.name ?? file.path;
+    if (source) return source.substring(source.lastIndexOf('/') + 1);
+
+    try {
+        const pathname = new URL(url).pathname;
+        const basename = pathname.substring(pathname.lastIndexOf('/') + 1);
+        return decodeURIComponent(basename) || null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * 文件在服务器上的原始路径  
+ * 延迟导入的附件没有`path`，使用下载URL的pathname代替（仅用于文件名模板的`Name`兜底）
+ */
+function resolveFilePath(file: Partial<FileItem>, url: string): string {
+    if (file.path) return file.path;
+    try {
+        return new URL(url).pathname;
+    } catch {
+        return url;
+    }
+}
+
+/**
+ * 构建单个可下载文件  
+ * 当前无法获得下载地址时（如延迟导入附件仍在处理中）返回`null`
+ */
+function buildDownloadFile(
+    family: KemonoFamilyDeps,
+    file: Partial<FileItem>,
+    data: PostApiResponse,
+): Extract<FileSpec, { kind: 'download' }> | null {
+    const url = family.assets.fullFile(file, data);
+    if (!url) return null;
+    const name = resolveFileName(file, url);
+    if (!name) return null;
+    return {
+        kind: 'download',
+        name,
+        path: resolveFilePath(file, url),
+        url,
+    };
+}
+
+/**
  * 展开帖子资源（Kemono系站点通用）  
  * 拉取帖子+创作者数据，构建meta与文件列表  
- * 站点差异（文件URL、pending策略）通过`family`依赖传入
+ * 站点差异（文件URL等）通过`family`依赖传入；文件可用性由API逐文件标记
+ * （`preview_only`/`deferred`等），无可用下载地址的文件会被跳过
  */
 export async function expandPostResource(
     family: KemonoFamilyDeps,
@@ -104,24 +156,16 @@ export async function expandPostResource(
     }));
     if (isErrorResponse(creator)) throw new Error(creator.error);
 
-    // 内容未完整导入（仅预览）时按站点能力处理：
-    // - 'skip'：跳过该帖所有文件（不填充名称/meta）
-    // - 'thumbnail-only'：全量文件未导入，图片仅在“下载原图”关闭时以缩略图形式下载；文字内容按设置照常保存
-    const pending = family.capabilities.pendingPosts !== 'none' && data.post.has_full === false;
-    if (pending && family.capabilities.pendingPosts === 'skip') {
-        resource.available = false;
-        resource.files = [];
-        return;
-    }
-
     // 名称与meta
     resource.name = data.post.title;
     resource.meta = buildPostMeta(data, creator);
 
     // 文件列表
     const files: FileSpec[] = [];
+    // 因“延迟导入且暂无临时URL”而无法下载的文件数量
+    let unavailable = 0;
 
-    // 文字内容（插入到最前面；pending帖同样提供完整文字，可保存）
+    // 文字内容（插入到最前面；内容未完整导入的帖子同样提供完整文字，可保存）
     const textContent = storage.get('textContent');
     if (textContent !== 'none') {
         const sourceHTML = data.post.content;
@@ -137,31 +181,21 @@ export async function expandPostResource(
     }
 
     // 文件（附件 + 封面）
-    // pending帖（thumbnail-only）全量文件未导入：仅当“下载原图”关闭时可下载（此时图片fullFile为缩略图URL，非图片仍为原文件URL）
-    if (!(pending && storage.get('downloadOriginalImage'))) {
-        for (const file of data.post.attachments) {
-            files.push({
-                kind: 'download',
-                name: file.name ?? file.path.substring(file.path.lastIndexOf('/') + 1),
-                path: file.path,
-                url: family.assets.fullFile(file, data),
-            });
-        }
+    for (const file of data.post.attachments) {
+        const spec = buildDownloadFile(family, file, data);
+        if (spec) files.push(spec);
+        else unavailable++;
+    }
 
-        // 封面图（用户未指定不下载时）
-        const cover = data.post.file;
-        if (!storage.get('noCoverFile') && cover?.path) {
-            const coverFile = cover as { name?: string; path: string };
-            files.push({
-                kind: 'download',
-                name: coverFile.name ?? coverFile.path.substring(coverFile.path.lastIndexOf('/') + 1),
-                path: coverFile.path,
-                url: family.assets.fullFile(coverFile, data),
-            });
-        }
+    // 封面图（用户未指定不下载时）
+    const cover = data.post.file;
+    if (!storage.get('noCoverFile') && (cover?.path || cover?.temp_url || cover?.temp_download_url)) {
+        const spec = buildDownloadFile(family, cover, data);
+        if (spec) files.push(spec);
+        else unavailable++;
     }
 
     resource.files = files;
-    // pending帖可能没有任何可下载文件（如仅预览且无缩略图/文字），此时视为不可用
-    resource.available = pending ? files.length > 0 : true;
+    // 存在被跳过的文件且没有任何可下载内容（含文字内容）时，视为不可用
+    resource.available = files.length > 0 || unavailable === 0;
 }

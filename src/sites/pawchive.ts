@@ -7,6 +7,7 @@ import { createKemonoStylePages } from './kemono-family/pages.js';
 import { createPostsResolver, expandPostResource } from './kemono-family/post-resource.js';
 import { registerSiteFilenameSetting } from './kemono-family/settings.js';
 import { isImageFile } from './kemono-family/file-type.js';
+import { isHlsUrl, toThumbnailPath } from './kemono-family/file-path.js';
 import { createKemonoCreatorModule, createKemonoPostModule } from './kemono-family/flows/index.js';
 import type { SiteAssets, SiteCapabilities } from './kemono-family/types.js';
 import type { Resource } from '@/modules/downloader/types/model.js';
@@ -37,28 +38,49 @@ function normalizePost(raw: any): PostApiResponse | APIErrorResponse {
 
 // #region 资产URL生成（站点相关）
 
+/**
+ * 生成缩略图URL  
+ * 新API文件路径首段带有1位存储前缀，缩略图服务仍按去掉前缀的路径提供
+ */
+function thumbnailURL(path: string): string {
+    return `https://img.${ location.host }/thumbnail/data${ toThumbnailPath(path) }`;
+}
+
 export const assets: SiteAssets = {
-    thumbnail(path) {
-        return `https://img.${ location.host }/thumbnail/data${ path }`;
-    },
+    thumbnail: thumbnailURL,
 
     /**
      * pawchive全量文件统一由`file.`子域提供（实测验证）  
-     * 缩略图设置下回退到`img.`子域的缩略图
-     * 注意：`preview_only`文件原始未导入，仅`img.`缩略图可访问，因此无视「下载原图」开关
+     * 新API为未导入/延迟导入的文件下发临时签名URL，需按文件类型与设置选择：
+     * - 视频等转码附件优先使用`temp_download_url`（`temp_url`可能是m3u8播放列表）
+     * - `preview_only`（原始文件未导入）：开启「下载原图」且有临时URL时下载原文件，否则回退`img.`缩略图
+     * - `deferred`（尚未落盘）：无`path`，只能使用临时URL；临时URL也未生成时返回`null`（无法下载）
      */
     fullFile(file, _data) {
-        // preview_only（封面/附件均可能）：原始文件未导入，仅`img.`缩略图可访问；无视「下载原图」开关
+        // 转码附件的直链下载地址（优先于m3u8播放列表）
+        if (file.temp_download_url) return file.temp_download_url;
+
+        const isImage = isImageFile(file);
+        // 可作为普通文件下载的临时URL（排除HLS播放列表）
+        const tempURL = file.temp_url && !isHlsUrl(file.temp_url) ? file.temp_url : null;
+
+        // preview_only：原始文件未导入。新API通过临时URL开放原始文件；没有临时URL时只能取缩略图
         if (file.preview_only) {
-            return `https://img.${ location.host }/thumbnail/data${ file.path }`;
+            // 非图片没有缩略图可用，只能走临时URL
+            if (!isImage) return tempURL;
+            if (!file.path) return tempURL;
+            return storage.get('downloadOriginalImage') && tempURL ?
+                tempURL :
+                thumbnailURL(file.path);
         }
-        // 非图片附件（视频/压缩包等）：始终走原始`file.`子域，不应用「下载原图」开关
-        if (!isImageFile(file)) {
-            return `https://file.${ location.host }/data${ file.path }`;
-        }
-        return storage.get('downloadOriginalImage') ?
-            `https://file.${ location.host }/data${ file.path }` :
-            `https://img.${ location.host }/thumbnail/data${ file.path }`;
+
+        // 延迟导入附件（可能没有path）：使用临时URL；没有则当前无法下载
+        if (file.deferred || !file.path) return tempURL;
+
+        // 常规文件：非图片始终走原文件URL；图片按「下载原图」开关
+        const original = `https://file.${ location.host }/data${ file.path }`;
+        if (!isImage || storage.get('downloadOriginalImage')) return original;
+        return thumbnailURL(file.path);
     },
 };
 
@@ -71,8 +93,6 @@ export const api = createPostsApi(normalizePost);
 export const capabilities: SiteCapabilities = {
     // pawchive搜索接口要求关键字至少3个字符
     searchMinLength: 3,
-    // 未完整导入（仅预览）的帖子：图片仅缩略图可用（“下载原图”关闭时下载），文字内容照常保存
-    pendingPosts: 'thumbnail-only',
     /**
      * pawchive API不提供作品总数（profile无post_count字段，posts响应为纯数组）
      * 循环请求后续分页直到返回不足一页（<50条），累加计数；
@@ -99,7 +119,8 @@ const resolve = createPostsResolver();
 
 /**
  * 展开资源  
- * 委托给Kemono系站点通用展开逻辑；本站点能力：pending帖子（内容未完整导入）仅下载缩略图与文字内容
+ * 委托给Kemono系站点通用展开逻辑；文件可用性由API逐文件标记（`preview_only`/`deferred`），
+ * 新API的临时URL（`temp_url`/`temp_download_url`）使未导入的文件同样可下载
  */
 async function expand(resource: Resource): Promise<void> {
     await expandPostResource({ api, assets, capabilities }, resource);

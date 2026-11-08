@@ -16,12 +16,13 @@ const IMAGE_EXTENSIONS = new Set([
 /**
  * 根据文件路径/名称的扩展名判断是否为图片附件
  * 优先使用`path`判定（服务器路径，附有扩展名）；`path`无扩展名时回退到`name`
- * @param file 文件信息（API数据）
+ * @param file 文件信息（API数据）；延迟导入的附件可能没有`path`
  */
-export function isImageFile(file: { name?: string; path: string }): boolean {
-    const candidates = [file.path, file.name ?? ''];
+export function isImageFile(file: { name?: string; path?: string }): boolean {
+    const candidates = [file.path, file.name];
 
     for (const candidate of candidates) {
+        if (!candidate) continue;
         const basename = candidate.substring(candidate.lastIndexOf('/') + 1);
         const dotIndex = basename.lastIndexOf('.');
         // 无扩展名：尝试下一个候选

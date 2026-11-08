@@ -1,6 +1,6 @@
 import type { SingleOrArray, Checker } from '@/utils/main.js';
 import type { APIErrorResponse } from '@/modules/api/types/common.js';
-import type { PostInfo } from './api-types/common.js';
+import type { FileItem, PostInfo } from './api-types/common.js';
 import type { PostApiResponse } from './api-types/post.js';
 import type { PostsApiResponse } from './api-types/posts.js';
 import type { ProfileApiResponse } from './api-types/profile.js';
@@ -62,13 +62,6 @@ export interface SiteCapabilities {
      */
     searchMinLength: number;
     /**
-     * 内容未完整导入（仅预览）的帖子的处理方式
-     * - `'none'`：站点无pending概念，按完整帖处理
-     * - `'skip'`：跳过该帖所有文件
-     * - `'thumbnail-only'`：图片仅以缩略图形式下载（“下载原图”开启时全量文件未导入，图片不下载）；文字内容按“下载文字内容”设置照常保存
-     */
-    pendingPosts: 'none' | 'skip' | 'thumbnail-only';
-    /**
      * 探测创作者作品总数（站点API不提供总数信息时，如Pawchive的profile无post_count）
      * 返回`null`表示无法确定，调用方回退到已加载数量
      * @param options 探测参数
@@ -109,12 +102,13 @@ export interface SiteAssets {
     thumbnail(path: string): string;
     /**
      * 全量文件URL
-     * @param file 文件信息（API数据）
+     * @param file 文件信息（API数据）；延迟导入的附件可能没有`path`
      * @param data 帖子API数据（可能包含previews信息）
      * 仅图片附件受「下载原图」开关影响（关闭时走`img.`缩略图）；视频、压缩包等其他类型始终返回原文件URL
-     * `preview_only`文件原始未导入，仅`img.`缩略图可访问（无视「下载原图」开关）
+     * `preview_only`文件原始未导入：旧格式下仅`img.`缩略图可访问；新API提供`temp_url`时可获取原始文件
+     * @returns 下载URL；当前无法下载（如附件尚未落盘且无临时URL）时返回`null`，调用方应跳过该文件
      */
-    fullFile(file: { name?: string; path: string; preview_only?: boolean }, data: PostApiResponse): string;
+    fullFile(file: Partial<FileItem>, data: PostApiResponse): string | null;
     /**
      * Discord等特殊资源的文件URL（无previews信息时）
      */

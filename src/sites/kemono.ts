@@ -4,6 +4,7 @@ import { createPostsApi } from './kemono-family/api.js';
 import { createKemonoStylePages } from './kemono-family/pages.js';
 import { createPostsResolver, expandPostResource } from './kemono-family/post-resource.js';
 import { isImageFile } from './kemono-family/file-type.js';
+import { toThumbnailPath } from './kemono-family/file-path.js';
 import { registerSiteFilenameSetting } from './kemono-family/settings.js';
 import { createKemonoCreatorModule, createKemonoPostModule } from './kemono-family/flows/index.js';
 import type { SiteAssets, SiteCapabilities } from './kemono-family/types.js';
@@ -65,10 +66,11 @@ function fullFileURL(value: string): string {
 
 export const assets: SiteAssets = {
     thumbnail(path) {
-        return `https://img.${ location.host }/thumbnail/data${ path }`;
+        return `https://img.${ location.host }/thumbnail/data${ toThumbnailPath(path) }`;
     },
 
     fullFile(file, data) {
+        if (!file.path) return null;
         // 非图片附件（视频/压缩包等）：始终走原始文件服务器子域，不应用「下载原图」开关
         if (!isImageFile(file)) {
             return fullFileURL(file.path);
@@ -79,7 +81,7 @@ export const assets: SiteAssets = {
             const server = preview?.server ?? `https://n1.${ location.host }`;
             return `${ server }/data${ file.path }`;
         }
-        return `https://img.${ location.host }/thumbnail/data${ file.path }`;
+        return `https://img.${ location.host }/thumbnail/data${ toThumbnailPath(file.path) }`;
     },
 
     discordFile(path) {
@@ -95,7 +97,6 @@ export const api = createPostsApi();
 
 export const capabilities: SiteCapabilities = {
     searchMinLength: 0,
-    pendingPosts: 'none',
 };
 
 // #endregion
@@ -105,7 +106,7 @@ const resolve = createPostsResolver();
 
 /**
  * 展开资源  
- * 委托给Kemono系站点通用展开逻辑（本站点能力：无pending限制）
+ * 委托给Kemono系站点通用展开逻辑
  */
 async function expand(resource: Resource): Promise<void> {
     await expandPostResource({ api, assets, capabilities }, resource);
