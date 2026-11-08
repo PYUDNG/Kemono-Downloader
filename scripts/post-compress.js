@@ -17,6 +17,8 @@ const config = {
     rawFile: 'kemono-downloader.user.js',
     // 后处理生成的格式化文件（greasyfork版本）
     greasyforkFile: 'kemono-downloader.greasyfork.user.js',
+    // GreasyFork Webhook 同步专用文件名（GitHub Release Asset 必须叫这个名字）
+    greasyforkAssetFile: 'script.user.js',
     // 后处理生成的压缩文件（压缩版本）
     minifiedFile: 'kemono-downloader.min.user.js',
     // 后处理生成的更新文件（仅metadata）
@@ -117,6 +119,7 @@ async function postCompress() {
         // 1. 读取构建版本
         const rawPath = join(distDir, config.rawFile);
         const greasyforkPath = join(distDir, config.greasyforkFile);
+        const greasyforkAssetPath = join(distDir, config.greasyforkAssetFile);
         const minifiedPath = join(distDir, config.minifiedFile);
         const metaPath = join(distDir, config.metaFile);
 
@@ -139,6 +142,10 @@ async function postCompress() {
         // 5. 写入Greasyfork版本
         console.log(`💾 写入美化版本: ${config.greasyforkFile}`);
         writeFileSync(greasyforkPath, metaGreasyfork.code, 'utf8');
+
+        // 5.1 写入GreasyFork Webhook同步文件（GitHub Release 要求资产名为script.user.js）
+        console.log(`💾 写入GreasyFork Webhook文件: ${config.greasyforkAssetFile}`);
+        writeFileSync(greasyforkAssetPath, metaGreasyfork.code, 'utf8');
 
         // 6. 为压缩版本添加@downloadURL
         metaMinified.set('downloadURL', config.downloadURL);
@@ -173,6 +180,7 @@ async function postCompress() {
         console.log('\n✅ 后压缩处理完成！');
         console.log(`  原始构建: dist/${config.rawFile} (原始构建版本，未处理)`);
         console.log(`  美化版本: dist/${config.greasyforkFile} (已格式化，包含源代码说明)`);
+        console.log(`  GreasyFork Webhook: dist/${config.greasyforkAssetFile} (内容同美化版本，供 Webhook 按文件名同步)`);
         console.log(`  压缩版本: dist/${config.minifiedFile} (已压缩，保留头部注释)`);
         console.log(`  更新文件: dist/${config.metaFile} (仅包含头部注释，用于检查更新)`);
 

@@ -76,6 +76,7 @@ jobs:
           2. `kemono-downloader.greasyfork.user.js` - Greasyfork版本，包含代码格式化，**不支持自动更新**
           3. `kemono-downloader.min.user.js` - 压缩版本，文件体积小，安装/更新快，**支持自动更新，适合大多数用户**
           4. `kemono-downloader.meta.js` - 检查更新用文件，**此文件不支持安装**
+          5. `script.user.js` - GreasyFork Release Webhook 自动同步专用文件，内容同 Greasyfork 版本
           
           ## 安装说明
           1. 以上构建产物中，除`.meta.js`外均可安装使用，且功能没有任何差别
@@ -84,14 +85,28 @@ jobs:
           
           ## 变更日志
           请查看提交历史或GitHub Releases页面获取详细变更信息。
-        draft: false
+        draft: true
         prerelease: false
         files: |
           dist/kemono-downloader.user.js
           dist/kemono-downloader.greasyfork.user.js
           dist/kemono-downloader.min.user.js
           dist/kemono-downloader.meta.js
-    
+          dist/script.user.js
+
+    # 先以草稿创建并上传全部资产，再发布；确保 GreasyFork 的 release.published Webhook 触发时资产已就绪
+    - name: Publish Release
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+      uses: actions/github-script@v7
+      with:
+        script: |
+          await github.rest.repos.updateRelease({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            release_id: ${{ steps.create_release.outputs.id }},
+            draft: false,
+          });
+
     - name: Create Manual Release
       id: create_manual_release
       uses: softprops/action-gh-release@v1
@@ -111,15 +126,29 @@ jobs:
           2. `kemono-downloader.greasyfork.user.js` - Greasyfork版本，包含代码格式化，**不支持自动更新**
           3. `kemono-downloader.min.user.js` - 压缩版本，文件体积小，安装/更新快，**支持自动更新，适合大多数用户**
           4. `kemono-downloader.meta.js` - 检查更新用文件，**此文件不支持安装**
+          5. `script.user.js` - GreasyFork Release Webhook 自动同步专用文件，内容同 Greasyfork 版本
           
           ## 安装说明
           1. 以上构建产物中，除`.meta.js`外均可安装使用，且功能没有任何差别
           2. 可直接点击链接，安装到Tampermonkey、Violentmonkey或ScriptCat等用户脚本管理器
           3. 访问Pawchive/Kemono网站即可使用
-        draft: false
+        draft: true
         prerelease: false
         files: |
           dist/kemono-downloader.user.js
           dist/kemono-downloader.greasyfork.user.js
           dist/kemono-downloader.min.user.js
           dist/kemono-downloader.meta.js
+          dist/script.user.js
+
+    - name: Publish Manual Release
+      if: github.event_name == 'workflow_dispatch'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          await github.rest.repos.updateRelease({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            release_id: ${{ steps.create_manual_release.outputs.id }},
+            draft: false,
+          });
